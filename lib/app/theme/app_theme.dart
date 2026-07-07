@@ -2,16 +2,41 @@ import 'package:flutter/material.dart';
 
 import 'color_tokens.dart';
 
-/// Single static dark theme for the MVP. Kept additive so a light variant
-/// can be introduced later without restructuring feature code.
+/// App themes. A shared [_build] keeps the dark and light variants in sync so
+/// component styling (cards, inputs, buttons…) never drifts between them.
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get dark {
+  static ThemeData get dark => _build(
+        brightness: Brightness.dark,
+        surfaceBase: AppColors.surfaceBase,
+        surfaceElevated: AppColors.surfaceElevated,
+        surfaceElevatedHigh: AppColors.surfaceElevatedHigh,
+        textPrimary: AppColors.textPrimary,
+        divider: AppColors.divider,
+      );
+
+  static ThemeData get light => _build(
+        brightness: Brightness.light,
+        surfaceBase: AppColors.lightSurfaceBase,
+        surfaceElevated: AppColors.lightSurfaceElevated,
+        surfaceElevatedHigh: AppColors.lightSurfaceElevatedHigh,
+        textPrimary: AppColors.lightTextPrimary,
+        divider: AppColors.lightDivider,
+      );
+
+  static ThemeData _build({
+    required Brightness brightness,
+    required Color surfaceBase,
+    required Color surfaceElevated,
+    required Color surfaceElevatedHigh,
+    required Color textPrimary,
+    required Color divider,
+  }) {
     final base = ColorScheme.fromSeed(
-      brightness: Brightness.dark,
+      brightness: brightness,
       seedColor: AppColors.seed,
-      surface: AppColors.surfaceBase,
+      surface: surfaceBase,
       primary: AppColors.accentPrimary,
       secondary: AppColors.accentSecondary,
       error: AppColors.danger,
@@ -19,38 +44,38 @@ class AppTheme {
 
     // Uses the platform's default font (no network dependency — google_fonts'
     // runtime font fetching failed on some networks, e.g. DNS-filtered Wi-Fi).
-    final textTheme = ThemeData(brightness: Brightness.dark).textTheme.apply(
-          bodyColor: AppColors.textPrimary,
-          displayColor: AppColors.textPrimary,
+    final textTheme = ThemeData(brightness: brightness).textTheme.apply(
+          bodyColor: textPrimary,
+          displayColor: textPrimary,
         );
 
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: brightness,
       colorScheme: base,
-      scaffoldBackgroundColor: AppColors.surfaceBase,
+      scaffoldBackgroundColor: surfaceBase,
       textTheme: textTheme,
-      dividerColor: AppColors.divider,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surfaceBase,
+      dividerColor: divider,
+      appBarTheme: AppBarTheme(
+        backgroundColor: surfaceBase,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
       ),
       cardTheme: CardThemeData(
-        color: AppColors.surfaceElevated,
+        color: surfaceElevated,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: EdgeInsets.zero,
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: AppColors.surfaceElevated,
+        backgroundColor: surfaceElevated,
         indicatorColor: AppColors.accentPrimary.withValues(alpha: 0.25),
         surfaceTintColor: Colors.transparent,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surfaceElevated,
+        fillColor: surfaceElevated,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -65,8 +90,8 @@ class AppTheme {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
-      snackBarTheme: const SnackBarThemeData(
-        backgroundColor: AppColors.surfaceElevatedHigh,
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: surfaceElevatedHigh,
         behavior: SnackBarBehavior.floating,
       ),
     );

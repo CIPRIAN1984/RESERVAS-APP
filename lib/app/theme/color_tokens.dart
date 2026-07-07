@@ -24,6 +24,16 @@ class AppColors {
 
   static const Color divider = Color(0xFF2A2A2E);
 
+  // ── Light theme surfaces ──────────────────────────────────────────────
+  // Mirror of the dark tokens above for the light variant. The accent/seed
+  // and semantic colors (success/warning/danger, belts) are shared.
+  static const Color lightSurfaceBase = Color(0xFFF7F7FA);
+  static const Color lightSurfaceElevated = Color(0xFFFFFFFF);
+  static const Color lightSurfaceElevatedHigh = Color(0xFFECECF1);
+  static const Color lightTextPrimary = Color(0xFF1A1A1F);
+  static const Color lightTextSecondary = Color(0xFF5C5C66);
+  static const Color lightDivider = Color(0xFFE2E2E8);
+
   /// Belt colors reused in ranking badges and the technique tree (module 4).
   static const Map<String, Color> beltColors = {
     'blanco': Color(0xFFF2F2F5),

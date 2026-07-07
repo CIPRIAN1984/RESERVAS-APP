@@ -7,6 +7,7 @@ import '../../../app/routes.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/models/academia.dart';
 import '../../../core/utils/error_messages.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Self-registration for a student joining an academia that already exists
 /// and is approved. Registering as Profesor is not self-service — a Dueño
@@ -44,7 +45,7 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_academiaId == null) {
-      setState(() => _error = 'Selecciona tu academia.');
+      setState(() => _error = AppLocalizations.of(context).registerSelectAcademy);
       return;
     }
     setState(() {
@@ -75,9 +76,10 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
   @override
   Widget build(BuildContext context) {
     final academiasAsync = ref.watch(_academiasAprobadasProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear cuenta')),
+      appBar: AppBar(title: Text(l10n.actionCreateAccount)),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -91,35 +93,35 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
                   children: [
                     TextFormField(
                       controller: _nombreController,
-                      decoration: const InputDecoration(labelText: 'Nombre'),
-                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
+                      decoration: InputDecoration(labelText: l10n.registerName),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? l10n.commonRequired : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _apellidosController,
-                      decoration: const InputDecoration(labelText: 'Apellidos'),
+                      decoration: InputDecoration(labelText: l10n.registerLastName),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(labelText: 'Email'),
+                      decoration: InputDecoration(labelText: l10n.authEmail),
                       validator: (v) =>
-                          (v == null || !v.contains('@')) ? 'Introduce un email válido' : null,
+                          (v == null || !v.contains('@')) ? l10n.authEmailInvalid : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
-                      decoration: const InputDecoration(labelText: 'Contraseña'),
+                      decoration: InputDecoration(labelText: l10n.authPassword),
                       validator: (v) =>
-                          (v == null || v.length < 6) ? 'Mínimo 6 caracteres' : null,
+                          (v == null || v.length < 6) ? l10n.authPasswordTooShort : null,
                     ),
                     const SizedBox(height: 16),
                     academiasAsync.when(
                       data: (academias) => DropdownButtonFormField<String>(
                         initialValue: _academiaId,
-                        decoration: const InputDecoration(labelText: 'Tu academia'),
+                        decoration: InputDecoration(labelText: l10n.registerYourAcademy),
                         items: [
                           for (final a in academias)
                             DropdownMenuItem(value: a.id, child: Text(a.nombre)),
@@ -128,7 +130,7 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
                       ),
                       loading: () => const LinearProgressIndicator(),
                       error: (e, st) => Text(
-                        'No se pudieron cargar las academias.',
+                        l10n.registerAcademiesLoadError,
                         style: TextStyle(color: Theme.of(context).colorScheme.error),
                       ),
                     ),
@@ -145,12 +147,12 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Crear cuenta'),
+                          : Text(l10n.actionCreateAccount),
                     ),
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: _loading ? null : () => context.push(Routes.registroAcademia),
-                      child: const Text('¿Eres dueño de un gimnasio? Registra tu academia'),
+                      child: Text(l10n.registerOwnerCta),
                     ),
                   ],
                 ),
