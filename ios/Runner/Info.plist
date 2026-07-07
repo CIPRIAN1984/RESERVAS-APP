@@ -66,5 +66,20 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Deep link: esquema itaca:// para volver a la app tras el onboarding de
+	     Stripe, la confirmación de email de Supabase o un pago con redirección. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>app.itaca.deeplink</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>itaca</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

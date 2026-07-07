@@ -4,7 +4,12 @@
 import { createAdminClient, getCallerProfile, jsonResponse } from "../_shared/utils.ts";
 import { createStripeClient } from "../_shared/stripe.ts";
 
-const RETURN_URL = "https://web-henna-seven-16.vercel.app";
+// Where Stripe sends the Dueño back after (or on abandoning) onboarding.
+// Configurable per environment so it isn't pinned to a single deploy: set the
+// STRIPE_ONBOARDING_RETURN_URL secret to an HTTPS URL that redirects into the
+// app (a universal/app link or a web page with a "volver a la app" button).
+const RETURN_URL = Deno.env.get("STRIPE_ONBOARDING_RETURN_URL") ??
+  "https://web-henna-seven-16.vercel.app";
 
 Deno.serve(async (req) => {
   try {

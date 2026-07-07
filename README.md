@@ -67,7 +67,9 @@ supabase functions deploy     # despliega las Edge Functions
 supabase functions deploy stripe-webhook --no-verify-jwt
 ```
 
-Las Edge Functions esperan estos secretos (`supabase secrets set`): `STRIPE_SECRET_KEY` y `STRIPE_WEBHOOK_SECRET` (además de `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY`, que Supabase inyecta automáticamente). El webhook de Stripe debe escuchar también eventos de cuentas conectadas.
+Las Edge Functions esperan estos secretos (`supabase secrets set`): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` y, opcionalmente, `STRIPE_ONBOARDING_RETURN_URL` (URL de retorno del onboarding de Stripe; debe redirigir a la app mediante el deep link `itaca://`). Además `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` los inyecta Supabase automáticamente. El webhook de Stripe debe escuchar también eventos de cuentas conectadas (incluido `charge.refunded` para la reposición de stock).
+
+La app registra el esquema de deep link `itaca://` (Android e iOS) para volver limpiamente tras el onboarding de Stripe, la confirmación de email de Supabase o un pago con redirección.
 
 ## Tests y análisis
 
