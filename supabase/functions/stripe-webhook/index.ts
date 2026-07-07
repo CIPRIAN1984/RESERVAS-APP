@@ -4,7 +4,7 @@
 // Deployed with --no-verify-jwt: security comes from the Stripe-Signature
 // check below, not a Supabase JWT (Stripe can't send one).
 import Stripe from "npm:stripe@17";
-import { createAdminClient, jsonResponse } from "../_shared/utils.ts";
+import { createAdminClient, jsonResponse, logEvent } from "../_shared/utils.ts";
 import { createStripeClient, onboardingStatusFor } from "../_shared/stripe.ts";
 
 const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")!;
@@ -24,7 +24,9 @@ Deno.serve(async (req) => {
     // verification) is async-only, unlike Node's.
     event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
   } catch (error) {
-    console.error("Firma de webhook de Stripe inválida:", error);
+    logEvent("warn", "stripe-webhook", "Firma de webhook inválida", {
+      error: String(error),
+    });
     return new Response("Invalid signature", { status: 400 });
   }
 
@@ -125,9 +127,17 @@ Deno.serve(async (req) => {
     }
 
     await admin.from("stripe_webhook_events").insert({ id: event.id, type: event.type });
+    logEvent("info", "stripe-webhook", "Evento procesado", {
+      event_id: event.id,
+      event_type: event.type,
+    });
     return jsonResponse({ received: true });
   } catch (error) {
-    console.error(`Error procesando el evento ${event.type} (${event.id}):`, error);
+    logEvent("error", "stripe-webhook", "Error procesando evento", {
+      event_id: event.id,
+      event_type: event.type,
+      error: String(error),
+    });
     // Non-2xx so Stripe retries this delivery later.
     return new Response("Internal error handling webhook", { status: 500 });
   }

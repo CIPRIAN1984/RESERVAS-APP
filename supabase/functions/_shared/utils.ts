@@ -7,6 +7,30 @@ export function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
+/**
+ * Structured JSON logging for Edge Functions. Emitting one JSON object per log
+ * line (instead of interpolated strings) makes the Supabase/Deno logs
+ * queryable and easy to forward to an aggregator later. Never log secrets or
+ * full request bodies — pass only the fields you need for diagnosis.
+ */
+export function logEvent(
+  level: "info" | "warn" | "error",
+  fn: string,
+  message: string,
+  context: Record<string, unknown> = {},
+): void {
+  const line = JSON.stringify({
+    level,
+    fn,
+    message,
+    ts: new Date().toISOString(),
+    ...context,
+  });
+  if (level === "error") console.error(line);
+  else if (level === "warn") console.warn(line);
+  else console.log(line);
+}
+
 /** Bypasses RLS — only ever used for writes/reads that the caller isn't allowed to do directly. */
 export function createAdminClient(): SupabaseClient {
   return createClient(

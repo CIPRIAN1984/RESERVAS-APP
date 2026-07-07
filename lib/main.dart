@@ -9,29 +9,34 @@ import 'package:intl/intl.dart';
 import 'app/app.dart';
 import 'app/theme/app_theme.dart';
 import 'core/config/app_config.dart';
+import 'core/observability/observability.dart';
 import 'core/supabase/supabase_client.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('es_ES');
-  Intl.defaultLocale = 'es_ES';
+  // Everything runs inside the Sentry zone (a no-op when SENTRY_DSN is unset),
+  // so uncaught errors during startup are captured too.
+  await Observability.run(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await initializeDateFormatting('es_ES');
+    Intl.defaultLocale = 'es_ES';
 
-  if (!AppConfig.isConfigured) {
-    runApp(const _MissingConfigApp());
-    return;
-  }
+    if (!AppConfig.isConfigured) {
+      runApp(const _MissingConfigApp());
+      return;
+    }
 
-  if (AppConfig.stripePublishableKey.isNotEmpty) {
-    Stripe.publishableKey = AppConfig.stripePublishableKey;
-    // Not awaited: this talks to the native Stripe SDK, which has been
-    // observed to stall on some real-device networks. The app's first frame
-    // must never depend on it — nothing needs Stripe configured until a
-    // payment screen actually opens, by which point this has long finished.
-    unawaited(Stripe.instance.applySettings());
-  }
+    if (AppConfig.stripePublishableKey.isNotEmpty) {
+      Stripe.publishableKey = AppConfig.stripePublishableKey;
+      // Not awaited: this talks to the native Stripe SDK, which has been
+      // observed to stall on some real-device networks. The app's first frame
+      // must never depend on it — nothing needs Stripe configured until a
+      // payment screen actually opens, by which point this has long finished.
+      unawaited(Stripe.instance.applySettings());
+    }
 
-  await AppSupabase.initialize();
-  runApp(const ProviderScope(child: ItacaApp()));
+    await AppSupabase.initialize();
+    runApp(const ProviderScope(child: ItacaApp()));
+  });
 }
 
 /// Shown instead of crashing when SUPABASE_URL/SUPABASE_ANON_KEY weren't
