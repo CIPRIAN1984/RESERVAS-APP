@@ -41,6 +41,41 @@ class ClasesRepository {
     });
   }
 
+  /// Creates a weekly recurring-class template. Concrete sessions are then
+  /// materialized into `clases` by the generation job (see
+  /// `generar_clases_recurrentes`); [generarAhora] triggers it immediately so
+  /// the upcoming weeks appear without waiting for the scheduled run.
+  Future<void> crearPlantillaRecurrente({
+    required String academiaId,
+    required String profesorId,
+    required String titulo,
+    String? descripcion,
+    required int diaSemana, // 0 = domingo
+    required String horaInicio, // 'HH:mm'
+    required int duracionMin,
+    required int aforoMaximo,
+    bool generarAhora = true,
+  }) async {
+    await _client.from('clases_recurrentes').insert({
+      'academia_id': academiaId,
+      'profesor_id': profesorId,
+      'titulo': titulo,
+      'descripcion': descripcion,
+      'dia_semana': diaSemana,
+      'hora_inicio': horaInicio,
+      'duracion_min': duracionMin,
+      'aforo_maximo': aforoMaximo,
+    });
+    if (generarAhora) await generarClasesRecurrentes();
+  }
+
+  /// Materializes upcoming sessions from this academia's active templates.
+  /// Idempotent; scoped to the caller's academia and staff-only server-side.
+  Future<int> generarClasesRecurrentes() async {
+    final generadas = await _client.rpc('generar_mis_clases_recurrentes');
+    return (generadas as int?) ?? 0;
+  }
+
   Future<void> unirse({required String claseId, required String alumnoId}) async {
     await _client.from('inscripciones').insert({
       'clase_id': claseId,
