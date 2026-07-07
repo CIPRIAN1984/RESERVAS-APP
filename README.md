@@ -1,17 +1,79 @@
-# itaca
+# ITACA
 
-A new Flutter project.
+App Flutter para la gestión de academias de BJJ: clases y reservas, novedades, progreso técnico por cinturones, tienda con préstamos de material, tarifas con suscripciones y cobros vía Stripe Connect.
 
-## Getting Started
+## Stack
 
-This project is a starting point for a Flutter application.
+- **Flutter** (Dart ≥ 3.12) con **Riverpod** (codegen), **go_router** y **freezed**.
+- **Supabase**: autenticación, Postgres con RLS (migraciones en `supabase/migrations/`) y Edge Functions en Deno (`supabase/functions/`).
+- **Stripe Connect**: cada academia conecta su propia cuenta; los pagos de tienda y suscripciones de tarifas se procesan con Edge Functions + webhook firmado.
 
-A few resources to get you started if this is your first Flutter project:
+## Estructura
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```
+lib/
+  app/            # MaterialApp, router (guards por rol/estado), tema
+  core/           # config, auth, cliente Supabase, modelos compartidos
+  features/       # un módulo por funcionalidad (data / application / presentation)
+    calendario/   # clases y reservas
+    novedades/    # tablón de anuncios
+    progreso/     # árbol de técnicas por cinturón
+    tienda/       # catálogo, pedidos y préstamos
+    tarifas/      # tarifas y suscripciones
+    pagos/        # onboarding de Stripe Connect
+    estadisticas/ # asistencia y ranking
+    perfil/       # perfil y cambio de escuela
+    onboarding/   # login, registro, aprobación pendiente
+    admin/        # gestión de academias (rol administrador)
+supabase/
+  migrations/     # esquema, RLS y RPCs (0001..0016)
+  functions/      # Edge Functions de Stripe (Deno)
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Roles: `administrador` (plataforma), `dueño`, `profesor` y `alumno`.
+
+## Puesta en marcha
+
+1. Instala [Flutter](https://docs.flutter.dev/get-started/install) (canal stable) y ejecuta `flutter pub get`.
+2. Copia la configuración local y rellena tus claves de Supabase/Stripe:
+
+   ```bash
+   cp dart_define.example.json dart_define.json
+   ```
+
+   `dart_define.json` está en `.gitignore`: nunca subas claves al repositorio.
+3. Ejecuta la app:
+
+   ```bash
+   flutter run --dart-define-from-file=dart_define.json
+   ```
+
+   Si arrancas sin configuración, la app muestra una pantalla explicando qué falta en lugar de romperse.
+
+### Codegen
+
+Los ficheros `*.g.dart` / `*.freezed.dart` están versionados. Tras tocar modelos o providers anotados:
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
+
+### Backend (Supabase)
+
+```bash
+supabase link --project-ref <tu-project-ref>
+supabase db push              # aplica supabase/migrations/
+supabase functions deploy     # despliega las Edge Functions
+supabase functions deploy stripe-webhook --no-verify-jwt
+```
+
+Las Edge Functions esperan estos secretos (`supabase secrets set`): `STRIPE_SECRET_KEY` y `STRIPE_WEBHOOK_SECRET` (además de `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY`, que Supabase inyecta automáticamente). El webhook de Stripe debe escuchar también eventos de cuentas conectadas.
+
+## Tests y análisis
+
+```bash
+flutter analyze
+flutter test
+```
+
+Ambos se ejecutan en CI (GitHub Actions) en cada push y pull request.
