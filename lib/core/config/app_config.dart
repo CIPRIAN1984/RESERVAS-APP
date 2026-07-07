@@ -16,6 +16,12 @@ class AppConfig {
   static const String environmentName =
       String.fromEnvironment('APP_ENV', defaultValue: 'development');
 
+  /// Push notifications require Firebase config files (google-services.json /
+  /// GoogleService-Info.plist) baked into the native build. This flag lets the
+  /// app run without them — when false, Firebase is never initialized.
+  static const bool pushEnabled =
+      bool.fromEnvironment('PUSH_ENABLED', defaultValue: false);
+
   static bool get isConfigured => supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 
   static bool get isSentryEnabled => sentryDsn.isNotEmpty;

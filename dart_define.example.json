@@ -3,5 +3,6 @@
   "SUPABASE_ANON_KEY": "<your-anon-key>",
   "STRIPE_PUBLISHABLE_KEY": "pk_test_<your-publishable-key>",
   "SENTRY_DSN": "",
-  "APP_ENV": "development"
+  "APP_ENV": "development",
+  "PUSH_ENABLED": false
 }

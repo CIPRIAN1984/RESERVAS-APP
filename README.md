@@ -71,6 +71,16 @@ Las Edge Functions esperan estos secretos (`supabase secrets set`): `STRIPE_SECR
 
 La app registra el esquema de deep link `itaca://` (Android e iOS) para volver limpiamente tras el onboarding de Stripe, la confirmación de email de Supabase o un pago con redirección.
 
+### Notificaciones push (FCM)
+
+Están desactivadas por defecto (`PUSH_ENABLED=false`). Para activarlas:
+
+1. Crea un proyecto Firebase y añade los ficheros nativos (`android/app/google-services.json`, `ios/Runner/GoogleService-Info.plist`); no se versionan.
+2. Arranca la app con `--dart-define PUSH_ENABLED=true`.
+3. En Supabase, define el secreto `FCM_SERVICE_ACCOUNT` (JSON completo de la service account) y `CRON_SECRET`, despliega la función `send-push` con `--no-verify-jwt`, y prográmala (pg_cron + pg_net o un cron externo) para drenar `notificaciones_outbox`.
+
+El backend ya está listo: `device_tokens` guarda los tokens (RPC `registrar_device_token`), los eventos de negocio encolan en `notificaciones_outbox` (p. ej. al publicar una novedad) y `send-push` los entrega por FCM v1, borrando tokens muertos.
+
 ## Tests y análisis
 
 ```bash
