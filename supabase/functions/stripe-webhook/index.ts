@@ -87,6 +87,23 @@ Deno.serve(async (req) => {
         }
         break;
       }
+      case "charge.refunded": {
+        // Un pedido pagado que se reembolsa: lo cancelamos y el trigger
+        // reponer_stock_al_cancelar devuelve el stock. El pedido se localiza
+        // por su PaymentIntent (charge.payment_intent).
+        const charge = event.data.object as Stripe.Charge;
+        const paymentIntentId = typeof charge.payment_intent === "string"
+          ? charge.payment_intent
+          : charge.payment_intent?.id;
+        if (paymentIntentId) {
+          await admin
+            .from("pedidos")
+            .update({ payment_status: "refunded", estado: "cancelado" })
+            .eq("stripe_payment_intent_id", paymentIntentId)
+            .in("estado", ["reservado", "confirmado", "entregado"]);
+        }
+        break;
+      }
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
         const subscriptionId = invoice.subscription as string | null;
