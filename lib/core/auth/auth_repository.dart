@@ -2,7 +2,6 @@ import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../models/academia.dart';
 import '../models/profile.dart';
-import '../models/rol.dart';
 
 class AuthRepository {
   AuthRepository(this._client);
@@ -17,14 +16,55 @@ class AuthRepository {
     await _client.auth.signInWithPassword(email: email, password: password);
   }
 
-  /// Returns the new auth user id.
-  Future<String> signUp({required String email, required String password}) async {
-    final res = await _client.auth.signUp(email: email, password: password);
-    final userId = res.user?.id;
-    if (userId == null) {
-      throw StateError('El registro no devolvió un usuario válido.');
-    }
-    return userId;
+  /// Registers a student joining an existing (approved) academia. Profile
+  /// creation happens atomically server-side (trigger `handle_new_user` reads
+  /// this metadata), so there's no orphaned-auth-user window and the rol/estado
+  /// are enforced by the server, not the client.
+  Future<void> signUpAlumno({
+    required String email,
+    required String password,
+    required String academiaId,
+    required String nombre,
+    String? apellidos,
+  }) async {
+    await _client.auth.signUp(
+      email: email,
+      password: password,
+      data: {
+        'flujo': 'unirse',
+        'academia_id': academiaId,
+        'nombre': nombre,
+        if (apellidos != null && apellidos.isNotEmpty) 'apellidos': apellidos,
+      },
+    );
+  }
+
+  /// Registers a brand-new academia and its Dueño in a single atomic signup
+  /// (see `signUpAlumno` and the `handle_new_user` trigger). The academia
+  /// lands in `pending` and the Dueño in `pendiente_aprobacion`.
+  Future<void> signUpDueno({
+    required String email,
+    required String password,
+    required String nombreAcademia,
+    String? direccion,
+    String? telefono,
+    String? emailContacto,
+    required String nombre,
+    String? apellidos,
+  }) async {
+    await _client.auth.signUp(
+      email: email,
+      password: password,
+      data: {
+        'flujo': 'registro_academia',
+        'nombre_academia': nombreAcademia,
+        if (direccion != null && direccion.isNotEmpty) 'direccion': direccion,
+        if (telefono != null && telefono.isNotEmpty) 'telefono': telefono,
+        if (emailContacto != null && emailContacto.isNotEmpty) 'email_contacto': emailContacto,
+        'nombre': nombre,
+        if (apellidos != null && apellidos.isNotEmpty) 'apellidos': apellidos,
+      },
+    );
   }
 
   Future<void> signOut() => _client.auth.signOut();
@@ -35,58 +75,6 @@ class AuthRepository {
     return rows
         .map((r) => (id: r['id'] as String, nombre: r['nombre'] as String))
         .toList();
-  }
-
-  /// Creates the profile row for a student/teacher joining an existing (approved) academia.
-  Future<void> crearPerfilEnAcademiaExistente({
-    required String userId,
-    required String academiaId,
-    required Rol rol,
-    required String nombre,
-    String? apellidos,
-  }) async {
-    await _client.from('profiles').insert({
-      'id': userId,
-      'academia_id': academiaId,
-      'rol': rol.value,
-      'nombre': nombre,
-      'apellidos': apellidos,
-      'estado': 'activo',
-    });
-  }
-
-  /// Registers a brand-new academia (goes to `pending`) and its Dueño profile,
-  /// which stays `pendiente_aprobacion` until the platform Administrador approves it.
-  Future<void> registrarAcademiaYPerfilDueno({
-    required String userId,
-    required String nombreAcademia,
-    String? direccion,
-    String? telefono,
-    String? emailContacto,
-    required String nombre,
-    String? apellidos,
-  }) async {
-    final academia = await _client
-        .from('academias')
-        .insert({
-          'nombre': nombreAcademia,
-          'direccion': direccion,
-          'telefono': telefono,
-          'email_contacto': emailContacto,
-          'estado': 'pending',
-          'created_by': userId,
-        })
-        .select()
-        .single();
-
-    await _client.from('profiles').insert({
-      'id': userId,
-      'academia_id': academia['id'],
-      'rol': Rol.dueno.value,
-      'nombre': nombre,
-      'apellidos': apellidos,
-      'estado': 'pendiente_aprobacion',
-    });
   }
 
   Future<Profile?> fetchProfile(String userId) async {

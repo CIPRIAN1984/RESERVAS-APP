@@ -6,7 +6,6 @@ import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 import '../../../app/routes.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/models/academia.dart';
-import '../../../core/models/rol.dart';
 import '../../../core/utils/error_messages.dart';
 
 /// Self-registration for a student joining an academia that already exists
@@ -54,14 +53,10 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
     });
     final repo = ref.read(authRepositoryProvider);
     try {
-      final userId = await repo.signUp(
+      await repo.signUpAlumno(
         email: _emailController.text.trim(),
         password: _passwordController.text,
-      );
-      await repo.crearPerfilEnAcademiaExistente(
-        userId: userId,
         academiaId: _academiaId!,
-        rol: Rol.alumno,
         nombre: _nombreController.text.trim(),
         apellidos: _apellidosController.text.trim(),
       );

@@ -52,12 +52,9 @@ class _RegistroAcademiaScreenState extends ConsumerState<RegistroAcademiaScreen>
     });
     final repo = ref.read(authRepositoryProvider);
     try {
-      final userId = await repo.signUp(
+      await repo.signUpDueno(
         email: _emailController.text.trim(),
         password: _passwordController.text,
-      );
-      await repo.registrarAcademiaYPerfilDueno(
-        userId: userId,
         nombreAcademia: _nombreAcademiaController.text.trim(),
         direccion: _direccionController.text.trim(),
         telefono: _telefonoController.text.trim(),
