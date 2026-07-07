@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
+import '../../../shared/widgets/async_value_view.dart';
 import '../application/novedades_providers.dart';
 import '../data/novedad.dart';
 import 'crear_novedad_screen.dart';
@@ -60,39 +61,17 @@ class NovedadesScreen extends ConsumerWidget {
               label: const Text('Publicar'),
             )
           : null,
-      body: novedadesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(
-          child: Text('No se han podido cargar las novedades.',
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+      body: AsyncListView<Novedad>(
+        asyncValue: novedadesAsync,
+        onRefresh: () async => ref.invalidate(novedadesProvider),
+        emptyIcon: Icons.campaign_outlined,
+        emptyMessage: 'Todavía no hay novedades.',
+        itemBuilder: (context, novedad) => _NovedadCard(
+          novedad: novedad,
+          puedeGestionar: puedePublicar,
+          onAlternarFijado: () => _alternarFijado(ref, context, novedad),
+          onEliminar: () => _eliminar(ref, context, novedad),
         ),
-        data: (novedades) {
-          if (novedades.isEmpty) {
-            return Center(
-              child: Text(
-                'Todavía no hay novedades.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-              ),
-            );
-          }
-          return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(novedadesProvider),
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: novedades.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final novedad = novedades[index];
-                return _NovedadCard(
-                  novedad: novedad,
-                  puedeGestionar: puedePublicar,
-                  onAlternarFijado: () => _alternarFijado(ref, context, novedad),
-                  onEliminar: () => _eliminar(ref, context, novedad),
-                );
-              },
-            ),
-          );
-        },
       ),
     );
   }
