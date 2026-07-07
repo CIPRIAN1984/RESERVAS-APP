@@ -7,16 +7,22 @@ import '../application/cambio_escuela_providers.dart';
 import '../data/solicitud_cambio_escuela.dart';
 
 class SolicitarCambioEscuelaScreen extends ConsumerStatefulWidget {
-  const SolicitarCambioEscuelaScreen({required this.alumnoId, required this.academiaActualId, super.key});
+  const SolicitarCambioEscuelaScreen({
+    required this.alumnoId,
+    required this.academiaActualId,
+    super.key,
+  });
 
   final String alumnoId;
   final String academiaActualId;
 
   @override
-  ConsumerState<SolicitarCambioEscuelaScreen> createState() => _SolicitarCambioEscuelaScreenState();
+  ConsumerState<SolicitarCambioEscuelaScreen> createState() =>
+      _SolicitarCambioEscuelaScreenState();
 }
 
-class _SolicitarCambioEscuelaScreenState extends ConsumerState<SolicitarCambioEscuelaScreen> {
+class _SolicitarCambioEscuelaScreenState
+    extends ConsumerState<SolicitarCambioEscuelaScreen> {
   String? _academiaDestino;
   bool _enviando = false;
   String? _error;
@@ -31,7 +37,9 @@ class _SolicitarCambioEscuelaScreenState extends ConsumerState<SolicitarCambioEs
       _error = null;
     });
     try {
-      await ref.read(cambioEscuelaRepositoryProvider).crearSolicitud(
+      await ref
+          .read(cambioEscuelaRepositoryProvider)
+          .crearSolicitud(
             alumnoId: widget.alumnoId,
             academiaDestinoId: _academiaDestino!,
           );
@@ -54,18 +62,26 @@ class _SolicitarCambioEscuelaScreenState extends ConsumerState<SolicitarCambioEs
         child: misSolicitudesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, st) => Center(
-            child: Text('No se ha podido cargar tu solicitud.',
-                style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            child: Text(
+              'No se ha podido cargar tu solicitud.',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
           data: (solicitudes) {
-            final pendiente = solicitudes.where((s) => s.estado == 'pendiente').firstOrNull;
+            final pendiente = solicitudes
+                .where((s) => s.estado == 'pendiente')
+                .firstOrNull;
             if (pendiente != null) {
               return Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.hourglass_top_outlined, size: 48, color: AppColors.warning),
+                    const Icon(
+                      Icons.hourglass_top_outlined,
+                      size: 48,
+                      color: AppColors.warning,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'Tienes una solicitud pendiente para cambiarte a '
@@ -77,10 +93,9 @@ class _SolicitarCambioEscuelaScreenState extends ConsumerState<SolicitarCambioEs
                     Text(
                       'El dueño de esa academia tiene que aceptarla.',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: AppColors.textSecondary),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -93,7 +108,10 @@ class _SolicitarCambioEscuelaScreenState extends ConsumerState<SolicitarCambioEs
     );
   }
 
-  Widget _buildFormulario(BuildContext context, List<MiSolicitudCambio> historial) {
+  Widget _buildFormulario(
+    BuildContext context,
+    List<MiSolicitudCambio> historial,
+  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -102,11 +120,15 @@ class _SolicitarCambioEscuelaScreenState extends ConsumerState<SolicitarCambioEs
           Text(
             'Solicita cambiarte a otra academia. El dueño de la academia destino '
             'tendrá que aceptar tu solicitud.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
           ),
           const SizedBox(height: 24),
           FutureBuilder(
-            future: ref.read(cambioEscuelaRepositoryProvider).listarAcademiasAprobadas(),
+            future: ref
+                .read(cambioEscuelaRepositoryProvider)
+                .listarAcademiasAprobadas(),
             builder: (context, snapshot) {
               final academias = (snapshot.data ?? [])
                   .where((a) => a.id != widget.academiaActualId)
@@ -115,7 +137,8 @@ class _SolicitarCambioEscuelaScreenState extends ConsumerState<SolicitarCambioEs
                 initialValue: _academiaDestino,
                 decoration: const InputDecoration(labelText: 'Nueva academia'),
                 items: [
-                  for (final a in academias) DropdownMenuItem(value: a.id, child: Text(a.nombre)),
+                  for (final a in academias)
+                    DropdownMenuItem(value: a.id, child: Text(a.nombre)),
                 ],
                 onChanged: (v) => setState(() => _academiaDestino = v),
               );
@@ -123,13 +146,20 @@ class _SolicitarCambioEscuelaScreenState extends ConsumerState<SolicitarCambioEs
           ),
           if (_error != null) ...[
             const SizedBox(height: 12),
-            Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            Text(
+              _error!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ],
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: _enviando ? null : _enviar,
             child: _enviando
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Text('Enviar solicitud'),
           ),
           if (historial.isNotEmpty) ...[
@@ -149,9 +179,9 @@ class _SolicitarCambioEscuelaScreenState extends ConsumerState<SolicitarCambioEs
   }
 
   String _etiqueta(String estado) => switch (estado) {
-        'pendiente' => 'Pendiente',
-        'aprobada' => 'Aprobada',
-        'rechazada' => 'Rechazada',
-        _ => estado,
-      };
+    'pendiente' => 'Pendiente',
+    'aprobada' => 'Aprobada',
+    'rechazada' => 'Rechazada',
+    _ => estado,
+  };
 }

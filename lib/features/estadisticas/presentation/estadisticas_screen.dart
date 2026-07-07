@@ -20,15 +20,19 @@ class EstadisticasScreen extends ConsumerWidget {
     return rankingAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, st) => Center(
-        child: Text('No se ha podido cargar el ranking.',
-            style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          'No se ha podido cargar el ranking.',
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
       data: (ranking) {
         if (ranking.isEmpty) {
           return Center(
             child: Text(
               'Todavía no hay alumnos en la academia.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
             ),
           );
         }
@@ -39,7 +43,9 @@ class EstadisticasScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Text(
                   mesLabel[0].toUpperCase() + mesLabel.substring(1),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.textSecondary),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
             ),
@@ -67,18 +73,22 @@ class EstadisticasScreen extends ConsumerWidget {
 }
 
 class _RankingTile extends StatelessWidget {
-  const _RankingTile({required this.posicion, required this.entry, required this.esYo});
+  const _RankingTile({
+    required this.posicion,
+    required this.entry,
+    required this.esYo,
+  });
 
   final int posicion;
   final RankingEntry entry;
   final bool esYo;
 
   Color get _colorPosicion => switch (posicion) {
-        1 => const Color(0xFFFFC947),
-        2 => const Color(0xFFC7CBD1),
-        3 => const Color(0xFFCE8946),
-        _ => AppColors.surfaceElevatedHigh,
-      };
+    1 => const Color(0xFFFFC947),
+    2 => const Color(0xFFC7CBD1),
+    3 => const Color(0xFFCE8946),
+    _ => AppColors.surfaceElevatedHigh,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -98,9 +108,11 @@ class _RankingTile extends StatelessWidget {
                 '$posicion',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: posicion <= 3 ? _colorPosicion : AppColors.textSecondary,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: posicion <= 3
+                      ? _colorPosicion
+                      : AppColors.textSecondary,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -110,8 +122,9 @@ class _RankingTile extends StatelessWidget {
               child: CircleAvatar(
                 radius: 19,
                 backgroundColor: AppColors.surfaceElevated,
-                backgroundImage:
-                    entry.fotoUrl != null ? CachedNetworkImageProvider(entry.fotoUrl!) : null,
+                backgroundImage: entry.fotoUrl != null
+                    ? CachedNetworkImageProvider(entry.fotoUrl!)
+                    : null,
                 child: entry.fotoUrl == null
                     ? const Icon(Icons.person, color: AppColors.textSecondary)
                     : null,
@@ -122,15 +135,17 @@ class _RankingTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(entry.nombreCompleto, style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    entry.nombreCompleto,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   if (entry.cinturon != null) ...[
                     const SizedBox(height: 2),
                     Text(
                       'Cinturón ${entry.cinturon}',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: AppColors.textSecondary),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ],
@@ -141,14 +156,16 @@ class _RankingTile extends StatelessWidget {
               children: [
                 Text(
                   '${entry.asistenciasCount}',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(color: AppColors.accentSecondary, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: AppColors.accentSecondary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text(
                   'asistencias',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),

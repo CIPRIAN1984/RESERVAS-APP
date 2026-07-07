@@ -60,7 +60,8 @@ class AuthRepository {
         'nombre_academia': nombreAcademia,
         if (direccion != null && direccion.isNotEmpty) 'direccion': direccion,
         if (telefono != null && telefono.isNotEmpty) 'telefono': telefono,
-        if (emailContacto != null && emailContacto.isNotEmpty) 'email_contacto': emailContacto,
+        if (emailContacto != null && emailContacto.isNotEmpty)
+          'email_contacto': emailContacto,
         'nombre': nombre,
         if (apellidos != null && apellidos.isNotEmpty) 'apellidos': apellidos,
       },
@@ -78,8 +79,11 @@ class AuthRepository {
   }
 
   Future<Profile?> fetchProfile(String userId) async {
-    final row =
-        await _client.from('profiles').select().eq('id', userId).maybeSingle();
+    final row = await _client
+        .from('profiles')
+        .select()
+        .eq('id', userId)
+        .maybeSingle();
     if (row == null) return null;
     return Profile.fromJson(row);
   }
@@ -96,17 +100,26 @@ class AuthRepository {
 
   /// Administrador-only: every academia on the platform, pending ones first.
   Future<List<Academia>> listAcademiasTodas() async {
-    final rows = await _client.from('academias').select().order('created_at', ascending: false);
+    final rows = await _client
+        .from('academias')
+        .select()
+        .order('created_at', ascending: false);
     final academias = (rows as List)
         .map((r) => Academia.fromJson(r as Map<String, dynamic>))
         .toList();
     const ordenEstado = {'pending': 0, 'approved': 1, 'rejected': 2};
-    academias.sort((a, b) => (ordenEstado[a.estado] ?? 3).compareTo(ordenEstado[b.estado] ?? 3));
+    academias.sort(
+      (a, b) =>
+          (ordenEstado[a.estado] ?? 3).compareTo(ordenEstado[b.estado] ?? 3),
+    );
     return academias;
   }
 
   Future<void> aprobarAcademia(String academiaId) async {
-    await _client.rpc('aprobar_academia', params: {'p_academia_id': academiaId});
+    await _client.rpc(
+      'aprobar_academia',
+      params: {'p_academia_id': academiaId},
+    );
   }
 
   Future<void> rechazarAcademia(String academiaId) async {

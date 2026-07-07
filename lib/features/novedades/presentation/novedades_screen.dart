@@ -12,26 +12,38 @@ import 'crear_novedad_screen.dart';
 class NovedadesScreen extends ConsumerWidget {
   const NovedadesScreen({super.key});
 
-  Future<void> _alternarFijado(WidgetRef ref, BuildContext context, Novedad novedad) async {
+  Future<void> _alternarFijado(
+    WidgetRef ref,
+    BuildContext context,
+    Novedad novedad,
+  ) async {
     try {
-      await ref.read(novedadesRepositoryProvider).alternarFijado(novedad.id, !novedad.fijado);
+      await ref
+          .read(novedadesRepositoryProvider)
+          .alternarFijado(novedad.id, !novedad.fijado);
       ref.invalidate(novedadesProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('No se ha podido actualizar.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se ha podido actualizar.')),
+        );
       }
     }
   }
 
-  Future<void> _eliminar(WidgetRef ref, BuildContext context, Novedad novedad) async {
+  Future<void> _eliminar(
+    WidgetRef ref,
+    BuildContext context,
+    Novedad novedad,
+  ) async {
     try {
       await ref.read(novedadesRepositoryProvider).eliminar(novedad.id);
       ref.invalidate(novedadesProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('No se ha podido eliminar.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se ha podido eliminar.')),
+        );
       }
     }
   }
@@ -40,7 +52,9 @@ class NovedadesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider).value;
     final userId = ref.watch(currentUserIdProvider);
-    final puedePublicar = profile != null && (profile.isProfesor || profile.isDueno || profile.isAdministrador);
+    final puedePublicar =
+        profile != null &&
+        (profile.isProfesor || profile.isDueno || profile.isAdministrador);
     final novedadesAsync = ref.watch(novedadesProvider);
 
     return Scaffold(
@@ -93,7 +107,9 @@ class _NovedadCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: novedad.fijado ? AppColors.accentPrimary.withValues(alpha: 0.10) : null,
+      color: novedad.fijado
+          ? AppColors.accentPrimary.withValues(alpha: 0.10)
+          : null,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -102,15 +118,25 @@ class _NovedadCard extends StatelessWidget {
             Row(
               children: [
                 if (novedad.fijado) ...[
-                  const Icon(Icons.push_pin, size: 16, color: AppColors.accentPrimary),
+                  const Icon(
+                    Icons.push_pin,
+                    size: 16,
+                    color: AppColors.accentPrimary,
+                  ),
                   const SizedBox(width: 6),
                 ],
                 Expanded(
-                  child: Text(novedad.titulo, style: Theme.of(context).textTheme.titleMedium),
+                  child: Text(
+                    novedad.titulo,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
                 if (puedeGestionar)
                   PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert, color: AppColors.textSecondary),
+                    icon: const Icon(
+                      Icons.more_vert,
+                      color: AppColors.textSecondary,
+                    ),
                     onSelected: (value) {
                       if (value == 'fijar') onAlternarFijado();
                       if (value == 'eliminar') onEliminar();
@@ -120,17 +146,25 @@ class _NovedadCard extends StatelessWidget {
                         value: 'fijar',
                         child: Text(novedad.fijado ? 'Desfijar' : 'Fijar'),
                       ),
-                      const PopupMenuItem(value: 'eliminar', child: Text('Eliminar')),
+                      const PopupMenuItem(
+                        value: 'eliminar',
+                        child: Text('Eliminar'),
+                      ),
                     ],
                   ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(novedad.contenido, style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              novedad.contenido,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(height: 12),
             Text(
               '${novedad.autorNombre ?? 'Desconocido'} · ${DateFormat('d MMM, HH:mm', 'es_ES').format(novedad.createdAt.toLocal())}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
             ),
           ],
         ),

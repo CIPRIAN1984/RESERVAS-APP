@@ -28,7 +28,11 @@ class PushNotifications {
       _initialized = true;
     } catch (error, stack) {
       // Never let a misconfigured Firebase break app startup.
-      await Observability.captureError(error, stack, hint: 'Firebase.initializeApp');
+      await Observability.captureError(
+        error,
+        stack,
+        hint: 'Firebase.initializeApp',
+      );
     }
   }
 
@@ -50,12 +54,16 @@ class PushNotifications {
 
   static Future<void> _save(String token) async {
     try {
-      await AppSupabase.client.rpc('registrar_device_token', params: {
-        'p_token': token,
-        'p_platform': _platform(),
-      });
+      await AppSupabase.client.rpc(
+        'registrar_device_token',
+        params: {'p_token': token, 'p_platform': _platform()},
+      );
     } catch (error, stack) {
-      await Observability.captureError(error, stack, hint: 'registrar_device_token');
+      await Observability.captureError(
+        error,
+        stack,
+        hint: 'registrar_device_token',
+      );
     }
   }
 

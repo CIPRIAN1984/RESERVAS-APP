@@ -4,7 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../application/novedades_providers.dart';
 
 class CrearNovedadScreen extends ConsumerStatefulWidget {
-  const CrearNovedadScreen({required this.academiaId, required this.autorId, super.key});
+  const CrearNovedadScreen({
+    required this.academiaId,
+    required this.autorId,
+    super.key,
+  });
 
   final String academiaId;
   final String autorId;
@@ -34,7 +38,9 @@ class _CrearNovedadScreenState extends ConsumerState<CrearNovedadScreen> {
       _error = null;
     });
     try {
-      await ref.read(novedadesRepositoryProvider).crear(
+      await ref
+          .read(novedadesRepositoryProvider)
+          .crear(
             academiaId: widget.academiaId,
             autorId: widget.autorId,
             titulo: _tituloController.text.trim(),
@@ -63,25 +69,35 @@ class _CrearNovedadScreenState extends ConsumerState<CrearNovedadScreen> {
                 TextFormField(
                   controller: _tituloController,
                   decoration: const InputDecoration(labelText: 'Título'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _contenidoController,
                   decoration: const InputDecoration(labelText: 'Contenido'),
                   maxLines: 6,
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
                 ),
                 if (_error != null) ...[
                   const SizedBox(height: 12),
-                  Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
                 ],
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _guardando ? null : _publicar,
                   child: _guardando
                       ? const SizedBox(
-                          height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Text('Publicar'),
                 ),
               ],

@@ -25,8 +25,14 @@ import 'routes.dart';
 /// Notifies go_router to re-run [_redirect] whenever auth/profile state changes.
 class _GoRouterRefreshNotifier extends ChangeNotifier {
   _GoRouterRefreshNotifier(Ref ref) {
-    _authSub = ref.listen(authStateChangesProvider, (_, _) => notifyListeners());
-    _profileSub = ref.listen(currentProfileProvider, (_, _) => notifyListeners());
+    _authSub = ref.listen(
+      authStateChangesProvider,
+      (_, _) => notifyListeners(),
+    );
+    _profileSub = ref.listen(
+      currentProfileProvider,
+      (_, _) => notifyListeners(),
+    );
   }
 
   late final ProviderSubscription<void> _authSub;
@@ -51,7 +57,8 @@ const _rutasAcademia = {
   Routes.tarifas,
 };
 
-String _inicioPara(Profile profile) => profile.isAdministrador ? Routes.admin : Routes.inicio;
+String _inicioPara(Profile profile) =>
+    profile.isAdministrador ? Routes.admin : Routes.inicio;
 
 String? _redirect(Ref ref, GoRouterState state) {
   final loc = state.matchedLocation;
@@ -75,14 +82,17 @@ String? _redirect(Ref ref, GoRouterState state) {
   }
 
   if (profile.pendienteAprobacion && !profile.isAdministrador) {
-    return loc == Routes.pendienteAprobacion ? null : Routes.pendienteAprobacion;
+    return loc == Routes.pendienteAprobacion
+        ? null
+        : Routes.pendienteAprobacion;
   }
 
   if (loc == Routes.admin && !profile.isAdministrador) {
     return _inicioPara(profile);
   }
 
-  if (loc == Routes.solicitudesCambioEscuela && !(profile.isDueno || profile.isAdministrador)) {
+  if (loc == Routes.solicitudesCambioEscuela &&
+      !(profile.isDueno || profile.isAdministrador)) {
     return _inicioPara(profile);
   }
 
@@ -96,7 +106,8 @@ String? _redirect(Ref ref, GoRouterState state) {
     return _inicioPara(profile);
   }
 
-  final atEntryPoint = Routes.publicRoutes.contains(loc) ||
+  final atEntryPoint =
+      Routes.publicRoutes.contains(loc) ||
       loc == Routes.splash ||
       loc == Routes.pendienteAprobacion;
   if (atEntryPoint) {
@@ -115,9 +126,18 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: refresh,
     redirect: (context, state) => _redirect(ref, state),
     routes: [
-      GoRoute(path: Routes.splash, builder: (context, state) => const SplashScreen()),
-      GoRoute(path: Routes.login, builder: (context, state) => const LoginScreen()),
-      GoRoute(path: Routes.registro, builder: (context, state) => const RegistroScreen()),
+      GoRoute(
+        path: Routes.splash,
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: Routes.login,
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: Routes.registro,
+        builder: (context, state) => const RegistroScreen(),
+      ),
       GoRoute(
         path: Routes.registroAcademia,
         builder: (context, state) => const RegistroAcademiaScreen(),

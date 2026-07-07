@@ -5,7 +5,11 @@ import 'package:intl/intl.dart';
 import '../application/clases_providers.dart';
 
 class CrearClaseScreen extends ConsumerStatefulWidget {
-  const CrearClaseScreen({required this.academiaId, required this.profesorId, super.key});
+  const CrearClaseScreen({
+    required this.academiaId,
+    required this.profesorId,
+    super.key,
+  });
 
   final String academiaId;
   final String profesorId;
@@ -66,11 +70,15 @@ class _CrearClaseScreenState extends ConsumerState<CrearClaseScreen> {
     final inicio = _combinar(_fecha, _horaInicio);
     final fin = _combinar(_fecha, _horaFin);
     if (!fin.isAfter(inicio)) {
-      setState(() => _error = 'La hora de fin debe ser posterior a la de inicio.');
+      setState(
+        () => _error = 'La hora de fin debe ser posterior a la de inicio.',
+      );
       return;
     }
 
-    final repeticiones = _periodica ? int.parse(_numeroSemanasController.text.trim()) : 1;
+    final repeticiones = _periodica
+        ? int.parse(_numeroSemanasController.text.trim())
+        : 1;
 
     setState(() {
       _guardando = true;
@@ -114,7 +122,8 @@ class _CrearClaseScreenState extends ConsumerState<CrearClaseScreen> {
                 TextFormField(
                   controller: _tituloController,
                   decoration: const InputDecoration(labelText: 'Título'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -151,14 +160,18 @@ class _CrearClaseScreenState extends ConsumerState<CrearClaseScreen> {
                   decoration: const InputDecoration(labelText: 'Aforo máximo'),
                   validator: (v) {
                     final n = int.tryParse(v ?? '');
-                    return (n == null || n <= 0) ? 'Introduce un número válido' : null;
+                    return (n == null || n <= 0)
+                        ? 'Introduce un número válido'
+                        : null;
                   },
                 ),
                 const SizedBox(height: 8),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Clase periódica'),
-                  subtitle: const Text('Repite esta clase cada semana en el mismo día y hora'),
+                  subtitle: const Text(
+                    'Repite esta clase cada semana en el mismo día y hora',
+                  ),
                   value: _periodica,
                   onChanged: (v) => setState(() => _periodica = v),
                 ),
@@ -167,24 +180,36 @@ class _CrearClaseScreenState extends ConsumerState<CrearClaseScreen> {
                   TextFormField(
                     controller: _numeroSemanasController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Número de semanas'),
+                    decoration: const InputDecoration(
+                      labelText: 'Número de semanas',
+                    ),
                     validator: (v) {
                       if (!_periodica) return null;
                       final n = int.tryParse(v ?? '');
-                      return (n == null || n <= 0 || n > 52) ? 'Introduce entre 1 y 52' : null;
+                      return (n == null || n <= 0 || n > 52)
+                          ? 'Introduce entre 1 y 52'
+                          : null;
                     },
                   ),
                 ],
                 if (_error != null) ...[
                   const SizedBox(height: 12),
-                  Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
                 ],
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _guardando ? null : _guardar,
                   child: _guardando
                       ? const SizedBox(
-                          height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : Text(_periodica ? 'Crear clases' : 'Crear clase'),
                 ),
               ],

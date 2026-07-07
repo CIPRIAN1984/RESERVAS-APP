@@ -17,7 +17,9 @@ abstract class RankingEntry with _$RankingEntry {
     @JsonKey(name: 'asistencias_count') required int asistenciasCount,
   }) = _RankingEntry;
 
-  factory RankingEntry.fromJson(Map<String, dynamic> json) => _$RankingEntryFromJson(json);
+  factory RankingEntry.fromJson(Map<String, dynamic> json) =>
+      _$RankingEntryFromJson(json);
 
-  String get nombreCompleto => [nombre, apellidos].whereType<String>().join(' ');
+  String get nombreCompleto =>
+      [nombre, apellidos].whereType<String>().join(' ');
 }

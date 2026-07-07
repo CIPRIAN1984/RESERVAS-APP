@@ -7,19 +7,30 @@ import '../application/tienda_providers.dart';
 import 'crear_prestamo_screen.dart';
 
 class PrestamosTab extends ConsumerWidget {
-  const PrestamosTab({required this.academiaId, required this.gestionadoPor, super.key});
+  const PrestamosTab({
+    required this.academiaId,
+    required this.gestionadoPor,
+    super.key,
+  });
 
   final String academiaId;
   final String gestionadoPor;
 
-  Future<void> _marcarDevuelto(WidgetRef ref, BuildContext context, String prestamoId) async {
+  Future<void> _marcarDevuelto(
+    WidgetRef ref,
+    BuildContext context,
+    String prestamoId,
+  ) async {
     try {
       await ref.read(tiendaRepositoryProvider).marcarDevuelto(prestamoId);
       ref.invalidate(prestamosProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('No se ha podido registrar la devolución.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se ha podido registrar la devolución.'),
+          ),
+        );
       }
     }
   }
@@ -33,7 +44,10 @@ class PrestamosTab extends ConsumerWidget {
         onPressed: () async {
           await Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => CrearPrestamoScreen(academiaId: academiaId, gestionadoPor: gestionadoPor),
+              builder: (_) => CrearPrestamoScreen(
+                academiaId: academiaId,
+                gestionadoPor: gestionadoPor,
+              ),
             ),
           );
           ref.invalidate(prestamosProvider);
@@ -44,15 +58,19 @@ class PrestamosTab extends ConsumerWidget {
       body: prestamosAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(
-          child: Text('No se han podido cargar los préstamos.',
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          child: Text(
+            'No se han podido cargar los préstamos.',
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
         ),
         data: (prestamos) {
           if (prestamos.isEmpty) {
             return Center(
               child: Text(
                 'Todavía no hay préstamos registrados.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
             );
           }
@@ -72,7 +90,8 @@ class PrestamosTab extends ConsumerWidget {
                   trailing: prestamo.devuelto
                       ? const Chip(label: Text('Devuelto'))
                       : OutlinedButton(
-                          onPressed: () => _marcarDevuelto(ref, context, prestamo.id),
+                          onPressed: () =>
+                              _marcarDevuelto(ref, context, prestamo.id),
                           child: const Text('Marcar devuelto'),
                         ),
                 ),

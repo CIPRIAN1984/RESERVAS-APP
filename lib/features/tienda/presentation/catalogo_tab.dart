@@ -35,7 +35,9 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
     final academia = ref.read(currentAcademiaProvider).value;
     if (academia == null || !academia.stripeChargesEnabled) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Esta academia todavía no ha configurado los cobros.')),
+        const SnackBar(
+          content: Text('Esta academia todavía no ha configurado los cobros.'),
+        ),
       );
       return;
     }
@@ -43,7 +45,10 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
     setState(() => _procesandoProductoId = producto.id);
     final repo = ref.read(tiendaRepositoryProvider);
     try {
-      final pedidoId = await repo.crearPedido(productoId: producto.id, alumnoId: alumnoId);
+      final pedidoId = await repo.crearPedido(
+        productoId: producto.id,
+        alumnoId: alumnoId,
+      );
       final pago = await repo.iniciarPagoPedido(pedidoId);
 
       Stripe.stripeAccountId = pago.stripeAccountId;
@@ -60,19 +65,25 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
       ref.invalidate(misPedidosProvider(alumnoId));
       ref.invalidate(productosProvider(true));
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Pago realizado: ${producto.nombre}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Pago realizado: ${producto.nombre}')),
+        );
       }
     } on StripeException catch (e) {
       if (e.error.code == FailureCode.Canceled) return;
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('El pago no se ha podido completar.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('El pago no se ha podido completar.')),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(mensajeErrorAmigable(e, generico: 'No se ha podido reservar.'))),
+          SnackBar(
+            content: Text(
+              mensajeErrorAmigable(e, generico: 'No se ha podido reservar.'),
+            ),
+          ),
         );
       }
     } finally {
@@ -81,7 +92,9 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
   }
 
   Future<void> _alternarActivo(Producto producto) async {
-    await ref.read(tiendaRepositoryProvider).alternarActivo(producto.id, !producto.activo);
+    await ref
+        .read(tiendaRepositoryProvider)
+        .alternarActivo(producto.id, !producto.activo);
     ref.invalidate(productosProvider(false));
   }
 
@@ -94,7 +107,10 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
           ? FloatingActionButton.extended(
               onPressed: () async {
                 await Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => CrearProductoScreen(academiaId: widget.academiaId)),
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        CrearProductoScreen(academiaId: widget.academiaId),
+                  ),
                 );
                 ref.invalidate(productosProvider(!widget.puedeGestionar));
               },
@@ -105,15 +121,19 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
       body: productosAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(
-          child: Text('No se ha podido cargar el catálogo.',
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          child: Text(
+            'No se ha podido cargar el catálogo.',
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
         ),
         data: (productos) {
           if (productos.isEmpty) {
             return Center(
               child: Text(
                 'Todavía no hay productos en el catálogo.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
             );
           }
@@ -133,21 +153,22 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(producto.nombre, style: Theme.of(context).textTheme.titleMedium),
+                            Text(
+                              producto.nombre,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
                             if (producto.descripcion != null) ...[
                               const SizedBox(height: 4),
-                              Text(producto.descripcion!,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(color: AppColors.textSecondary)),
+                              Text(
+                                producto.descripcion!,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: AppColors.textSecondary),
+                              ),
                             ],
                             const SizedBox(height: 8),
                             Text(
                               '${producto.precio.toStringAsFixed(2)} € · Stock: ${producto.stock}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: AppColors.accentSecondary),
                             ),
                           ],
@@ -167,8 +188,12 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
                         )
                       else
                         ElevatedButton(
-                          onPressed: producto.stock > 0 ? () => _reservar(producto) : null,
-                          child: Text(producto.stock > 0 ? 'Reservar' : 'Agotado'),
+                          onPressed: producto.stock > 0
+                              ? () => _reservar(producto)
+                              : null,
+                          child: Text(
+                            producto.stock > 0 ? 'Reservar' : 'Agotado',
+                          ),
                         ),
                     ],
                   ),

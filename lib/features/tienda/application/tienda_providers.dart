@@ -10,17 +10,23 @@ final tiendaRepositoryProvider = Provider<TiendaRepository>((ref) {
   return TiendaRepository(AppSupabase.client);
 });
 
-final productosProvider = FutureProvider.autoDispose.family<List<Producto>, bool>((ref, soloActivos) {
-  return ref.watch(tiendaRepositoryProvider).listarProductos(soloActivos: soloActivos);
-});
+final productosProvider = FutureProvider.autoDispose
+    .family<List<Producto>, bool>((ref, soloActivos) {
+      return ref
+          .watch(tiendaRepositoryProvider)
+          .listarProductos(soloActivos: soloActivos);
+    });
 
 final pedidosStaffProvider = FutureProvider.autoDispose<List<Pedido>>((ref) {
   return ref.watch(tiendaRepositoryProvider).listarPedidos(soloPropios: false);
 });
 
-final misPedidosProvider = FutureProvider.autoDispose.family<List<Pedido>, String>((ref, alumnoId) {
-  return ref.watch(tiendaRepositoryProvider).listarPedidos(soloPropios: true, alumnoId: alumnoId);
-});
+final misPedidosProvider = FutureProvider.autoDispose
+    .family<List<Pedido>, String>((ref, alumnoId) {
+      return ref
+          .watch(tiendaRepositoryProvider)
+          .listarPedidos(soloPropios: true, alumnoId: alumnoId);
+    });
 
 final prestamosProvider = FutureProvider.autoDispose<List<Prestamo>>((ref) {
   return ref.watch(tiendaRepositoryProvider).listarPrestamos();

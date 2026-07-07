@@ -39,7 +39,10 @@ class AsyncListView<E> extends StatelessWidget {
       data: (items) => _data(context, items, stale: false),
       error: (error, _) => asyncValue.hasValue
           ? _data(context, asyncValue.requireValue, stale: true)
-          : _ErrorState(message: mensajeErrorAmigable(error), onRetry: onRefresh),
+          : _ErrorState(
+              message: mensajeErrorAmigable(error),
+              onRetry: onRefresh,
+            ),
       loading: () => const SkeletonList(),
     );
   }
@@ -67,7 +70,8 @@ class AsyncListView<E> extends StatelessWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: items.length,
               separatorBuilder: (_, _) => separator,
-              itemBuilder: (context, index) => itemBuilder(context, items[index]),
+              itemBuilder: (context, index) =>
+                  itemBuilder(context, items[index]),
             ),
           ),
         ),
@@ -116,7 +120,11 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 16),

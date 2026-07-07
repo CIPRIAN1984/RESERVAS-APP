@@ -13,5 +13,6 @@ abstract class MediaTecnica with _$MediaTecnica {
     @JsonKey(name: 'subido_por') required String subidoPor,
   }) = _MediaTecnica;
 
-  factory MediaTecnica.fromJson(Map<String, dynamic> json) => _$MediaTecnicaFromJson(json);
+  factory MediaTecnica.fromJson(Map<String, dynamic> json) =>
+      _$MediaTecnicaFromJson(json);
 }

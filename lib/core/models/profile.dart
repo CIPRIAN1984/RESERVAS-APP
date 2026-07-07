@@ -20,7 +20,8 @@ abstract class Profile with _$Profile {
     required String estado,
   }) = _Profile;
 
-  factory Profile.fromJson(Map<String, dynamic> json) => _$ProfileFromJson(json);
+  factory Profile.fromJson(Map<String, dynamic> json) =>
+      _$ProfileFromJson(json);
 
   Rol get rolEnum => RolX.fromValue(rol);
   bool get isAdministrador => rolEnum == Rol.administrador;

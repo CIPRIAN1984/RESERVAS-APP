@@ -9,7 +9,8 @@ class CrearProductoScreen extends ConsumerStatefulWidget {
   final String academiaId;
 
   @override
-  ConsumerState<CrearProductoScreen> createState() => _CrearProductoScreenState();
+  ConsumerState<CrearProductoScreen> createState() =>
+      _CrearProductoScreenState();
 }
 
 class _CrearProductoScreenState extends ConsumerState<CrearProductoScreen> {
@@ -37,7 +38,9 @@ class _CrearProductoScreenState extends ConsumerState<CrearProductoScreen> {
       _error = null;
     });
     try {
-      await ref.read(tiendaRepositoryProvider).crearProducto(
+      await ref
+          .read(tiendaRepositoryProvider)
+          .crearProducto(
             academiaId: widget.academiaId,
             nombre: _nombreController.text.trim(),
             descripcion: _descripcionController.text.trim(),
@@ -67,7 +70,8 @@ class _CrearProductoScreenState extends ConsumerState<CrearProductoScreen> {
                 TextFormField(
                   controller: _nombreController,
                   decoration: const InputDecoration(labelText: 'Nombre'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -78,27 +82,41 @@ class _CrearProductoScreenState extends ConsumerState<CrearProductoScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _precioController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   decoration: const InputDecoration(labelText: 'Precio (€)'),
-                  validator: (v) => (num.tryParse(v ?? '') == null) ? 'Introduce un precio válido' : null,
+                  validator: (v) => (num.tryParse(v ?? '') == null)
+                      ? 'Introduce un precio válido'
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _stockController,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(labelText: 'Stock'),
-                  validator: (v) => (int.tryParse(v ?? '') == null) ? 'Introduce un stock válido' : null,
+                  validator: (v) => (int.tryParse(v ?? '') == null)
+                      ? 'Introduce un stock válido'
+                      : null,
                 ),
                 if (_error != null) ...[
                   const SizedBox(height: 12),
-                  Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
                 ],
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _guardando ? null : _guardar,
                   child: _guardando
                       ? const SizedBox(
-                          height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Text('Crear producto'),
                 ),
               ],

@@ -12,10 +12,15 @@ class ClasesRepository {
     required DateTime desde,
     required DateTime hasta,
   }) async {
-    final rows = await _client.rpc('listar_clases_semana', params: {
-      'p_desde': desde.toUtc().toIso8601String(),
-      'p_hasta': hasta.toUtc().toIso8601String(),
-    }) as List;
+    final rows =
+        await _client.rpc(
+              'listar_clases_semana',
+              params: {
+                'p_desde': desde.toUtc().toIso8601String(),
+                'p_hasta': hasta.toUtc().toIso8601String(),
+              },
+            )
+            as List;
     return rows
         .map((r) => ClaseResumen.fromJson(r as Map<String, dynamic>))
         .toList();
@@ -76,7 +81,10 @@ class ClasesRepository {
     return (generadas as int?) ?? 0;
   }
 
-  Future<void> unirse({required String claseId, required String alumnoId}) async {
+  Future<void> unirse({
+    required String claseId,
+    required String alumnoId,
+  }) async {
     await _client.from('inscripciones').insert({
       'clase_id': claseId,
       'alumno_id': alumnoId,
@@ -84,7 +92,10 @@ class ClasesRepository {
     });
   }
 
-  Future<void> borrarse({required String claseId, required String alumnoId}) async {
+  Future<void> borrarse({
+    required String claseId,
+    required String alumnoId,
+  }) async {
     await _client
         .from('inscripciones')
         .update({'estado': 'cancelado'})
@@ -94,23 +105,31 @@ class ClasesRepository {
   }
 
   Future<List<InscritoAlumno>> listarInscritos(String claseId) async {
-    final inscripciones = await _client
-        .from('inscripciones')
-        .select('alumno_id, alumno:profiles(nombre, apellidos, foto_url, cinturon)')
-        .eq('clase_id', claseId)
-        .eq('estado', 'inscrito') as List;
+    final inscripciones =
+        await _client
+                .from('inscripciones')
+                .select(
+                  'alumno_id, alumno:profiles(nombre, apellidos, foto_url, cinturon)',
+                )
+                .eq('clase_id', claseId)
+                .eq('estado', 'inscrito')
+            as List;
 
-    final asistencias = await _client
-        .from('asistencias')
-        .select('alumno_id')
-        .eq('clase_id', claseId) as List;
+    final asistencias =
+        await _client
+                .from('asistencias')
+                .select('alumno_id')
+                .eq('clase_id', claseId)
+            as List;
     final validados = asistencias.map((a) => a['alumno_id'] as String).toSet();
 
     return inscripciones
-        .map((row) => InscritoAlumno.fromInscripcionJson(
-              row as Map<String, dynamic>,
-              asistenciaValidada: validados.contains(row['alumno_id']),
-            ))
+        .map(
+          (row) => InscritoAlumno.fromInscripcionJson(
+            row as Map<String, dynamic>,
+            asistenciaValidada: validados.contains(row['alumno_id']),
+          ),
+        )
         .toList();
   }
 
@@ -119,14 +138,16 @@ class ClasesRepository {
     required String alumnoId,
     required String validadoPor,
   }) async {
-    await _client.from('asistencias').upsert(
-      {
-        'clase_id': claseId,
-        'alumno_id': alumnoId,
-        'validado_por': validadoPor,
-      },
-      onConflict: 'clase_id,alumno_id',
-      ignoreDuplicates: true,
-    );
+    await _client
+        .from('asistencias')
+        .upsert(
+          {
+            'clase_id': claseId,
+            'alumno_id': alumnoId,
+            'validado_por': validadoPor,
+          },
+          onConflict: 'clase_id,alumno_id',
+          ignoreDuplicates: true,
+        );
   }
 }

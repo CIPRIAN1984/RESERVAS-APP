@@ -12,10 +12,12 @@ class RegistroAcademiaScreen extends ConsumerStatefulWidget {
   const RegistroAcademiaScreen({super.key});
 
   @override
-  ConsumerState<RegistroAcademiaScreen> createState() => _RegistroAcademiaScreenState();
+  ConsumerState<RegistroAcademiaScreen> createState() =>
+      _RegistroAcademiaScreenState();
 }
 
-class _RegistroAcademiaScreenState extends ConsumerState<RegistroAcademiaScreen> {
+class _RegistroAcademiaScreenState
+    extends ConsumerState<RegistroAcademiaScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _nombreAcademiaController = TextEditingController();
@@ -65,10 +67,13 @@ class _RegistroAcademiaScreenState extends ConsumerState<RegistroAcademiaScreen>
     } on sb.AuthException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
-      setState(() => _error = mensajeErrorAmigable(
-            e,
-            generico: 'No se ha podido registrar la academia. Inténtalo de nuevo.',
-          ));
+      setState(
+        () => _error = mensajeErrorAmigable(
+          e,
+          generico:
+              'No se ha podido registrar la academia. Inténtalo de nuevo.',
+        ),
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -89,12 +94,19 @@ class _RegistroAcademiaScreenState extends ConsumerState<RegistroAcademiaScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Datos de la academia', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      'Datos de la academia',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _nombreAcademiaController,
-                      decoration: const InputDecoration(labelText: 'Nombre de la academia'),
-                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
+                      decoration: const InputDecoration(
+                        labelText: 'Nombre de la academia',
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? 'Obligatorio'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -111,15 +123,22 @@ class _RegistroAcademiaScreenState extends ConsumerState<RegistroAcademiaScreen>
                     TextFormField(
                       controller: _emailContactoController,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(labelText: 'Email de contacto'),
+                      decoration: const InputDecoration(
+                        labelText: 'Email de contacto',
+                      ),
                     ),
                     const SizedBox(height: 32),
-                    Text('Tus datos (Dueño)', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      'Tus datos (Dueño)',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _nombreController,
                       decoration: const InputDecoration(labelText: 'Nombre'),
-                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? 'Obligatorio'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -131,20 +150,29 @@ class _RegistroAcademiaScreenState extends ConsumerState<RegistroAcademiaScreen>
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (v) =>
-                          (v == null || !v.contains('@')) ? 'Introduce un email válido' : null,
+                      validator: (v) => (v == null || !v.contains('@'))
+                          ? 'Introduce un email válido'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
-                      decoration: const InputDecoration(labelText: 'Contraseña'),
-                      validator: (v) =>
-                          (v == null || v.length < 6) ? 'Mínimo 6 caracteres' : null,
+                      decoration: const InputDecoration(
+                        labelText: 'Contraseña',
+                      ),
+                      validator: (v) => (v == null || v.length < 6)
+                          ? 'Mínimo 6 caracteres'
+                          : null,
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 12),
-                      Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                      Text(
+                        _error!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
                     ],
                     const SizedBox(height: 24),
                     ElevatedButton(

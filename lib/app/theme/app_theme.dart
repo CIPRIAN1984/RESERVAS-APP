@@ -8,22 +8,22 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData get dark => _build(
-        brightness: Brightness.dark,
-        surfaceBase: AppColors.surfaceBase,
-        surfaceElevated: AppColors.surfaceElevated,
-        surfaceElevatedHigh: AppColors.surfaceElevatedHigh,
-        textPrimary: AppColors.textPrimary,
-        divider: AppColors.divider,
-      );
+    brightness: Brightness.dark,
+    surfaceBase: AppColors.surfaceBase,
+    surfaceElevated: AppColors.surfaceElevated,
+    surfaceElevatedHigh: AppColors.surfaceElevatedHigh,
+    textPrimary: AppColors.textPrimary,
+    divider: AppColors.divider,
+  );
 
   static ThemeData get light => _build(
-        brightness: Brightness.light,
-        surfaceBase: AppColors.lightSurfaceBase,
-        surfaceElevated: AppColors.lightSurfaceElevated,
-        surfaceElevatedHigh: AppColors.lightSurfaceElevatedHigh,
-        textPrimary: AppColors.lightTextPrimary,
-        divider: AppColors.lightDivider,
-      );
+    brightness: Brightness.light,
+    surfaceBase: AppColors.lightSurfaceBase,
+    surfaceElevated: AppColors.lightSurfaceElevated,
+    surfaceElevatedHigh: AppColors.lightSurfaceElevatedHigh,
+    textPrimary: AppColors.lightTextPrimary,
+    divider: AppColors.lightDivider,
+  );
 
   static ThemeData _build({
     required Brightness brightness,
@@ -44,10 +44,9 @@ class AppTheme {
 
     // Uses the platform's default font (no network dependency — google_fonts'
     // runtime font fetching failed on some networks, e.g. DNS-filtered Wi-Fi).
-    final textTheme = ThemeData(brightness: brightness).textTheme.apply(
-          bodyColor: textPrimary,
-          displayColor: textPrimary,
-        );
+    final textTheme = ThemeData(
+      brightness: brightness,
+    ).textTheme.apply(bodyColor: textPrimary, displayColor: textPrimary);
 
     return ThemeData(
       useMaterial3: true,
@@ -80,14 +79,19 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.accentPrimary,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
       snackBarTheme: SnackBarThemeData(

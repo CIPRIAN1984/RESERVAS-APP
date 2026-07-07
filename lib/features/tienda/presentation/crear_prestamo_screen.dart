@@ -6,13 +6,18 @@ import '../data/producto.dart';
 import '../data/tienda_repository.dart';
 
 class CrearPrestamoScreen extends ConsumerStatefulWidget {
-  const CrearPrestamoScreen({required this.academiaId, required this.gestionadoPor, super.key});
+  const CrearPrestamoScreen({
+    required this.academiaId,
+    required this.gestionadoPor,
+    super.key,
+  });
 
   final String academiaId;
   final String gestionadoPor;
 
   @override
-  ConsumerState<CrearPrestamoScreen> createState() => _CrearPrestamoScreenState();
+  ConsumerState<CrearPrestamoScreen> createState() =>
+      _CrearPrestamoScreenState();
 }
 
 class _CrearPrestamoScreenState extends ConsumerState<CrearPrestamoScreen> {
@@ -27,7 +32,9 @@ class _CrearPrestamoScreenState extends ConsumerState<CrearPrestamoScreen> {
   @override
   void initState() {
     super.initState();
-    _alumnosFuture = ref.read(tiendaRepositoryProvider).listarAlumnos(widget.academiaId);
+    _alumnosFuture = ref
+        .read(tiendaRepositoryProvider)
+        .listarAlumnos(widget.academiaId);
     _productosFuture = ref.read(tiendaRepositoryProvider).listarProductos();
   }
 
@@ -42,8 +49,11 @@ class _CrearPrestamoScreenState extends ConsumerState<CrearPrestamoScreen> {
       setState(() => _error = 'Selecciona un alumno.');
       return;
     }
-    if (_productoSeleccionado == null && _descripcionController.text.trim().isEmpty) {
-      setState(() => _error = 'Indica un producto del catálogo o una descripción.');
+    if (_productoSeleccionado == null &&
+        _descripcionController.text.trim().isEmpty) {
+      setState(
+        () => _error = 'Indica un producto del catálogo o una descripción.',
+      );
       return;
     }
     setState(() {
@@ -51,7 +61,9 @@ class _CrearPrestamoScreenState extends ConsumerState<CrearPrestamoScreen> {
       _error = null;
     });
     try {
-      await ref.read(tiendaRepositoryProvider).crearPrestamo(
+      await ref
+          .read(tiendaRepositoryProvider)
+          .crearPrestamo(
             alumnoId: _alumnoSeleccionado!,
             productoId: _productoSeleccionado,
             descripcion: _descripcionController.text.trim().isEmpty
@@ -85,7 +97,8 @@ class _CrearPrestamoScreenState extends ConsumerState<CrearPrestamoScreen> {
                     initialValue: _alumnoSeleccionado,
                     decoration: const InputDecoration(labelText: 'Alumno'),
                     items: [
-                      for (final a in alumnos) DropdownMenuItem(value: a.id, child: Text(a.nombre)),
+                      for (final a in alumnos)
+                        DropdownMenuItem(value: a.id, child: Text(a.nombre)),
                     ],
                     onChanged: (v) => setState(() => _alumnoSeleccionado = v),
                   );
@@ -98,9 +111,12 @@ class _CrearPrestamoScreenState extends ConsumerState<CrearPrestamoScreen> {
                   final productos = snapshot.data ?? [];
                   return DropdownButtonFormField<String>(
                     initialValue: _productoSeleccionado,
-                    decoration: const InputDecoration(labelText: 'Producto del catálogo (opcional)'),
+                    decoration: const InputDecoration(
+                      labelText: 'Producto del catálogo (opcional)',
+                    ),
                     items: [
-                      for (final p in productos) DropdownMenuItem(value: p.id, child: Text(p.nombre)),
+                      for (final p in productos)
+                        DropdownMenuItem(value: p.id, child: Text(p.nombre)),
                     ],
                     onChanged: (v) => setState(() => _productoSeleccionado = v),
                   );
@@ -115,14 +131,20 @@ class _CrearPrestamoScreenState extends ConsumerState<CrearPrestamoScreen> {
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
-                Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               ],
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _guardando ? null : _guardar,
                 child: _guardando
                     ? const SizedBox(
-                        height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Text('Registrar préstamo'),
               ),
             ],

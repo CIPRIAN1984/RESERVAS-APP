@@ -18,19 +18,57 @@ class MainShell extends ConsumerWidget {
   // Modules scoped to academia membership — not shown to Administrador, who
   // isn't a member of any single academia (its job is managing the platform).
   static const _itemsAcademia = <_NavItem>[
-    _NavItem(Routes.inicio, 'Inicio', Icons.calendar_month_outlined, Icons.calendar_month),
-    _NavItem(Routes.estadisticas, 'Estadísticas', Icons.leaderboard_outlined, Icons.leaderboard),
-    _NavItem(Routes.novedades, 'Novedades', Icons.campaign_outlined, Icons.campaign),
-    _NavItem(Routes.progreso, 'Árbol de Progreso', Icons.account_tree_outlined, Icons.account_tree),
-    _NavItem(Routes.tienda, 'Tienda y Material', Icons.storefront_outlined, Icons.storefront),
-    _NavItem(Routes.tarifas, 'Tarifas', Icons.card_membership_outlined, Icons.card_membership),
+    _NavItem(
+      Routes.inicio,
+      'Inicio',
+      Icons.calendar_month_outlined,
+      Icons.calendar_month,
+    ),
+    _NavItem(
+      Routes.estadisticas,
+      'Estadísticas',
+      Icons.leaderboard_outlined,
+      Icons.leaderboard,
+    ),
+    _NavItem(
+      Routes.novedades,
+      'Novedades',
+      Icons.campaign_outlined,
+      Icons.campaign,
+    ),
+    _NavItem(
+      Routes.progreso,
+      'Árbol de Progreso',
+      Icons.account_tree_outlined,
+      Icons.account_tree,
+    ),
+    _NavItem(
+      Routes.tienda,
+      'Tienda y Material',
+      Icons.storefront_outlined,
+      Icons.storefront,
+    ),
+    _NavItem(
+      Routes.tarifas,
+      'Tarifas',
+      Icons.card_membership_outlined,
+      Icons.card_membership,
+    ),
   ];
 
-  static const _perfilItem =
-      _NavItem(Routes.perfil, 'Perfil', Icons.person_outline, Icons.person);
+  static const _perfilItem = _NavItem(
+    Routes.perfil,
+    'Perfil',
+    Icons.person_outline,
+    Icons.person,
+  );
 
-  static const _adminItem =
-      _NavItem(Routes.admin, 'Gestión de academias', Icons.verified_user_outlined, Icons.verified_user);
+  static const _adminItem = _NavItem(
+    Routes.admin,
+    'Gestión de academias',
+    Icons.verified_user_outlined,
+    Icons.verified_user,
+  );
 
   static const _cambioEscuelaItem = _NavItem(
     Routes.solicitudesCambioEscuela,
@@ -39,8 +77,12 @@ class MainShell extends ConsumerWidget {
     Icons.swap_horiz,
   );
 
-  static const _cobrosItem =
-      _NavItem(Routes.cobros, 'Cobros', Icons.credit_card_outlined, Icons.credit_card);
+  static const _cobrosItem = _NavItem(
+    Routes.cobros,
+    'Cobros',
+    Icons.credit_card_outlined,
+    Icons.credit_card,
+  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,10 +115,10 @@ class MainShell extends ConsumerWidget {
                   children: [
                     Text(
                       'ITACA',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 2),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2,
+                      ),
                     ),
                     const Spacer(),
                     if (profile != null)
@@ -94,10 +136,16 @@ class MainShell extends ConsumerWidget {
                   children: [
                     for (final item in items)
                       ListTile(
-                        leading: Icon(item.route == location ? item.selectedIcon : item.icon),
+                        leading: Icon(
+                          item.route == location
+                              ? item.selectedIcon
+                              : item.icon,
+                        ),
                         title: Text(item.label),
                         selected: item.route == location,
-                        selectedTileColor: AppColors.accentPrimary.withValues(alpha: 0.12),
+                        selectedTileColor: AppColors.accentPrimary.withValues(
+                          alpha: 0.12,
+                        ),
                         onTap: () {
                           Navigator.of(context).pop();
                           if (item.route != location) context.go(item.route);
@@ -109,7 +157,10 @@ class MainShell extends ConsumerWidget {
               const Divider(height: 1, color: AppColors.divider),
               ListTile(
                 leading: const Icon(Icons.logout, color: AppColors.danger),
-                title: const Text('Cerrar sesión', style: TextStyle(color: AppColors.danger)),
+                title: const Text(
+                  'Cerrar sesión',
+                  style: TextStyle(color: AppColors.danger),
+                ),
                 onTap: () {
                   Navigator.of(context).pop();
                   ref.read(authRepositoryProvider).signOut();

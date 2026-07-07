@@ -17,15 +17,19 @@ class MisPedidosTab extends ConsumerWidget {
     return pedidosAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, st) => Center(
-        child: Text('No se han podido cargar tus pedidos.',
-            style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          'No se han podido cargar tus pedidos.',
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
       data: (pedidos) {
         if (pedidos.isEmpty) {
           return Center(
             child: Text(
               'Todavía no has hecho ningún pedido.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
             ),
           );
         }
@@ -55,11 +59,11 @@ class MisPedidosTab extends ConsumerWidget {
   }
 
   String _etiquetaEstado(String estado) => switch (estado) {
-        'pendiente_pago' => 'Pago en proceso',
-        'reservado' => 'Reservado',
-        'confirmado' => 'Confirmado',
-        'entregado' => 'Entregado',
-        'cancelado' => 'Cancelado',
-        _ => estado,
-      };
+    'pendiente_pago' => 'Pago en proceso',
+    'reservado' => 'Reservado',
+    'confirmado' => 'Confirmado',
+    'entregado' => 'Entregado',
+    'cancelado' => 'Cancelado',
+    _ => estado,
+  };
 }

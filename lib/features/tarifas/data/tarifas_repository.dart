@@ -48,17 +48,25 @@ class TarifasRepository {
     return Suscripcion.fromRow(row);
   }
 
-  Future<({String clientSecret, String stripeAccountId})> iniciarSuscripcion(String tarifaId) async {
+  Future<({String clientSecret, String stripeAccountId})> iniciarSuscripcion(
+    String tarifaId,
+  ) async {
     final res = await _client.functions.invoke(
       'stripe-create-tarifa-subscription',
       body: {'tarifa_id': tarifaId},
     );
     final data = res.data as Map<String, dynamic>;
     if (data['error'] != null) throw Exception(data['error'] as String);
-    return (clientSecret: data['client_secret'] as String, stripeAccountId: data['stripe_account_id'] as String);
+    return (
+      clientSecret: data['client_secret'] as String,
+      stripeAccountId: data['stripe_account_id'] as String,
+    );
   }
 
   Future<void> cancelarSuscripcion(String suscripcionId) async {
-    await _client.from('suscripciones').update({'estado': 'cancelada'}).eq('id', suscripcionId);
+    await _client
+        .from('suscripciones')
+        .update({'estado': 'cancelada'})
+        .eq('id', suscripcionId);
   }
 }

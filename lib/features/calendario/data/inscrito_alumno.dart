@@ -33,5 +33,6 @@ class InscritoAlumno {
   final String? cinturon;
   final bool asistenciaValidada;
 
-  String get nombreCompleto => [nombre, apellidos].whereType<String>().join(' ');
+  String get nombreCompleto =>
+      [nombre, apellidos].whereType<String>().join(' ');
 }

@@ -19,17 +19,14 @@ class Observability {
       return;
     }
 
-    await SentryFlutter.init(
-      (options) {
-        options.dsn = AppConfig.sentryDsn;
-        options.environment = AppConfig.environmentName;
-        // Sample a fraction of transactions in production; everything in dev.
-        options.tracesSampleRate = kReleaseMode ? 0.2 : 1.0;
-        // Never ship user PII to the error backend.
-        options.sendDefaultPii = false;
-      },
-      appRunner: () => appRunner(),
-    );
+    await SentryFlutter.init((options) {
+      options.dsn = AppConfig.sentryDsn;
+      options.environment = AppConfig.environmentName;
+      // Sample a fraction of transactions in production; everything in dev.
+      options.tracesSampleRate = kReleaseMode ? 0.2 : 1.0;
+      // Never ship user PII to the error backend.
+      options.sendDefaultPii = false;
+    }, appRunner: () => appRunner());
   }
 
   /// Reports a handled error with optional context, without crashing the app.

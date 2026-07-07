@@ -4,7 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:itaca/app/theme/app_theme.dart';
 
 void main() {
-  testWidgets('Dark theme renders without throwing', (WidgetTester tester) async {
+  testWidgets('Dark theme renders without throwing', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.dark,
@@ -13,6 +15,9 @@ void main() {
     );
 
     expect(find.text('ITACA'), findsOneWidget);
-    expect(Theme.of(tester.element(find.text('ITACA'))).brightness, Brightness.dark);
+    expect(
+      Theme.of(tester.element(find.text('ITACA'))).brightness,
+      Brightness.dark,
+    );
   });
 }

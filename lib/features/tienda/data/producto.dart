@@ -16,5 +16,6 @@ abstract class Producto with _$Producto {
     required bool activo,
   }) = _Producto;
 
-  factory Producto.fromJson(Map<String, dynamic> json) => _$ProductoFromJson(json);
+  factory Producto.fromJson(Map<String, dynamic> json) =>
+      _$ProductoFromJson(json);
 }

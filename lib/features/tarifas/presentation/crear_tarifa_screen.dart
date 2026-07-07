@@ -36,7 +36,9 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
       _error = null;
     });
     try {
-      await ref.read(tarifasRepositoryProvider).crearTarifa(
+      await ref
+          .read(tarifasRepositoryProvider)
+          .crearTarifa(
             academiaId: widget.academiaId,
             nombre: _nombreController.text.trim(),
             descripcion: _descripcionController.text.trim(),
@@ -66,7 +68,8 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
                 TextFormField(
                   controller: _nombreController,
                   decoration: const InputDecoration(labelText: 'Nombre'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -77,9 +80,13 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _precioController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   decoration: const InputDecoration(labelText: 'Precio (€)'),
-                  validator: (v) => (num.tryParse(v ?? '') == null) ? 'Introduce un precio válido' : null,
+                  validator: (v) => (num.tryParse(v ?? '') == null)
+                      ? 'Introduce un precio válido'
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
@@ -87,21 +94,33 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
                   decoration: const InputDecoration(labelText: 'Periodicidad'),
                   items: const [
                     DropdownMenuItem(value: 'mensual', child: Text('Mensual')),
-                    DropdownMenuItem(value: 'trimestral', child: Text('Trimestral')),
+                    DropdownMenuItem(
+                      value: 'trimestral',
+                      child: Text('Trimestral'),
+                    ),
                     DropdownMenuItem(value: 'anual', child: Text('Anual')),
                   ],
-                  onChanged: (v) => setState(() => _periodicidad = v ?? _periodicidad),
+                  onChanged: (v) =>
+                      setState(() => _periodicidad = v ?? _periodicidad),
                 ),
                 if (_error != null) ...[
                   const SizedBox(height: 12),
-                  Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
                 ],
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _guardando ? null : _guardar,
                   child: _guardando
                       ? const SizedBox(
-                          height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Text('Crear tarifa'),
                 ),
               ],

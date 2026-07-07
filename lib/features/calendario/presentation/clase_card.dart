@@ -40,28 +40,36 @@ class ClaseCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(horario, style: Theme.of(context).textTheme.labelLarge),
+                    Text(
+                      horario,
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
                     const SizedBox(height: 4),
-                    Text(clase.titulo, style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      clase.titulo,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       'Prof. ${clase.profesorNombre}',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: AppColors.textSecondary),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${clase.inscritosCount}/${clase.aforoMaximo} inscritos',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: clase.aforoCompleto ? AppColors.warning : AppColors.textSecondary,
-                          ),
+                        color: clase.aforoCompleto
+                            ? AppColors.warning
+                            : AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
               ),
-              if (onUnirse != null || onBorrarse != null) _buildAccionAlumno(context),
+              if (onUnirse != null || onBorrarse != null)
+                _buildAccionAlumno(context),
             ],
           ),
         ),
@@ -78,7 +86,10 @@ class ClaseCard extends StatelessWidget {
       );
     }
     if (clase.estoyInscrito) {
-      return OutlinedButton(onPressed: onBorrarse, child: const Text('Borrarse'));
+      return OutlinedButton(
+        onPressed: onBorrarse,
+        child: const Text('Borrarse'),
+      );
     }
     return ElevatedButton(
       onPressed: clase.aforoCompleto ? null : onUnirse,

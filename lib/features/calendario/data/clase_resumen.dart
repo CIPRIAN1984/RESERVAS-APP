@@ -23,7 +23,8 @@ abstract class ClaseResumen with _$ClaseResumen {
     @JsonKey(name: 'mi_estado') String? miEstado,
   }) = _ClaseResumen;
 
-  factory ClaseResumen.fromJson(Map<String, dynamic> json) => _$ClaseResumenFromJson(json);
+  factory ClaseResumen.fromJson(Map<String, dynamic> json) =>
+      _$ClaseResumenFromJson(json);
 
   bool get estoyInscrito => miEstado == 'inscrito';
   bool get aforoCompleto => inscritosCount >= aforoMaximo;

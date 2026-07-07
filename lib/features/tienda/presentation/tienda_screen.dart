@@ -19,11 +19,16 @@ class TiendaScreen extends ConsumerWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final puedeGestionar = profile.isProfesor || profile.isDueno || profile.isAdministrador;
+    final puedeGestionar =
+        profile.isProfesor || profile.isDueno || profile.isAdministrador;
     final academiaId = profile.academiaId!;
 
     final tabs = puedeGestionar
-        ? const [Tab(text: 'Catálogo'), Tab(text: 'Pedidos'), Tab(text: 'Préstamos')]
+        ? const [
+            Tab(text: 'Catálogo'),
+            Tab(text: 'Pedidos'),
+            Tab(text: 'Préstamos'),
+          ]
         : const [Tab(text: 'Catálogo'), Tab(text: 'Mis pedidos')];
 
     final vistas = puedeGestionar
@@ -33,7 +38,11 @@ class TiendaScreen extends ConsumerWidget {
             PrestamosTab(academiaId: academiaId, gestionadoPor: userId),
           ]
         : [
-            CatalogoTab(puedeGestionar: false, academiaId: academiaId, alumnoId: userId),
+            CatalogoTab(
+              puedeGestionar: false,
+              academiaId: academiaId,
+              alumnoId: userId,
+            ),
             MisPedidosTab(alumnoId: userId),
           ];
 

@@ -37,7 +37,9 @@ class _CrearTecnicaScreenState extends ConsumerState<CrearTecnicaScreen> {
       _error = null;
     });
     try {
-      await ref.read(progresoRepositoryProvider).crearTecnica(
+      await ref
+          .read(progresoRepositoryProvider)
+          .crearTecnica(
             academiaId: widget.academiaId,
             cinturon: _cinturon,
             nombre: _nombreController.text.trim(),
@@ -69,15 +71,21 @@ class _CrearTecnicaScreenState extends ConsumerState<CrearTecnicaScreen> {
                   decoration: const InputDecoration(labelText: 'Cinturón'),
                   items: [
                     for (final c in ordenCinturones)
-                      DropdownMenuItem(value: c, child: Text(nombreCinturones[c] ?? c)),
+                      DropdownMenuItem(
+                        value: c,
+                        child: Text(nombreCinturones[c] ?? c),
+                      ),
                   ],
                   onChanged: (v) => setState(() => _cinturon = v ?? _cinturon),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _nombreController,
-                  decoration: const InputDecoration(labelText: 'Nombre de la técnica'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre de la técnica',
+                  ),
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Obligatorio' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -89,18 +97,28 @@ class _CrearTecnicaScreenState extends ConsumerState<CrearTecnicaScreen> {
                 TextFormField(
                   controller: _ordenController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Orden dentro del cinturón'),
+                  decoration: const InputDecoration(
+                    labelText: 'Orden dentro del cinturón',
+                  ),
                 ),
                 if (_error != null) ...[
                   const SizedBox(height: 12),
-                  Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
                 ],
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _guardando ? null : _guardar,
                   child: _guardando
                       ? const SizedBox(
-                          height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Text('Crear técnica'),
                 ),
               ],

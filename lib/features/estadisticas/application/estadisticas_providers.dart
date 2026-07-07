@@ -8,7 +8,11 @@ final estadisticasRepositoryProvider = Provider<EstadisticasRepository>((ref) {
   return EstadisticasRepository(AppSupabase.client);
 });
 
-final rankingMensualProvider = FutureProvider.autoDispose<List<RankingEntry>>((ref) {
+final rankingMensualProvider = FutureProvider.autoDispose<List<RankingEntry>>((
+  ref,
+) {
   final ahora = DateTime.now();
-  return ref.watch(estadisticasRepositoryProvider).rankingMensual(DateTime(ahora.year, ahora.month));
+  return ref
+      .watch(estadisticasRepositoryProvider)
+      .rankingMensual(DateTime(ahora.year, ahora.month));
 });

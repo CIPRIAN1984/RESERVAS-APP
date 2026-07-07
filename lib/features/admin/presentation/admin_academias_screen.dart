@@ -5,7 +5,9 @@ import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/models/academia.dart';
 
-final _academiasTodasProvider = FutureProvider.autoDispose<List<Academia>>((ref) {
+final _academiasTodasProvider = FutureProvider.autoDispose<List<Academia>>((
+  ref,
+) {
   return ref.watch(authRepositoryProvider).listAcademiasTodas();
 });
 
@@ -29,9 +31,11 @@ class AdminAcademiasScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(aprobar
-                ? '${academia.nombre} aprobada.'
-                : '${academia.nombre} rechazada.'),
+            content: Text(
+              aprobar
+                  ? '${academia.nombre} aprobada.'
+                  : '${academia.nombre} rechazada.',
+            ),
           ),
         );
       }
@@ -45,18 +49,18 @@ class AdminAcademiasScreen extends ConsumerWidget {
   }
 
   String _etiquetaEstado(String estado) => switch (estado) {
-        'pending' => 'Pendiente',
-        'approved' => 'Aprobada',
-        'rejected' => 'Rechazada',
-        _ => estado,
-      };
+    'pending' => 'Pendiente',
+    'approved' => 'Aprobada',
+    'rejected' => 'Rechazada',
+    _ => estado,
+  };
 
   Color _colorEstado(String estado) => switch (estado) {
-        'pending' => AppColors.warning,
-        'approved' => AppColors.success,
-        'rejected' => AppColors.danger,
-        _ => AppColors.textSecondary,
-      };
+    'pending' => AppColors.warning,
+    'approved' => AppColors.success,
+    'rejected' => AppColors.danger,
+    _ => AppColors.textSecondary,
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -68,7 +72,9 @@ class AdminAcademiasScreen extends ConsumerWidget {
           return Center(
             child: Text(
               'Todavía no hay academias registradas.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
             ),
           );
         }
@@ -89,31 +95,38 @@ class AdminAcademiasScreen extends ConsumerWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: Text(academia.nombre, style: Theme.of(context).textTheme.titleMedium),
+                            child: Text(
+                              academia.nombre,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
                           ),
                           Chip(
                             label: Text(_etiquetaEstado(academia.estado)),
-                            backgroundColor: _colorEstado(academia.estado).withValues(alpha: 0.16),
-                            labelStyle: TextStyle(color: _colorEstado(academia.estado)),
+                            backgroundColor: _colorEstado(
+                              academia.estado,
+                            ).withValues(alpha: 0.16),
+                            labelStyle: TextStyle(
+                              color: _colorEstado(academia.estado),
+                            ),
                             visualDensity: VisualDensity.compact,
                           ),
                         ],
                       ),
                       if (academia.direccion?.isNotEmpty ?? false) ...[
                         const SizedBox(height: 4),
-                        Text(academia.direccion!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(color: AppColors.textSecondary)),
+                        Text(
+                          academia.direccion!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.textSecondary),
+                        ),
                       ],
                       if (academia.emailContacto?.isNotEmpty ?? false) ...[
                         const SizedBox(height: 4),
-                        Text(academia.emailContacto!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(color: AppColors.textSecondary)),
+                        Text(
+                          academia.emailContacto!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.textSecondary),
+                        ),
                       ],
                       if (academia.estado == 'pending') ...[
                         const SizedBox(height: 16),
@@ -121,16 +134,24 @@ class AdminAcademiasScreen extends ConsumerWidget {
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: () =>
-                                    _resolver(ref, context, academia: academia, aprobar: false),
+                                onPressed: () => _resolver(
+                                  ref,
+                                  context,
+                                  academia: academia,
+                                  aprobar: false,
+                                ),
                                 child: const Text('Rechazar'),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: ElevatedButton(
-                                onPressed: () =>
-                                    _resolver(ref, context, academia: academia, aprobar: true),
+                                onPressed: () => _resolver(
+                                  ref,
+                                  context,
+                                  academia: academia,
+                                  aprobar: true,
+                                ),
                                 child: const Text('Aprobar'),
                               ),
                             ),
@@ -147,8 +168,10 @@ class AdminAcademiasScreen extends ConsumerWidget {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, st) => Center(
-        child: Text('No se pudieron cargar las academias.',
-            style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          'No se pudieron cargar las academias.',
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }

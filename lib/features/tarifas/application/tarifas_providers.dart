@@ -9,10 +9,16 @@ final tarifasRepositoryProvider = Provider<TarifasRepository>((ref) {
   return TarifasRepository(AppSupabase.client);
 });
 
-final tarifasProvider = FutureProvider.autoDispose.family<List<Tarifa>, bool>((ref, soloActivas) {
-  return ref.watch(tarifasRepositoryProvider).listarTarifas(soloActivas: soloActivas);
+final tarifasProvider = FutureProvider.autoDispose.family<List<Tarifa>, bool>((
+  ref,
+  soloActivas,
+) {
+  return ref
+      .watch(tarifasRepositoryProvider)
+      .listarTarifas(soloActivas: soloActivas);
 });
 
-final suscripcionActivaProvider = FutureProvider.autoDispose.family<Suscripcion?, String>((ref, alumnoId) {
-  return ref.watch(tarifasRepositoryProvider).suscripcionActiva(alumnoId);
-});
+final suscripcionActivaProvider = FutureProvider.autoDispose
+    .family<Suscripcion?, String>((ref, alumnoId) {
+      return ref.watch(tarifasRepositoryProvider).suscripcionActiva(alumnoId);
+    });

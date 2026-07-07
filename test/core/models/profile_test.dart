@@ -6,13 +6,13 @@ Map<String, dynamic> _json({
   String estado = 'activo',
   String? academiaId = 'aca-1',
 }) => {
-      'id': 'user-1',
-      'academia_id': academiaId,
-      'rol': rol,
-      'nombre': 'Ana',
-      'apellidos': 'García',
-      'estado': estado,
-    };
+  'id': 'user-1',
+  'academia_id': academiaId,
+  'rol': rol,
+  'nombre': 'Ana',
+  'apellidos': 'García',
+  'estado': estado,
+};
 
 void main() {
   group('Profile.fromJson', () {
@@ -40,8 +40,16 @@ void main() {
 
   group('pendienteAprobacion', () {
     test('es true solo con estado pendiente_aprobacion', () {
-      expect(Profile.fromJson(_json(estado: 'pendiente_aprobacion')).pendienteAprobacion, isTrue);
-      expect(Profile.fromJson(_json(estado: 'activo')).pendienteAprobacion, isFalse);
+      expect(
+        Profile.fromJson(
+          _json(estado: 'pendiente_aprobacion'),
+        ).pendienteAprobacion,
+        isTrue,
+      );
+      expect(
+        Profile.fromJson(_json(estado: 'activo')).pendienteAprobacion,
+        isFalse,
+      );
     });
   });
 }

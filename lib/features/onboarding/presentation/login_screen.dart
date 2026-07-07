@@ -35,17 +35,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _error = null;
     });
     try {
-      await ref.read(authRepositoryProvider).signIn(
+      await ref
+          .read(authRepositoryProvider)
+          .signIn(
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );
     } on sb.AuthException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
-      setState(() => _error = mensajeErrorAmigable(
-            e,
-            generico: 'No se ha podido iniciar sesión. Inténtalo de nuevo.',
-          ));
+      setState(
+        () => _error = mensajeErrorAmigable(
+          e,
+          generico: 'No se ha podido iniciar sesión. Inténtalo de nuevo.',
+        ),
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -68,10 +72,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Text(
                       'ITACA',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 2),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -85,21 +90,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       keyboardType: TextInputType.emailAddress,
                       autofillHints: const [AutofillHints.email],
                       decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (v) =>
-                          (v == null || !v.contains('@')) ? 'Introduce un email válido' : null,
+                      validator: (v) => (v == null || !v.contains('@'))
+                          ? 'Introduce un email válido'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
                       autofillHints: const [AutofillHints.password],
-                      decoration: const InputDecoration(labelText: 'Contraseña'),
-                      validator: (v) =>
-                          (v == null || v.length < 6) ? 'Mínimo 6 caracteres' : null,
+                      decoration: const InputDecoration(
+                        labelText: 'Contraseña',
+                      ),
+                      validator: (v) => (v == null || v.length < 6)
+                          ? 'Mínimo 6 caracteres'
+                          : null,
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 12),
-                      Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                      Text(
+                        _error!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
                     ],
                     const SizedBox(height: 24),
                     ElevatedButton(
@@ -114,7 +128,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextButton(
-                      onPressed: _loading ? null : () => context.push(Routes.registro),
+                      onPressed: _loading
+                          ? null
+                          : () => context.push(Routes.registro),
                       child: const Text('¿No tienes cuenta? Regístrate'),
                     ),
                   ],

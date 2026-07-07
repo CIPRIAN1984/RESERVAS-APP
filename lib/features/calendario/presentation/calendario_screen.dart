@@ -23,13 +23,15 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
   Future<void> _unirse(ClaseResumen clase, String alumnoId) async {
     setState(() => _accionEnCursoClaseId = clase.id);
     try {
-      await ref.read(clasesRepositoryProvider).unirse(claseId: clase.id, alumnoId: alumnoId);
+      await ref
+          .read(clasesRepositoryProvider)
+          .unirse(claseId: clase.id, alumnoId: alumnoId);
       ref.invalidate(clasesMesProvider);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_mensajeError(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(_mensajeError(e))));
       }
     } finally {
       if (mounted) setState(() => _accionEnCursoClaseId = null);
@@ -39,12 +41,15 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
   Future<void> _borrarse(ClaseResumen clase, String alumnoId) async {
     setState(() => _accionEnCursoClaseId = clase.id);
     try {
-      await ref.read(clasesRepositoryProvider).borrarse(claseId: clase.id, alumnoId: alumnoId);
+      await ref
+          .read(clasesRepositoryProvider)
+          .borrarse(claseId: clase.id, alumnoId: alumnoId);
       ref.invalidate(clasesMesProvider);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('No se ha podido completar la acción.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se ha podido completar la acción.')),
+        );
       }
     } finally {
       if (mounted) setState(() => _accionEnCursoClaseId = null);
@@ -53,7 +58,9 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
 
   String _mensajeError(Object e) {
     final texto = e.toString();
-    if (texto.contains('Aforo completo')) return 'Aforo completo para esta clase.';
+    if (texto.contains('Aforo completo')) {
+      return 'Aforo completo para esta clase.';
+    }
     return 'No se ha podido completar la acción.';
   }
 
@@ -62,7 +69,9 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     final profile = ref.watch(currentProfileProvider).value;
     final userId = ref.watch(currentUserIdProvider);
     final academiaId = profile?.academiaId;
-    final puedeGestionar = profile != null && (profile.isProfesor || profile.isDueno || profile.isAdministrador);
+    final puedeGestionar =
+        profile != null &&
+        (profile.isProfesor || profile.isDueno || profile.isAdministrador);
 
     final selectedDay = ref.watch(selectedDayProvider);
     final visibleMonth = ref.watch(visibleMonthProvider);
@@ -81,7 +90,10 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
               onPressed: () async {
                 await Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => CrearClaseScreen(academiaId: academiaId, profesorId: userId!),
+                    builder: (_) => CrearClaseScreen(
+                      academiaId: academiaId,
+                      profesorId: userId!,
+                    ),
                   ),
                 );
                 ref.invalidate(clasesMesProvider);
@@ -95,26 +107,47 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
           TableCalendar<ClaseResumen>(
             firstDay: DateTime.now().subtract(const Duration(days: 365)),
             lastDay: DateTime.now().add(const Duration(days: 365)),
-            focusedDay: visibleMonth.month == selectedDay.month && visibleMonth.year == selectedDay.year
+            focusedDay:
+                visibleMonth.month == selectedDay.month &&
+                    visibleMonth.year == selectedDay.year
                 ? selectedDay
                 : visibleMonth,
             calendarFormat: CalendarFormat.month,
             availableCalendarFormats: const {CalendarFormat.month: 'Mes'},
             startingDayOfWeek: StartingDayOfWeek.monday,
-            headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
+            headerStyle: const HeaderStyle(
+              formatButtonVisible: false,
+              titleCentered: true,
+            ),
             calendarStyle: const CalendarStyle(
-              markerDecoration: BoxDecoration(color: AppColors.accentPrimary, shape: BoxShape.circle),
-              todayDecoration: BoxDecoration(color: AppColors.surfaceElevatedHigh, shape: BoxShape.circle),
-              selectedDecoration: BoxDecoration(color: AppColors.accentPrimary, shape: BoxShape.circle),
+              markerDecoration: BoxDecoration(
+                color: AppColors.accentPrimary,
+                shape: BoxShape.circle,
+              ),
+              todayDecoration: BoxDecoration(
+                color: AppColors.surfaceElevatedHigh,
+                shape: BoxShape.circle,
+              ),
+              selectedDecoration: BoxDecoration(
+                color: AppColors.accentPrimary,
+                shape: BoxShape.circle,
+              ),
             ),
             selectedDayPredicate: (day) => isSameDay(day, selectedDay),
-            eventLoader: (day) => clasesPorDia[DateTime(day.year, day.month, day.day)] ?? const [],
+            eventLoader: (day) =>
+                clasesPorDia[DateTime(day.year, day.month, day.day)] ??
+                const [],
             onDaySelected: (selected, focused) {
-              ref.read(selectedDayProvider.notifier).state =
-                  DateTime(selected.year, selected.month, selected.day);
+              ref.read(selectedDayProvider.notifier).state = DateTime(
+                selected.year,
+                selected.month,
+                selected.day,
+              );
             },
             onPageChanged: (focused) {
-              ref.read(visibleMonthProvider.notifier).state = firstOfMonth(focused);
+              ref.read(visibleMonthProvider.notifier).state = firstOfMonth(
+                focused,
+              );
             },
           ),
           const Divider(height: 1, color: AppColors.divider),
@@ -122,21 +155,25 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
             child: clasesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, st) => Center(
-                child: Text('No se han podido cargar las clases.',
-                    style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                child: Text(
+                  'No se han podido cargar las clases.',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               ),
               data: (clases) {
                 final delDia = clases
-                    .where((c) => isSameDay(c.fechaHoraInicio.toLocal(), selectedDay))
+                    .where(
+                      (c) =>
+                          isSameDay(c.fechaHoraInicio.toLocal(), selectedDay),
+                    )
                     .toList();
                 if (delDia.isEmpty) {
                   return Center(
                     child: Text(
                       'No hay clases este día.',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AppColors.textSecondary),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   );
                 }
@@ -151,15 +188,21 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                       return ClaseCard(
                         clase: clase,
                         onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => ClaseDetalleScreen(clase: clase)),
+                          MaterialPageRoute(
+                            builder: (_) => ClaseDetalleScreen(clase: clase),
+                          ),
                         ),
                       );
                     }
                     return ClaseCard(
                       clase: clase,
                       loadingAccion: cargando,
-                      onUnirse: userId == null ? null : () => _unirse(clase, userId),
-                      onBorrarse: userId == null ? null : () => _borrarse(clase, userId),
+                      onUnirse: userId == null
+                          ? null
+                          : () => _unirse(clase, userId),
+                      onBorrarse: userId == null
+                          ? null
+                          : () => _borrarse(clase, userId),
                     );
                   },
                 );

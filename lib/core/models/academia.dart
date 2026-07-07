@@ -17,11 +17,16 @@ abstract class Academia with _$Academia {
     @JsonKey(name: 'email_contacto') String? emailContacto,
     required String estado,
     @JsonKey(name: 'created_by') String? createdBy,
-    @JsonKey(name: 'stripe_onboarding_status') @Default('not_started') String stripeOnboardingStatus,
-    @JsonKey(name: 'stripe_charges_enabled') @Default(false) bool stripeChargesEnabled,
+    @JsonKey(name: 'stripe_onboarding_status')
+    @Default('not_started')
+    String stripeOnboardingStatus,
+    @JsonKey(name: 'stripe_charges_enabled')
+    @Default(false)
+    bool stripeChargesEnabled,
   }) = _Academia;
 
-  factory Academia.fromJson(Map<String, dynamic> json) => _$AcademiaFromJson(json);
+  factory Academia.fromJson(Map<String, dynamic> json) =>
+      _$AcademiaFromJson(json);
 
   AcademiaEstado get estadoEnum => AcademiaEstadoX.fromValue(estado);
 }

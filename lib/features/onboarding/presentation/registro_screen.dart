@@ -12,9 +12,10 @@ import '../../../l10n/app_localizations.dart';
 /// Self-registration for a student joining an academia that already exists
 /// and is approved. Registering as Profesor is not self-service — a Dueño
 /// promotes a member to Profesor later (out of scope for this phase).
-final _academiasAprobadasProvider = FutureProvider.autoDispose<List<AcademiaOption>>((ref) {
-  return ref.watch(authRepositoryProvider).listAcademiasAprobadas();
-});
+final _academiasAprobadasProvider =
+    FutureProvider.autoDispose<List<AcademiaOption>>((ref) {
+      return ref.watch(authRepositoryProvider).listAcademiasAprobadas();
+    });
 
 class RegistroScreen extends ConsumerStatefulWidget {
   const RegistroScreen({super.key});
@@ -45,7 +46,9 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_academiaId == null) {
-      setState(() => _error = AppLocalizations.of(context).registerSelectAcademy);
+      setState(
+        () => _error = AppLocalizations.of(context).registerSelectAcademy,
+      );
       return;
     }
     setState(() {
@@ -64,10 +67,13 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
     } on sb.AuthException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
-      setState(() => _error = mensajeErrorAmigable(
-            e,
-            generico: 'No se ha podido completar el registro. Inténtalo de nuevo.',
-          ));
+      setState(
+        () => _error = mensajeErrorAmigable(
+          e,
+          generico:
+              'No se ha podido completar el registro. Inténtalo de nuevo.',
+        ),
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -94,49 +100,67 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
                     TextFormField(
                       controller: _nombreController,
                       decoration: InputDecoration(labelText: l10n.registerName),
-                      validator: (v) => (v == null || v.trim().isEmpty) ? l10n.commonRequired : null,
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? l10n.commonRequired
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _apellidosController,
-                      decoration: InputDecoration(labelText: l10n.registerLastName),
+                      decoration: InputDecoration(
+                        labelText: l10n.registerLastName,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(labelText: l10n.authEmail),
-                      validator: (v) =>
-                          (v == null || !v.contains('@')) ? l10n.authEmailInvalid : null,
+                      validator: (v) => (v == null || !v.contains('@'))
+                          ? l10n.authEmailInvalid
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(labelText: l10n.authPassword),
-                      validator: (v) =>
-                          (v == null || v.length < 6) ? l10n.authPasswordTooShort : null,
+                      validator: (v) => (v == null || v.length < 6)
+                          ? l10n.authPasswordTooShort
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     academiasAsync.when(
                       data: (academias) => DropdownButtonFormField<String>(
                         initialValue: _academiaId,
-                        decoration: InputDecoration(labelText: l10n.registerYourAcademy),
+                        decoration: InputDecoration(
+                          labelText: l10n.registerYourAcademy,
+                        ),
                         items: [
                           for (final a in academias)
-                            DropdownMenuItem(value: a.id, child: Text(a.nombre)),
+                            DropdownMenuItem(
+                              value: a.id,
+                              child: Text(a.nombre),
+                            ),
                         ],
                         onChanged: (v) => setState(() => _academiaId = v),
                       ),
                       loading: () => const LinearProgressIndicator(),
                       error: (e, st) => Text(
                         l10n.registerAcademiesLoadError,
-                        style: TextStyle(color: Theme.of(context).colorScheme.error),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                       ),
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 12),
-                      Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                      Text(
+                        _error!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
                     ],
                     const SizedBox(height: 24),
                     ElevatedButton(
@@ -151,7 +175,9 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextButton(
-                      onPressed: _loading ? null : () => context.push(Routes.registroAcademia),
+                      onPressed: _loading
+                          ? null
+                          : () => context.push(Routes.registroAcademia),
                       child: Text(l10n.registerOwnerCta),
                     ),
                   ],

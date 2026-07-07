@@ -16,7 +16,9 @@ class ArbolProgresoScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider).value;
     final esAlumno = profile?.isAlumno ?? false;
-    final puedeGestionar = profile != null && (profile.isProfesor || profile.isDueno || profile.isAdministrador);
+    final puedeGestionar =
+        profile != null &&
+        (profile.isProfesor || profile.isDueno || profile.isAdministrador);
 
     final tecnicasAsync = ref.watch(tecnicasProvider);
     final progreso = esAlumno ? ref.watch(miProgresoProvider).value : null;
@@ -27,7 +29,8 @@ class ArbolProgresoScreen extends ConsumerWidget {
               onPressed: () async {
                 await Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => CrearTecnicaScreen(academiaId: profile.academiaId!),
+                    builder: (_) =>
+                        CrearTecnicaScreen(academiaId: profile.academiaId!),
                   ),
                 );
                 ref.invalidate(tecnicasProvider);
@@ -39,15 +42,19 @@ class ArbolProgresoScreen extends ConsumerWidget {
       body: tecnicasAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(
-          child: Text('No se han podido cargar las técnicas.',
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          child: Text(
+            'No se han podido cargar las técnicas.',
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
         ),
         data: (tecnicas) {
           if (tecnicas.isEmpty) {
             return Center(
               child: Text(
                 'Todavía no hay técnicas en el árbol de progreso.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
             );
           }
@@ -66,7 +73,10 @@ class ArbolProgresoScreen extends ConsumerWidget {
                     progreso: progreso,
                     onTapTecnica: (tecnica) async {
                       await Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => TecnicaDetalleScreen(tecnica: tecnica)),
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              TecnicaDetalleScreen(tecnica: tecnica),
+                        ),
                       );
                       ref.invalidate(miProgresoProvider);
                     },

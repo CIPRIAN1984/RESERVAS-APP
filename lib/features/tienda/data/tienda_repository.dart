@@ -12,15 +12,20 @@ class TiendaRepository {
   final sb.SupabaseClient _client;
 
   Future<List<AlumnoOption>> listarAlumnos(String academiaId) async {
-    final rows = await _client
-        .from('profiles')
-        .select('id, nombre, apellidos')
-        .eq('academia_id', academiaId)
-        .eq('rol', 'alumno')
-        .order('nombre') as List;
+    final rows =
+        await _client
+                .from('profiles')
+                .select('id, nombre, apellidos')
+                .eq('academia_id', academiaId)
+                .eq('rol', 'alumno')
+                .order('nombre')
+            as List;
     return rows.map((r) {
       final row = r as Map<String, dynamic>;
-      final nombre = [row['nombre'], row['apellidos']].whereType<String>().join(' ');
+      final nombre = [
+        row['nombre'],
+        row['apellidos'],
+      ].whereType<String>().join(' ');
       return (id: row['id'] as String, nombre: nombre);
     }).toList();
   }
@@ -31,7 +36,9 @@ class TiendaRepository {
       query = query.eq('activo', true);
     }
     final rows = await query.order('nombre') as List;
-    return rows.map((r) => Producto.fromJson(r as Map<String, dynamic>)).toList();
+    return rows
+        .map((r) => Producto.fromJson(r as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> crearProducto({
@@ -51,7 +58,10 @@ class TiendaRepository {
   }
 
   Future<void> alternarActivo(String productoId, bool activo) async {
-    await _client.from('productos').update({'activo': activo}).eq('id', productoId);
+    await _client
+        .from('productos')
+        .update({'activo': activo})
+        .eq('id', productoId);
   }
 
   /// Inserts the order (lands in `pendiente_pago`) and returns its id, used
@@ -75,7 +85,9 @@ class TiendaRepository {
 
   /// Calls `stripe-create-tienda-payment` to get a PaymentIntent client
   /// secret for the given (already-inserted, `pendiente_pago`) order.
-  Future<({String clientSecret, String stripeAccountId})> iniciarPagoPedido(String pedidoId) async {
+  Future<({String clientSecret, String stripeAccountId})> iniciarPagoPedido(
+    String pedidoId,
+  ) async {
     final res = await _client.functions.invoke(
       'stripe-create-tienda-payment',
       body: {'pedido_id': pedidoId},
@@ -87,7 +99,10 @@ class TiendaRepository {
     );
   }
 
-  Future<List<Pedido>> listarPedidos({required bool soloPropios, String? alumnoId}) async {
+  Future<List<Pedido>> listarPedidos({
+    required bool soloPropios,
+    String? alumnoId,
+  }) async {
     var query = _client
         .from('pedidos')
         .select('*, alumno:profiles(nombre), producto:productos(nombre)');
@@ -103,11 +118,17 @@ class TiendaRepository {
   }
 
   Future<List<Prestamo>> listarPrestamos() async {
-    final rows = await _client
-        .from('prestamos')
-        .select('*, alumno:profiles!prestamos_alumno_id_fkey(nombre), producto:productos(nombre)')
-        .order('fecha_prestamo', ascending: false) as List;
-    return rows.map((r) => Prestamo.fromRow(r as Map<String, dynamic>)).toList();
+    final rows =
+        await _client
+                .from('prestamos')
+                .select(
+                  '*, alumno:profiles!prestamos_alumno_id_fkey(nombre), producto:productos(nombre)',
+                )
+                .order('fecha_prestamo', ascending: false)
+            as List;
+    return rows
+        .map((r) => Prestamo.fromRow(r as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> crearPrestamo({

@@ -13,7 +13,8 @@ abstract class MiSolicitudCambio with _$MiSolicitudCambio {
     required DateTime createdAt,
   }) = _MiSolicitudCambio;
 
-  factory MiSolicitudCambio.fromRow(Map<String, dynamic> row) => MiSolicitudCambio(
+  factory MiSolicitudCambio.fromRow(Map<String, dynamic> row) =>
+      MiSolicitudCambio(
         id: row['id'] as String,
         estado: row['estado'] as String,
         academiaDestinoId: row['academia_destino_id'] as String,
@@ -35,7 +36,8 @@ abstract class SolicitudPendiente with _$SolicitudPendiente {
     required DateTime createdAt,
   }) = _SolicitudPendiente;
 
-  factory SolicitudPendiente.fromRow(Map<String, dynamic> row) => SolicitudPendiente(
+  factory SolicitudPendiente.fromRow(Map<String, dynamic> row) =>
+      SolicitudPendiente(
         id: row['id'] as String,
         alumnoId: row['alumno_id'] as String,
         alumnoNombre: row['nombre'] as String,

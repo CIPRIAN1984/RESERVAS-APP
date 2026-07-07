@@ -19,7 +19,9 @@ void main() {
     });
 
     test('nunca filtra el texto crudo de la excepción de red', () {
-      final msg = mensajeErrorAmigable(Exception('Connection refused at 10.0.0.1'));
+      final msg = mensajeErrorAmigable(
+        Exception('Connection refused at 10.0.0.1'),
+      );
       expect(msg, isNot(contains('10.0.0.1')));
     });
   });

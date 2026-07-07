@@ -12,12 +12,13 @@ class ProgresoRepository {
 
   Future<List<Tecnica>> listarTecnicas() async {
     final rows = await _client.from('tecnicas').select().order('orden') as List;
-    final tecnicas =
-        rows.map((r) => Tecnica.fromJson(r as Map<String, dynamic>)).toList();
+    final tecnicas = rows
+        .map((r) => Tecnica.fromJson(r as Map<String, dynamic>))
+        .toList();
     tecnicas.sort((a, b) {
-      final cmpCinturon = ordenCinturones.indexOf(a.cinturon).compareTo(
-            ordenCinturones.indexOf(b.cinturon),
-          );
+      final cmpCinturon = ordenCinturones
+          .indexOf(a.cinturon)
+          .compareTo(ordenCinturones.indexOf(b.cinturon));
       return cmpCinturon != 0 ? cmpCinturon : a.orden.compareTo(b.orden);
     });
     return tecnicas;
@@ -25,22 +26,30 @@ class ProgresoRepository {
 
   /// tecnica_id -> estado, for the given student.
   Future<Map<String, String>> miProgreso(String alumnoId) async {
-    final rows = await _client
-        .from('progreso_alumno_tecnica')
-        .select('tecnica_id, estado')
-        .eq('alumno_id', alumnoId) as List;
+    final rows =
+        await _client
+                .from('progreso_alumno_tecnica')
+                .select('tecnica_id, estado')
+                .eq('alumno_id', alumnoId)
+            as List;
     return {
-      for (final r in rows) (r as Map<String, dynamic>)['tecnica_id'] as String: r['estado'] as String,
+      for (final r in rows)
+        (r as Map<String, dynamic>)['tecnica_id'] as String:
+            r['estado'] as String,
     };
   }
 
   Future<List<MediaTecnica>> listarMedia(String tecnicaId) async {
-    final rows = await _client
-        .from('media_tecnica')
-        .select()
-        .eq('tecnica_id', tecnicaId)
-        .order('created_at') as List;
-    return rows.map((r) => MediaTecnica.fromJson(r as Map<String, dynamic>)).toList();
+    final rows =
+        await _client
+                .from('media_tecnica')
+                .select()
+                .eq('tecnica_id', tecnicaId)
+                .order('created_at')
+            as List;
+    return rows
+        .map((r) => MediaTecnica.fromJson(r as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> crearTecnica({
@@ -80,21 +89,29 @@ class ProgresoRepository {
   }) async {
     await _client
         .from('progreso_alumno_tecnica')
-        .update({'estado': estado, 'updated_at': DateTime.now().toUtc().toIso8601String()})
+        .update({
+          'estado': estado,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
         .eq('alumno_id', alumnoId)
         .eq('tecnica_id', tecnicaId);
   }
 
   Future<List<AlumnoOption>> listarAlumnos(String academiaId) async {
-    final rows = await _client
-        .from('profiles')
-        .select('id, nombre, apellidos')
-        .eq('academia_id', academiaId)
-        .eq('rol', 'alumno')
-        .order('nombre') as List;
+    final rows =
+        await _client
+                .from('profiles')
+                .select('id, nombre, apellidos')
+                .eq('academia_id', academiaId)
+                .eq('rol', 'alumno')
+                .order('nombre')
+            as List;
     return rows.map((r) {
       final row = r as Map<String, dynamic>;
-      final nombre = [row['nombre'], row['apellidos']].whereType<String>().join(' ');
+      final nombre = [
+        row['nombre'],
+        row['apellidos'],
+      ].whereType<String>().join(' ');
       return (id: row['id'] as String, nombre: nombre);
     }).toList();
   }

@@ -17,7 +17,11 @@ class PendienteAprobacionScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.hourglass_top_outlined, size: 56, color: AppColors.warning),
+                const Icon(
+                  Icons.hourglass_top_outlined,
+                  size: 56,
+                  color: AppColors.warning,
+                ),
                 const SizedBox(height: 24),
                 Text(
                   'Tu academia está pendiente de aprobación',
@@ -29,10 +33,9 @@ class PendienteAprobacionScreen extends ConsumerWidget {
                   'El administrador de la plataforma tiene que revisar y aprobar tu academia '
                   'antes de que puedas acceder a ITACA. Te avisaremos en cuanto esté lista.',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: AppColors.textSecondary),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 32),
                 OutlinedButton.icon(

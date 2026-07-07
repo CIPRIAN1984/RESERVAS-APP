@@ -8,11 +8,13 @@ class NovedadesRepository {
   final sb.SupabaseClient _client;
 
   Future<List<Novedad>> listar() async {
-    final rows = await _client
-        .from('novedades')
-        .select('*, autor:profiles(nombre)')
-        .order('fijado', ascending: false)
-        .order('created_at', ascending: false) as List;
+    final rows =
+        await _client
+                .from('novedades')
+                .select('*, autor:profiles(nombre)')
+                .order('fijado', ascending: false)
+                .order('created_at', ascending: false)
+            as List;
     return rows.map((r) => Novedad.fromRow(r as Map<String, dynamic>)).toList();
   }
 

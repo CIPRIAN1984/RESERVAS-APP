@@ -31,7 +31,8 @@ class CinturonSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorCinturon = AppColors.beltColors[cinturon] ?? AppColors.textSecondary;
+    final colorCinturon =
+        AppColors.beltColors[cinturon] ?? AppColors.textSecondary;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -49,7 +50,9 @@ class CinturonSection extends StatelessWidget {
               border: Border.all(color: AppColors.divider),
             ),
           ),
-          title: Text('${nombreCinturones[cinturon] ?? cinturon} (${tecnicas.length})'),
+          title: Text(
+            '${nombreCinturones[cinturon] ?? cinturon} (${tecnicas.length})',
+          ),
           children: [
             for (final tecnica in tecnicas) _buildTecnicaTile(context, tecnica),
           ],
@@ -62,9 +65,18 @@ class CinturonSection extends StatelessWidget {
     final estado = progreso?[tecnica.id];
     return ListTile(
       title: Text(tecnica.nombre),
-      subtitle: tecnica.descripcion != null ? Text(tecnica.descripcion!, maxLines: 1, overflow: TextOverflow.ellipsis) : null,
+      subtitle: tecnica.descripcion != null
+          ? Text(
+              tecnica.descripcion!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            )
+          : null,
       leading: estado != null
-          ? Icon(_iconos[estado] ?? Icons.circle, color: _colores[estado] ?? AppColors.textSecondary)
+          ? Icon(
+              _iconos[estado] ?? Icons.circle,
+              color: _colores[estado] ?? AppColors.textSecondary,
+            )
           : const Icon(Icons.chevron_right, color: AppColors.textSecondary),
       onTap: () => onTapTecnica(tecnica),
     );

@@ -14,12 +14,19 @@ abstract class Tecnica with _$Tecnica {
     required int orden,
   }) = _Tecnica;
 
-  factory Tecnica.fromJson(Map<String, dynamic> json) => _$TecnicaFromJson(json);
+  factory Tecnica.fromJson(Map<String, dynamic> json) =>
+      _$TecnicaFromJson(json);
 }
 
 /// Fixed belt progression order (not alphabetical) used to group and sort
 /// the technique tree.
-const List<String> ordenCinturones = ['blanco', 'azul', 'morado', 'marron', 'negro'];
+const List<String> ordenCinturones = [
+  'blanco',
+  'azul',
+  'morado',
+  'marron',
+  'negro',
+];
 
 const Map<String, String> nombreCinturones = {
   'blanco': 'Blanco',

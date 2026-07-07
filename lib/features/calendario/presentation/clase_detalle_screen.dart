@@ -28,19 +28,28 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
   @override
   void initState() {
     super.initState();
-    _future = ref.read(clasesRepositoryProvider).listarInscritos(widget.clase.id);
+    _future = ref
+        .read(clasesRepositoryProvider)
+        .listarInscritos(widget.clase.id);
   }
 
   void _recargar() {
     setState(() {
-      _future = ref.read(clasesRepositoryProvider).listarInscritos(widget.clase.id);
+      _future = ref
+          .read(clasesRepositoryProvider)
+          .listarInscritos(widget.clase.id);
     });
   }
 
-  Future<void> _marcarAsistencia(InscritoAlumno alumno, String validadoPor) async {
+  Future<void> _marcarAsistencia(
+    InscritoAlumno alumno,
+    String validadoPor,
+  ) async {
     setState(() => _marcando.add(alumno.alumnoId));
     try {
-      await ref.read(clasesRepositoryProvider).marcarAsistencia(
+      await ref
+          .read(clasesRepositoryProvider)
+          .marcarAsistencia(
             claseId: widget.clase.id,
             alumnoId: alumno.alumnoId,
             validadoPor: validadoPor,
@@ -49,7 +58,9 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se ha podido validar la asistencia.')),
+          const SnackBar(
+            content: Text('No se ha podido validar la asistencia.'),
+          ),
         );
       }
     } finally {
@@ -73,8 +84,10 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
           }
           if (snapshot.hasError) {
             return Center(
-              child: Text('No se ha podido cargar la lista de inscritos.',
-                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(
+                'No se ha podido cargar la lista de inscritos.',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             );
           }
           final inscritos = snapshot.data ?? [];
@@ -86,14 +99,16 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(horario, style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      horario,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       '${inscritos.length}/${widget.clase.aforoMaximo} inscritos',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AppColors.textSecondary),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -104,9 +119,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                     ? Center(
                         child: Text(
                           'Todavía no hay inscritos.',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
+                          style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: AppColors.textSecondary),
                         ),
                       )
@@ -122,7 +135,10 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                                   ? CachedNetworkImageProvider(alumno.fotoUrl!)
                                   : null,
                               child: alumno.fotoUrl == null
-                                  ? const Icon(Icons.person, color: AppColors.textSecondary)
+                                  ? const Icon(
+                                      Icons.person,
+                                      color: AppColors.textSecondary,
+                                    )
                                   : null,
                             ),
                             title: Text(alumno.nombreCompleto),
@@ -130,19 +146,25 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                                 ? Text('Cinturón ${alumno.cinturon}')
                                 : null,
                             trailing: alumno.asistenciaValidada
-                                ? const Icon(Icons.check_circle, color: AppColors.success)
+                                ? const Icon(
+                                    Icons.check_circle,
+                                    color: AppColors.success,
+                                  )
                                 : marcando
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(strokeWidth: 2),
-                                      )
-                                    : OutlinedButton(
-                                        onPressed: userId == null
-                                            ? null
-                                            : () => _marcarAsistencia(alumno, userId),
-                                        child: const Text('Validar'),
-                                      ),
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : OutlinedButton(
+                                    onPressed: userId == null
+                                        ? null
+                                        : () =>
+                                              _marcarAsistencia(alumno, userId),
+                                    child: const Text('Validar'),
+                                  ),
                           );
                         },
                       ),
