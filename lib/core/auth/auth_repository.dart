@@ -123,9 +123,9 @@ class AuthRepository {
   }
 
   Future<void> rechazarAcademia(String academiaId) async {
-    await _client
-        .from('academias')
-        .update({'estado': 'rejected'})
-        .eq('id', academiaId);
+    await _client.rpc(
+      'rechazar_academia',
+      params: {'p_academia_id': academiaId},
+    );
   }
 }
