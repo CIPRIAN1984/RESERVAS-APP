@@ -127,12 +127,12 @@ select lives_ok(
   'Un alumno con cuota activa puede reservar'
 );
 
--- 6. La segunda reserva no puede rebasar el aforo.
+-- 6. La segunda reserva no rebasa el aforo: entra en espera.
 select pg_temp.actuar_como('00000000-0000-0000-0000-000000000c03');
-select throws_ok(
-  $$ select public.reservar_clase('00000000-0000-0000-0000-00000000c201') $$,
-  null,
-  'El bloqueo de clase impide superar el aforo'
+select is(
+  public.reservar_clase('00000000-0000-0000-0000-00000000c201'),
+  'espera',
+  'La segunda reserva entra en espera sin superar el aforo'
 );
 
 -- 7. Solo queda una plaza activa.
@@ -164,13 +164,13 @@ select lives_ok(
 );
 select is(
   (
-    select count(*)::int
+    select estado
       from public.inscripciones
       where clase_id = '00000000-0000-0000-0000-00000000c201'
-        and estado = 'inscrito'
+        and alumno_id = '00000000-0000-0000-0000-000000000c03'
   ),
-  0,
-  'Cancelar la reserva libera la plaza'
+  'inscrito',
+  'Cancelar libera la plaza y promociona a la lista de espera'
 );
 
 select * from finish();

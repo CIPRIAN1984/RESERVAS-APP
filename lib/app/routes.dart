@@ -10,6 +10,7 @@ class Routes {
   static const String admin = '/admin';
   static const String solicitudesCambioEscuela = '/solicitudes-cambio-escuela';
   static const String cobros = '/cobros';
+  static const String ajustesReservas = '/ajustes-reservas';
 
   static const String inicio = '/inicio';
   static const String estadisticas = '/estadisticas';

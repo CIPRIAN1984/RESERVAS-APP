@@ -8,6 +8,10 @@ permissions:
   contents: read
   pull-requests: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   flutter:
     runs-on: ubuntu-latest
@@ -23,11 +27,22 @@ jobs:
         run: flutter pub get
 
       - name: Verify formatting (hand-written code)
-        run: >
-          dart format --output=none --set-exit-if-changed
-          $(find lib test -name '*.dart'
-          ! -name '*.g.dart' ! -name '*.freezed.dart'
-          ! -path '*/l10n/app_localizations*')
+        run: |
+          set +e
+          dart format --output=none --set-exit-if-changed \
+            $(find lib test -name '*.dart' \
+            ! -name '*.g.dart' ! -name '*.freezed.dart' \
+            ! -path '*/l10n/app_localizations*')
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            dart format \
+              $(find lib test -name '*.dart' \
+              ! -name '*.g.dart' ! -name '*.freezed.dart' \
+              ! -path '*/l10n/app_localizations*')
+            git --no-pager diff -- lib test
+            exit "$status"
+          fi
 
       - name: Analyze
         run: flutter analyze
