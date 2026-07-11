@@ -26,7 +26,7 @@ lib/
     onboarding/   # login, registro, aprobación pendiente
     admin/        # gestión de academias (rol administrador)
 supabase/
-  migrations/     # esquema, RLS y RPCs (0001..0016)
+  migrations/     # esquema, RLS y RPCs (0001..0021)
   functions/      # Edge Functions de Stripe (Deno)
 ```
 
@@ -71,6 +71,8 @@ Las Edge Functions esperan estos secretos (`supabase secrets set`): `STRIPE_SECR
 
 La app registra el esquema de deep link `itaca://` (Android e iOS) para volver limpiamente tras el onboarding de Stripe, la confirmación de email de Supabase o un pago con redirección.
 
+Las altas y bajas de clase pasan por las RPC `reservar_clase` y `cancelar_reserva`: el servidor valida identidad, academia, cuota cobrada y aforo bajo bloqueo. La cancelación de una tarifa usa `stripe-cancel-tarifa-subscription`, que cancela primero en Stripe y después reconcilia Postgres.
+
 ### Notificaciones push (FCM)
 
 Están desactivadas por defecto (`PUSH_ENABLED=false`). Para activarlas:
@@ -86,6 +88,7 @@ El backend ya está listo: `device_tokens` guarda los tokens (RPC `registrar_dev
 ```bash
 flutter analyze
 flutter test
+supabase test db
 ```
 
 Ambos se ejecutan en CI (GitHub Actions) en cada push y pull request.

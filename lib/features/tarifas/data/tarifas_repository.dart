@@ -64,9 +64,11 @@ class TarifasRepository {
   }
 
   Future<void> cancelarSuscripcion(String suscripcionId) async {
-    await _client
-        .from('suscripciones')
-        .update({'estado': 'cancelada'})
-        .eq('id', suscripcionId);
+    final res = await _client.functions.invoke(
+      'stripe-cancel-tarifa-subscription',
+      body: {'suscripcion_id': suscripcionId},
+    );
+    final data = res.data as Map<String, dynamic>;
+    if (data['error'] != null) throw Exception(data['error'] as String);
   }
 }

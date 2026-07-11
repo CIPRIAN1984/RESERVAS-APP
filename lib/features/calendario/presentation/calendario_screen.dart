@@ -20,12 +20,10 @@ class CalendarioScreen extends ConsumerStatefulWidget {
 class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
   String? _accionEnCursoClaseId;
 
-  Future<void> _unirse(ClaseResumen clase, String alumnoId) async {
+  Future<void> _unirse(ClaseResumen clase) async {
     setState(() => _accionEnCursoClaseId = clase.id);
     try {
-      await ref
-          .read(clasesRepositoryProvider)
-          .unirse(claseId: clase.id, alumnoId: alumnoId);
+      await ref.read(clasesRepositoryProvider).unirse(claseId: clase.id);
       ref.invalidate(clasesMesProvider);
     } catch (e) {
       if (mounted) {
@@ -38,12 +36,10 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     }
   }
 
-  Future<void> _borrarse(ClaseResumen clase, String alumnoId) async {
+  Future<void> _borrarse(ClaseResumen clase) async {
     setState(() => _accionEnCursoClaseId = clase.id);
     try {
-      await ref
-          .read(clasesRepositoryProvider)
-          .borrarse(claseId: clase.id, alumnoId: alumnoId);
+      await ref.read(clasesRepositoryProvider).borrarse(claseId: clase.id);
       ref.invalidate(clasesMesProvider);
     } catch (e) {
       if (mounted) {
@@ -60,6 +56,15 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     final texto = e.toString();
     if (texto.contains('Aforo completo')) {
       return 'Aforo completo para esta clase.';
+    }
+    if (texto.contains('cuota activa')) {
+      return 'Necesitas una cuota activa para reservar.';
+    }
+    if (texto.contains('Ya estás inscrito')) {
+      return 'Ya tienes una reserva para esta clase.';
+    }
+    if (texto.contains('clases futuras')) {
+      return 'Esta clase ya ha comenzado.';
     }
     return 'No se ha podido completar la acción.';
   }
@@ -197,12 +202,10 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                     return ClaseCard(
                       clase: clase,
                       loadingAccion: cargando,
-                      onUnirse: userId == null
-                          ? null
-                          : () => _unirse(clase, userId),
+                      onUnirse: userId == null ? null : () => _unirse(clase),
                       onBorrarse: userId == null
                           ? null
-                          : () => _borrarse(clase, userId),
+                          : () => _borrarse(clase),
                     );
                   },
                 );
