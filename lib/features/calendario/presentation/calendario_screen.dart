@@ -30,9 +30,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
       if (mounted && estado == 'espera') {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'Clase completa: estás en la lista de espera.',
-            ),
+            content: Text('Clase completa: estás en la lista de espera.'),
           ),
         );
       }
