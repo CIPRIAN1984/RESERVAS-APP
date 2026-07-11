@@ -6,6 +6,7 @@ import '../core/auth/auth_state.dart';
 import '../core/models/profile.dart';
 import '../features/admin/presentation/admin_academias_screen.dart';
 import '../features/calendario/presentation/calendario_screen.dart';
+import '../features/configuracion_reservas/presentation/ajustes_reservas_screen.dart';
 import '../features/estadisticas/presentation/estadisticas_screen.dart';
 import '../features/novedades/presentation/novedades_screen.dart';
 import '../features/onboarding/presentation/login_screen.dart';
@@ -55,6 +56,7 @@ const _rutasAcademia = {
   Routes.progreso,
   Routes.tienda,
   Routes.tarifas,
+  Routes.ajustesReservas,
 };
 
 String _inicioPara(Profile profile) =>
@@ -97,6 +99,10 @@ String? _redirect(Ref ref, GoRouterState state) {
   }
 
   if (loc == Routes.cobros && !profile.isDueno) {
+    return _inicioPara(profile);
+  }
+
+  if (loc == Routes.ajustesReservas && !profile.isDueno) {
     return _inicioPara(profile);
   }
 
@@ -188,6 +194,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: Routes.cobros,
             builder: (context, state) => const ConectarStripeScreen(),
+          ),
+          GoRoute(
+            path: Routes.ajustesReservas,
+            builder: (context, state) => const AjustesReservasScreen(),
           ),
         ],
       ),
