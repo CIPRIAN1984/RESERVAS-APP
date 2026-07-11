@@ -3,6 +3,16 @@ import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 import 'clase_resumen.dart';
 import 'inscrito_alumno.dart';
 
+class ParticipantesClase {
+  const ParticipantesClase({
+    required this.inscritos,
+    required this.listaEspera,
+  });
+
+  final List<InscritoAlumno> inscritos;
+  final List<InscritoAlumno> listaEspera;
+}
+
 class ClasesRepository {
   ClasesRepository(this._client);
 
@@ -81,23 +91,35 @@ class ClasesRepository {
     return (generadas as int?) ?? 0;
   }
 
-  Future<void> unirse({required String claseId}) async {
-    await _client.rpc('reservar_clase', params: {'p_clase_id': claseId});
+  Future<String> unirse({required String claseId}) async {
+    final estado = await _client.rpc(
+      'reservar_clase',
+      params: {'p_clase_id': claseId},
+    );
+    return (estado as String?) ?? 'inscrito';
   }
 
-  Future<void> borrarse({required String claseId}) async {
-    await _client.rpc('cancelar_reserva', params: {'p_clase_id': claseId});
+  Future<bool> borrarse({required String claseId}) async {
+    final resultado = await _client.rpc(
+      'cancelar_reserva',
+      params: {'p_clase_id': claseId},
+    );
+    if (resultado is Map<String, dynamic>) {
+      return resultado['cancelacion_tardia'] == true;
+    }
+    return false;
   }
 
-  Future<List<InscritoAlumno>> listarInscritos(String claseId) async {
+  Future<ParticipantesClase> listarParticipantes(String claseId) async {
     final inscripciones =
         await _client
                 .from('inscripciones')
                 .select(
-                  'alumno_id, alumno:profiles(nombre, apellidos, foto_url, cinturon)',
+                  'estado, alumno_id, alumno:profiles(nombre, apellidos, foto_url, cinturon)',
                 )
                 .eq('clase_id', claseId)
-                .eq('estado', 'inscrito')
+                .inFilter('estado', ['inscrito', 'espera'])
+                .order('created_at')
             as List;
 
     final asistencias =
@@ -107,15 +129,32 @@ class ClasesRepository {
                 .eq('clase_id', claseId)
             as List;
     final validados = asistencias.map((a) => a['alumno_id'] as String).toSet();
+    final inscritos = <InscritoAlumno>[];
+    final listaEspera = <InscritoAlumno>[];
 
-    return inscripciones
-        .map(
-          (row) => InscritoAlumno.fromInscripcionJson(
-            row as Map<String, dynamic>,
-            asistenciaValidada: validados.contains(row['alumno_id']),
-          ),
-        )
-        .toList();
+    for (final raw in inscripciones) {
+      final row = raw as Map<String, dynamic>;
+      final enEspera = row['estado'] == 'espera';
+      final alumno = InscritoAlumno.fromInscripcionJson(
+        row,
+        asistenciaValidada:
+            !enEspera && validados.contains(row['alumno_id']),
+      );
+      if (enEspera) {
+        listaEspera.add(alumno);
+      } else {
+        inscritos.add(alumno);
+      }
+    }
+
+    return ParticipantesClase(
+      inscritos: inscritos,
+      listaEspera: listaEspera,
+    );
+  }
+
+  Future<List<InscritoAlumno>> listarInscritos(String claseId) async {
+    return (await listarParticipantes(claseId)).inscritos;
   }
 
   Future<void> marcarAsistencia({
