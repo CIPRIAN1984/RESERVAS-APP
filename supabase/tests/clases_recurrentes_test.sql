@@ -17,7 +17,7 @@ insert into public.profiles (id, academia_id, rol, nombre, estado) values
 insert into public.clases_recurrentes
   (id, academia_id, profesor_id, titulo, dia_semana, hora_inicio, duracion_min, aforo_maximo, fecha_inicio)
 values
-  ('00000000-0000-0000-0000-0000000000T1', '00000000-0000-0000-0000-0000000000CC', '00000000-0000-0000-0000-0000000000c1', 'BJJ Fundamentals', 1, '19:00', 60, 20, current_date - 7);
+  ('00000000-0000-0000-0000-000000000e01', '00000000-0000-0000-0000-0000000000CC', '00000000-0000-0000-0000-0000000000c1', 'BJJ Fundamentals', 1, '19:00', 60, 20, current_date - 7);
 
 -- Genera en una ventana fija de 28 días desde el lunes más próximo pasado, para
 -- que el número de lunes sea determinista (4 semanas => 4 lunes).
@@ -31,7 +31,7 @@ select ok(
 );
 
 select is(
-  (select count(*)::int from public.clases where plantilla_id = '00000000-0000-0000-0000-0000000000T1'),
+  (select count(*)::int from public.clases where plantilla_id = '00000000-0000-0000-0000-000000000e01'),
   4,
   'Las 4 sesiones quedan enlazadas a su plantilla'
 );
