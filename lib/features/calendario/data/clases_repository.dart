@@ -137,8 +137,7 @@ class ClasesRepository {
       final enEspera = row['estado'] == 'espera';
       final alumno = InscritoAlumno.fromInscripcionJson(
         row,
-        asistenciaValidada:
-            !enEspera && validados.contains(row['alumno_id']),
+        asistenciaValidada: !enEspera && validados.contains(row['alumno_id']),
       );
       if (enEspera) {
         listaEspera.add(alumno);
@@ -147,10 +146,7 @@ class ClasesRepository {
       }
     }
 
-    return ParticipantesClase(
-      inscritos: inscritos,
-      listaEspera: listaEspera,
-    );
+    return ParticipantesClase(inscritos: inscritos, listaEspera: listaEspera);
   }
 
   Future<List<InscritoAlumno>> listarInscritos(String claseId) async {
