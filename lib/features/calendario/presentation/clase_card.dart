@@ -88,9 +88,7 @@ class ClaseCard extends StatelessWidget {
     if (clase.tieneReservaActiva) {
       return OutlinedButton(
         onPressed: onBorrarse,
-        child: Text(
-          clase.enListaEspera ? 'Salir de espera' : 'Cancelar',
-        ),
+        child: Text(clase.enListaEspera ? 'Salir de espera' : 'Cancelar'),
       );
     }
     return ElevatedButton(
