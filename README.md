@@ -26,7 +26,7 @@ lib/
     onboarding/   # login, registro, aprobación pendiente
     admin/        # gestión de academias (rol administrador)
 supabase/
-  migrations/     # esquema, RLS y RPCs (0001..0021)
+  migrations/     # esquema, RLS y RPCs (0001..0022)
   functions/      # Edge Functions de Stripe (Deno)
 ```
 
@@ -71,7 +71,9 @@ Las Edge Functions esperan estos secretos (`supabase secrets set`): `STRIPE_SECR
 
 La app registra el esquema de deep link `itaca://` (Android e iOS) para volver limpiamente tras el onboarding de Stripe, la confirmación de email de Supabase o un pago con redirección.
 
-Las altas y bajas de clase pasan por las RPC `reservar_clase` y `cancelar_reserva`: el servidor valida identidad, academia, cuota cobrada y aforo bajo bloqueo. La cancelación de una tarifa usa `stripe-cancel-tarifa-subscription`, que cancela primero en Stripe y después reconcilia Postgres.
+Las altas y bajas de clase pasan por las RPC `reservar_clase` y `cancelar_reserva`: el servidor valida identidad, academia, cuota cobrada y aforo bajo bloqueo. Si no quedan plazas, puede crear una entrada FIFO en lista de espera; al cancelarse una plaza, promociona automáticamente a la primera persona elegible y encola su notificación. El Dueño controla la cola, el margen de cancelación tardía y la zona horaria desde «Ajustes de reservas».
+
+La cancelación de una tarifa usa `stripe-cancel-tarifa-subscription`, que cancela primero en Stripe y después reconcilia Postgres.
 
 ### Notificaciones push (FCM)
 
