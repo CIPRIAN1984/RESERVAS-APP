@@ -10,9 +10,7 @@ class ConfiguracionReservasRepository {
   Future<ConfiguracionReservas> obtener(String academiaId) async {
     final row = await _client
         .from('academias')
-        .select(
-          'lista_espera_activa, cancelacion_limite_minutos, zona_horaria',
-        )
+        .select('lista_espera_activa, cancelacion_limite_minutos, zona_horaria')
         .eq('id', academiaId)
         .single();
     return ConfiguracionReservas.fromJson(row);
