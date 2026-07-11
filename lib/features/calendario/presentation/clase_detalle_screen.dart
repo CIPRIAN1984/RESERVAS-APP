@@ -81,10 +81,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
             ? CachedNetworkImageProvider(alumno.fotoUrl!)
             : null,
         child: alumno.fotoUrl == null
-            ? const Icon(
-                Icons.person,
-                color: AppColors.textSecondary,
-              )
+            ? const Icon(Icons.person, color: AppColors.textSecondary)
             : null,
       ),
       title: Text(alumno.nombreCompleto),
@@ -92,10 +89,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
           ? Text('Cinturón ${alumno.cinturon}')
           : null,
       trailing: alumno.asistenciaValidada
-          ? const Icon(
-              Icons.check_circle,
-              color: AppColors.success,
-            )
+          ? const Icon(Icons.check_circle, color: AppColors.success)
           : marcando
           ? const SizedBox(
               width: 20,
@@ -123,10 +117,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
             ? 'Lista de espera'
             : 'Lista de espera · Cinturón ${alumno.cinturon}',
       ),
-      trailing: const Icon(
-        Icons.schedule,
-        color: AppColors.warning,
-      ),
+      trailing: const Icon(Icons.schedule, color: AppColors.warning),
     );
   }
 
@@ -155,10 +146,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
 
           final participantes =
               snapshot.data ??
-              const ParticipantesClase(
-                inscritos: [],
-                listaEspera: [],
-              );
+              const ParticipantesClase(inscritos: [], listaEspera: []);
           final inscritos = participantes.inscritos;
           final listaEspera = participantes.listaEspera;
 
@@ -205,10 +193,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                             for (final alumno in inscritos)
                               _buildInscrito(context, alumno, userId),
                           if (listaEspera.isNotEmpty) ...[
-                            const Divider(
-                              height: 24,
-                              color: AppColors.divider,
-                            ),
+                            const Divider(height: 24, color: AppColors.divider),
                             const _SectionTitle(title: 'Lista de espera'),
                             for (var i = 0; i < listaEspera.length; i++)
                               _buildEspera(listaEspera[i], i + 1),
