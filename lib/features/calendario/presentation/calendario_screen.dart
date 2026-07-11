@@ -23,8 +23,19 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
   Future<void> _unirse(ClaseResumen clase) async {
     setState(() => _accionEnCursoClaseId = clase.id);
     try {
-      await ref.read(clasesRepositoryProvider).unirse(claseId: clase.id);
+      final estado = await ref
+          .read(clasesRepositoryProvider)
+          .unirse(claseId: clase.id);
       ref.invalidate(clasesMesProvider);
+      if (mounted && estado == 'espera') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Clase completa: estás en la lista de espera.',
+            ),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -39,8 +50,21 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
   Future<void> _borrarse(ClaseResumen clase) async {
     setState(() => _accionEnCursoClaseId = clase.id);
     try {
-      await ref.read(clasesRepositoryProvider).borrarse(claseId: clase.id);
+      final tardia = await ref
+          .read(clasesRepositoryProvider)
+          .borrarse(claseId: clase.id);
       ref.invalidate(clasesMesProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              tardia
+                  ? 'Reserva cancelada. La cancelación queda registrada como tardía.'
+                  : 'Reserva cancelada correctamente.',
+            ),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -60,8 +84,9 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     if (texto.contains('cuota activa')) {
       return 'Necesitas una cuota activa para reservar.';
     }
-    if (texto.contains('Ya estás inscrito')) {
-      return 'Ya tienes una reserva para esta clase.';
+    if (texto.contains('Ya estás inscrito') ||
+        texto.contains('Ya tienes una reserva')) {
+      return 'Ya tienes una reserva o plaza de espera para esta clase.';
     }
     if (texto.contains('clases futuras')) {
       return 'Esta clase ya ha comenzado.';
