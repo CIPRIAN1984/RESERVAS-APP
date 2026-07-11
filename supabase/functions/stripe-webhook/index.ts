@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
             .from("suscripciones")
             .update({ estado: "activa", payment_status: "active" })
             .eq("referencia_externa", subscriptionId)
-            .neq("estado", "cancelada");
+            .in("estado", ["pendiente_pago", "activa"]);
         }
         break;
       }
@@ -130,8 +130,8 @@ Deno.serve(async (req) => {
             ...(paymentStatus === "canceled" ? { fecha_fin: new Date().toISOString() } : {}),
           })
           .eq("referencia_externa", subscription.id);
-        if (paymentStatus === "active") {
-          updateQuery = updateQuery.neq("estado", "cancelada");
+        if (paymentStatus !== "canceled") {
+          updateQuery = updateQuery.in("estado", ["pendiente_pago", "activa"]);
         }
         await updateQuery;
         break;
