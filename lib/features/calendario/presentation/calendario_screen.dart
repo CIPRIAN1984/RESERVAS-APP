@@ -23,9 +23,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
   Future<void> _unirse(ClaseResumen clase) async {
     setState(() => _accionEnCursoClaseId = clase.id);
     try {
-      await ref
-          .read(clasesRepositoryProvider)
-          .unirse(claseId: clase.id);
+      await ref.read(clasesRepositoryProvider).unirse(claseId: clase.id);
       ref.invalidate(clasesMesProvider);
     } catch (e) {
       if (mounted) {
@@ -41,9 +39,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
   Future<void> _borrarse(ClaseResumen clase) async {
     setState(() => _accionEnCursoClaseId = clase.id);
     try {
-      await ref
-          .read(clasesRepositoryProvider)
-          .borrarse(claseId: clase.id);
+      await ref.read(clasesRepositoryProvider).borrarse(claseId: clase.id);
       ref.invalidate(clasesMesProvider);
     } catch (e) {
       if (mounted) {
@@ -206,9 +202,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                     return ClaseCard(
                       clase: clase,
                       loadingAccion: cargando,
-                      onUnirse: userId == null
-                          ? null
-                          : () => _unirse(clase),
+                      onUnirse: userId == null ? null : () => _unirse(clase),
                       onBorrarse: userId == null
                           ? null
                           : () => _borrarse(clase),
