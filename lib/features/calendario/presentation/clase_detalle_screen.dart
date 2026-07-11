@@ -7,11 +7,11 @@ import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../application/clases_providers.dart';
 import '../data/clase_resumen.dart';
+import '../data/clases_repository.dart';
 import '../data/inscrito_alumno.dart';
 
-/// Profesor/Dueño/Administrador view of a class: roster of enrolled students
-/// with a one-way "validar asistencia" action per student (module 1 —
-/// this is what feeds the ranking in module 2).
+/// Profesor/Dueño/Administrador view of a class: confirmed roster, attendance
+/// and the FIFO waitlist that the backend promotes automatically.
 class ClaseDetalleScreen extends ConsumerStatefulWidget {
   const ClaseDetalleScreen({required this.clase, super.key});
 
@@ -22,7 +22,7 @@ class ClaseDetalleScreen extends ConsumerStatefulWidget {
 }
 
 class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
-  late Future<List<InscritoAlumno>> _future;
+  late Future<ParticipantesClase> _future;
   final Set<String> _marcando = {};
 
   @override
@@ -30,14 +30,14 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
     super.initState();
     _future = ref
         .read(clasesRepositoryProvider)
-        .listarInscritos(widget.clase.id);
+        .listarParticipantes(widget.clase.id);
   }
 
   void _recargar() {
     setState(() {
       _future = ref
           .read(clasesRepositoryProvider)
-          .listarInscritos(widget.clase.id);
+          .listarParticipantes(widget.clase.id);
     });
   }
 
@@ -68,6 +68,68 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
     }
   }
 
+  Widget _buildInscrito(
+    BuildContext context,
+    InscritoAlumno alumno,
+    String? userId,
+  ) {
+    final marcando = _marcando.contains(alumno.alumnoId);
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: AppColors.surfaceElevated,
+        backgroundImage: alumno.fotoUrl != null
+            ? CachedNetworkImageProvider(alumno.fotoUrl!)
+            : null,
+        child: alumno.fotoUrl == null
+            ? const Icon(
+                Icons.person,
+                color: AppColors.textSecondary,
+              )
+            : null,
+      ),
+      title: Text(alumno.nombreCompleto),
+      subtitle: alumno.cinturon != null
+          ? Text('Cinturón ${alumno.cinturon}')
+          : null,
+      trailing: alumno.asistenciaValidada
+          ? const Icon(
+              Icons.check_circle,
+              color: AppColors.success,
+            )
+          : marcando
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : OutlinedButton(
+              onPressed: userId == null
+                  ? null
+                  : () => _marcarAsistencia(alumno, userId),
+              child: const Text('Validar'),
+            ),
+    );
+  }
+
+  Widget _buildEspera(InscritoAlumno alumno, int posicion) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: AppColors.surfaceElevated,
+        child: Text('$posicion'),
+      ),
+      title: Text(alumno.nombreCompleto),
+      subtitle: Text(
+        alumno.cinturon == null
+            ? 'Lista de espera'
+            : 'Lista de espera · Cinturón ${alumno.cinturon}',
+      ),
+      trailing: const Icon(
+        Icons.schedule,
+        color: AppColors.warning,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final userId = ref.watch(currentUserIdProvider);
@@ -76,7 +138,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.clase.titulo)),
-      body: FutureBuilder<List<InscritoAlumno>>(
+      body: FutureBuilder<ParticipantesClase>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
@@ -85,12 +147,21 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
           if (snapshot.hasError) {
             return Center(
               child: Text(
-                'No se ha podido cargar la lista de inscritos.',
+                'No se han podido cargar los participantes.',
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             );
           }
-          final inscritos = snapshot.data ?? [];
+
+          final participantes =
+              snapshot.data ??
+              const ParticipantesClase(
+                inscritos: [],
+                listaEspera: [],
+              );
+          final inscritos = participantes.inscritos;
+          final listaEspera = participantes.listaEspera;
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -105,7 +176,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${inscritos.length}/${widget.clase.aforoMaximo} inscritos',
+                      '${inscritos.length}/${widget.clase.aforoMaximo} confirmados · ${listaEspera.length} en espera',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -115,63 +186,59 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
               ),
               const Divider(height: 1, color: AppColors.divider),
               Expanded(
-                child: inscritos.isEmpty
+                child: inscritos.isEmpty && listaEspera.isEmpty
                     ? Center(
                         child: Text(
-                          'Todavía no hay inscritos.',
+                          'Todavía no hay participantes.',
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: AppColors.textSecondary),
                         ),
                       )
-                    : ListView.builder(
-                        itemCount: inscritos.length,
-                        itemBuilder: (context, index) {
-                          final alumno = inscritos[index];
-                          final marcando = _marcando.contains(alumno.alumnoId);
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: AppColors.surfaceElevated,
-                              backgroundImage: alumno.fotoUrl != null
-                                  ? CachedNetworkImageProvider(alumno.fotoUrl!)
-                                  : null,
-                              child: alumno.fotoUrl == null
-                                  ? const Icon(
-                                      Icons.person,
-                                      color: AppColors.textSecondary,
-                                    )
-                                  : null,
+                    : ListView(
+                        children: [
+                          const _SectionTitle(title: 'Confirmados'),
+                          if (inscritos.isEmpty)
+                            const ListTile(
+                              title: Text('No hay plazas confirmadas.'),
+                            )
+                          else
+                            for (final alumno in inscritos)
+                              _buildInscrito(context, alumno, userId),
+                          if (listaEspera.isNotEmpty) ...[
+                            const Divider(
+                              height: 24,
+                              color: AppColors.divider,
                             ),
-                            title: Text(alumno.nombreCompleto),
-                            subtitle: alumno.cinturon != null
-                                ? Text('Cinturón ${alumno.cinturon}')
-                                : null,
-                            trailing: alumno.asistenciaValidada
-                                ? const Icon(
-                                    Icons.check_circle,
-                                    color: AppColors.success,
-                                  )
-                                : marcando
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : OutlinedButton(
-                                    onPressed: userId == null
-                                        ? null
-                                        : () =>
-                                              _marcarAsistencia(alumno, userId),
-                                    child: const Text('Validar'),
-                                  ),
-                          );
-                        },
+                            const _SectionTitle(title: 'Lista de espera'),
+                            for (var i = 0; i < listaEspera.length; i++)
+                              _buildEspera(listaEspera[i], i + 1),
+                          ],
+                        ],
                       ),
               ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          color: AppColors.textSecondary,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
