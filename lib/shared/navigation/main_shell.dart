@@ -84,6 +84,13 @@ class MainShell extends ConsumerWidget {
     Icons.credit_card,
   );
 
+  static const _ajustesReservasItem = _NavItem(
+    Routes.ajustesReservas,
+    'Ajustes de reservas',
+    Icons.tune_outlined,
+    Icons.tune,
+  );
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider).value;
@@ -93,6 +100,7 @@ class MainShell extends ConsumerWidget {
 
     final items = [
       if (!isAdmin) ..._itemsAcademia,
+      if (isDueno) _ajustesReservasItem,
       if (isDueno) _cobrosItem,
       if (isDueno || isAdmin) _cambioEscuelaItem,
       if (isAdmin) _adminItem,
