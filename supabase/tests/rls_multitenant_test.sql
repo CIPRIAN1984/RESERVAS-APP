@@ -33,6 +33,36 @@ insert into public.clases (id, academia_id, profesor_id, titulo, fecha_hora_inic
   ('00000000-0000-0000-0000-00000000c1a1', '00000000-0000-0000-0000-0000000000AA', '00000000-0000-0000-0000-0000000000a1', 'Clase A', now() + interval '1 day', now() + interval '1 day 1 hour', 2),
   ('00000000-0000-0000-0000-00000000c1b1', '00000000-0000-0000-0000-0000000000BB', '00000000-0000-0000-0000-0000000000b1', 'Clase B', now() + interval '1 day', now() + interval '1 day 1 hour', 2);
 
+-- Cuota cobrada para el alumno A: las reservas de alumnos exigen una
+-- suscripción activa, no solo una cuenta registrada.
+insert into public.tarifas (id, academia_id, nombre, precio, periodicidad)
+values (
+  '00000000-0000-0000-0000-00000000f001',
+  '00000000-0000-0000-0000-0000000000AA',
+  'Mensual A',
+  50,
+  'mensual'
+);
+
+insert into public.suscripciones (
+  id,
+  alumno_id,
+  tarifa_id,
+  academia_id,
+  proveedor_pago,
+  referencia_externa
+) values (
+  '00000000-0000-0000-0000-00000000d001',
+  '00000000-0000-0000-0000-0000000000a2',
+  '00000000-0000-0000-0000-00000000f001',
+  '00000000-0000-0000-0000-0000000000AA',
+  'stripe',
+  'sub_test_alumno_a'
+);
+update public.suscripciones
+  set estado = 'activa', payment_status = 'active'
+  where id = '00000000-0000-0000-0000-00000000d001';
+
 -- Helper: adopta la identidad de un usuario autenticado concreto.
 create or replace function pg_temp.actuar_como(p_uid uuid) returns void language plpgsql as $$
 begin
@@ -62,11 +92,10 @@ select throws_ok(
   'La RLS bloquea que el alumno A se inscriba en una clase de la academia B'
 );
 
--- ── 4. Un alumno sí puede inscribirse en una clase de la SUYA ───────────────
+-- ── 4. Un alumno con cuota activa sí puede reservar en la SUYA ──────────────
 select lives_ok(
-  $$ insert into public.inscripciones (clase_id, alumno_id, academia_id)
-     values ('00000000-0000-0000-0000-00000000c1a1', '00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000AA') $$,
-  'El alumno A puede inscribirse en una clase de su propia academia'
+  $ select public.reservar_clase('00000000-0000-0000-0000-00000000c1a1') $,
+  'El alumno A con cuota activa puede reservar una clase de su academia'
 );
 
 -- ── 5. Un alumno no puede inscribir a OTRO usuario ──────────────────────────
