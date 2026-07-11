@@ -111,7 +111,8 @@ Deno.serve(async (req) => {
           await admin
             .from("suscripciones")
             .update({ estado: "activa", payment_status: "active" })
-            .eq("referencia_externa", subscriptionId);
+            .eq("referencia_externa", subscriptionId)
+            .neq("estado", "cancelada");
         }
         break;
       }
@@ -119,7 +120,7 @@ Deno.serve(async (req) => {
         const subscription = event.data.object as Stripe.Subscription;
         const paymentStatus = subscription.status; // active | past_due | canceled | unpaid | ...
         const estado = paymentStatus === "active" ? "activa" : paymentStatus === "canceled" ? "cancelada" : undefined;
-        await admin
+        let updateQuery = admin
           .from("suscripciones")
           .update({
             payment_status: ["active", "past_due", "canceled", "unpaid"].includes(paymentStatus)
@@ -129,6 +130,10 @@ Deno.serve(async (req) => {
             ...(paymentStatus === "canceled" ? { fecha_fin: new Date().toISOString() } : {}),
           })
           .eq("referencia_externa", subscription.id);
+        if (paymentStatus === "active") {
+          updateQuery = updateQuery.neq("estado", "cancelada");
+        }
+        await updateQuery;
         break;
       }
       case "customer.subscription.deleted": {
