@@ -5,10 +5,73 @@
 -- suscripción solo en Postgres dejando el cobro vivo en Stripe.
 
 -- ============================================================
+-- Permisos de API explícitos
+-- ============================================================
+
+-- Las migraciones no deben depender de privilegios implícitos del entorno.
+-- RLS sigue decidiendo qué filas puede ver o modificar cada usuario.
+grant select on table
+  public.academias,
+  public.profiles,
+  public.clases,
+  public.inscripciones,
+  public.asistencias,
+  public.novedades,
+  public.tecnicas,
+  public.media_tecnica,
+  public.progreso_alumno_tecnica,
+  public.productos,
+  public.pedidos,
+  public.prestamos,
+  public.tarifas,
+  public.suscripciones,
+  public.solicitudes_cambio_escuela,
+  public.device_tokens,
+  public.clases_recurrentes
+to authenticated;
+
+grant insert, update, delete on table
+  public.clases,
+  public.novedades,
+  public.tecnicas,
+  public.productos,
+  public.tarifas,
+  public.clases_recurrentes
+to authenticated;
+
+grant insert on table
+  public.asistencias,
+  public.media_tecnica,
+  public.pedidos,
+  public.prestamos,
+  public.solicitudes_cambio_escuela,
+  public.device_tokens
+to authenticated;
+
+grant update on table
+  public.progreso_alumno_tecnica,
+  public.prestamos,
+  public.device_tokens
+to authenticated;
+
+grant delete on table
+  public.media_tecnica,
+  public.device_tokens
+to authenticated;
+
+-- El cliente solo cambia el estado logístico del pedido. Datos Stripe,
+-- importes y referencias siguen reservados al backend.
+grant update (estado) on public.pedidos to authenticated;
+
+-- Tablas internas exclusivas de Edge Functions/service_role.
+revoke all on public.stripe_webhook_events from anon, authenticated;
+revoke all on public.notificaciones_outbox from anon, authenticated;
+
+-- ============================================================
 -- Privilegios de perfiles y academias
 -- ============================================================
 
-revoke update on public.profiles from authenticated;
+revoke insert, update, delete on public.profiles from authenticated;
 grant update (nombre, apellidos, foto_url)
   on public.profiles to authenticated;
 
@@ -19,7 +82,7 @@ create policy profiles_update_self on public.profiles
   using (id = auth.uid())
   with check (id = auth.uid());
 
-revoke update on public.academias from authenticated;
+revoke insert, update, delete on public.academias from authenticated;
 grant update (nombre, direccion, telefono, email_contacto)
   on public.academias to authenticated;
 
@@ -58,7 +121,7 @@ grant execute on function public.rechazar_academia(uuid) to authenticated;
 -- Ningún cliente escribe inscripciones directamente. Así todas las altas
 -- adquieren el mismo bloqueo por clase y no pueden superar el aforo mediante
 -- dos peticiones concurrentes.
-revoke insert, update on public.inscripciones from authenticated;
+revoke insert, update, delete on public.inscripciones from authenticated;
 drop policy if exists inscripciones_insert on public.inscripciones;
 drop policy if exists inscripciones_update on public.inscripciones;
 
@@ -219,6 +282,6 @@ grant execute on function public.cancelar_reserva(uuid) to authenticated;
 -- Suscripciones: Stripe es la fuente de verdad para cancelar
 -- ============================================================
 
-revoke insert, update on public.suscripciones from authenticated;
+revoke insert, update, delete on public.suscripciones from authenticated;
 drop policy if exists suscripciones_insert on public.suscripciones;
 drop policy if exists suscripciones_update on public.suscripciones;
