@@ -73,18 +73,24 @@ Deno.serve(async (req) => {
 
     const stripe = createStripeClient();
     const stripeAccount = academia.stripe_account_id as string;
-    const stripeSubscription = await stripe.subscriptions.retrieve(
+    let stripeSubscription = await stripe.subscriptions.retrieve(
       suscripcion.referencia_externa,
       { stripeAccount },
     );
 
     if (stripeSubscription.status !== "canceled") {
-      await stripe.subscriptions.cancel(suscripcion.referencia_externa, {
-        stripeAccount,
-      });
+      stripeSubscription = await stripe.subscriptions.cancel(
+        suscripcion.referencia_externa,
+        {
+          stripeAccount,
+          idempotencyKey: `cancel-subscription-${suscripcion.id}`,
+        },
+      );
     }
 
-    const endedAt = new Date().toISOString();
+    const endedAt = stripeSubscription.canceled_at
+      ? new Date(stripeSubscription.canceled_at * 1000).toISOString()
+      : new Date().toISOString();
     const { error: updateError } = await admin
       .from("suscripciones")
       .update({
