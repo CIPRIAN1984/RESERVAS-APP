@@ -62,6 +62,44 @@ revoke insert, update on public.inscripciones from authenticated;
 drop policy if exists inscripciones_insert on public.inscripciones;
 drop policy if exists inscripciones_update on public.inscripciones;
 
+-- Refuerza también el trigger existente: incluso una inserción controlada de
+-- back office o service_role adquiere el bloqueo de la clase antes de contar.
+create or replace function public.check_aforo()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $function$
+declare
+  v_aforo_maximo int;
+  v_inscritos int;
+begin
+  if new.estado <> 'inscrito' then
+    return new;
+  end if;
+
+  select aforo_maximo
+    into v_aforo_maximo
+    from public.clases
+    where id = new.clase_id
+    for update;
+
+  if not found then
+    raise exception 'Clase no encontrada.';
+  end if;
+
+  select count(*)::int
+    into v_inscritos
+    from public.inscripciones
+    where clase_id = new.clase_id and estado = 'inscrito';
+
+  if v_inscritos >= v_aforo_maximo then
+    raise exception 'Aforo completo para esta clase.';
+  end if;
+
+  return new;
+end;
+$function$;
+
 create or replace function public.reservar_clase(p_clase_id uuid)
 returns void
 language plpgsql
