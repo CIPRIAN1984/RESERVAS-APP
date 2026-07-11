@@ -94,7 +94,7 @@ select throws_ok(
 
 -- ── 4. Un alumno con cuota activa sí puede reservar en la SUYA ──────────────
 select lives_ok(
-  $ select public.reservar_clase('00000000-0000-0000-0000-00000000c1a1') $,
+  $booking$ select public.reservar_clase('00000000-0000-0000-0000-00000000c1a1') $booking$,
   'El alumno A con cuota activa puede reservar una clase de su academia'
 );
 
