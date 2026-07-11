@@ -27,5 +27,7 @@ abstract class ClaseResumen with _$ClaseResumen {
       _$ClaseResumenFromJson(json);
 
   bool get estoyInscrito => miEstado == 'inscrito';
+  bool get enListaEspera => miEstado == 'espera';
+  bool get tieneReservaActiva => estoyInscrito || enListaEspera;
   bool get aforoCompleto => inscritosCount >= aforoMaximo;
 }
