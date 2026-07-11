@@ -36,6 +36,10 @@ jobs:
           status=$?
           set -e
           if [ "$status" -ne 0 ]; then
+            dart format \
+              $(find lib test -name '*.dart' \
+              ! -name '*.g.dart' ! -name '*.freezed.dart' \
+              ! -path '*/l10n/app_localizations*')
             git --no-pager diff -- lib test
             exit "$status"
           fi
