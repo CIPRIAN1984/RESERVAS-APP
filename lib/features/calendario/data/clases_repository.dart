@@ -82,17 +82,11 @@ class ClasesRepository {
   }
 
   Future<void> unirse({required String claseId}) async {
-    await _client.rpc(
-      'reservar_clase',
-      params: {'p_clase_id': claseId},
-    );
+    await _client.rpc('reservar_clase', params: {'p_clase_id': claseId});
   }
 
   Future<void> borrarse({required String claseId}) async {
-    await _client.rpc(
-      'cancelar_reserva',
-      params: {'p_clase_id': claseId},
-    );
+    await _client.rpc('cancelar_reserva', params: {'p_clase_id': claseId});
   }
 
   Future<List<InscritoAlumno>> listarInscritos(String claseId) async {
