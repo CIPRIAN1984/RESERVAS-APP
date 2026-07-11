@@ -2,7 +2,7 @@
 -- correcta desde plantillas e idempotencia.
 
 begin;
-select plan(3);
+select plan(4);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000c1', 'profC@test.dev');
@@ -34,6 +34,20 @@ select is(
   (select count(*)::int from public.clases where plantilla_id = '00000000-0000-0000-0000-000000000e01'),
   4,
   'Las 4 sesiones quedan enlazadas a su plantilla'
+);
+
+select ok(
+  (
+    select bool_and(
+      to_char(
+        fecha_hora_inicio at time zone 'Europe/Madrid',
+        'HH24:MI'
+      ) = '19:00'
+    )
+    from public.clases
+    where plantilla_id = '00000000-0000-0000-0000-000000000e01'
+  ),
+  'Las sesiones conservan las 19:00 locales incluso con cambios DST'
 );
 
 -- Re-ejecutar no duplica (idempotencia por el índice único + ON CONFLICT).
