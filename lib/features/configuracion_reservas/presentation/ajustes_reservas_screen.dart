@@ -15,14 +15,10 @@ class AjustesReservasScreen extends ConsumerWidget {
     final profile = ref.watch(currentProfileProvider).value;
     final academiaId = profile?.academiaId;
     if (academiaId == null) {
-      return const Center(
-        child: Text('No se ha encontrado la academia.'),
-      );
+      return const Center(child: Text('No se ha encontrado la academia.'));
     }
 
-    final configuracion = ref.watch(
-      configuracionReservasProvider(academiaId),
-    );
+    final configuracion = ref.watch(configuracionReservasProvider(academiaId));
     return configuracion.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stackTrace) => Center(
@@ -32,18 +28,15 @@ class AjustesReservasScreen extends ConsumerWidget {
             const Text('No se han podido cargar los ajustes.'),
             const SizedBox(height: 12),
             OutlinedButton(
-              onPressed: () => ref.invalidate(
-                configuracionReservasProvider(academiaId),
-              ),
+              onPressed: () =>
+                  ref.invalidate(configuracionReservasProvider(academiaId)),
               child: const Text('Reintentar'),
             ),
           ],
         ),
       ),
-      data: (data) => _ConfiguracionForm(
-        academiaId: academiaId,
-        configuracion: data,
-      ),
+      data: (data) =>
+          _ConfiguracionForm(academiaId: academiaId, configuracion: data),
     );
   }
 }
@@ -58,8 +51,7 @@ class _ConfiguracionForm extends ConsumerStatefulWidget {
   final ConfiguracionReservas configuracion;
 
   @override
-  ConsumerState<_ConfiguracionForm> createState() =>
-      _ConfiguracionFormState();
+  ConsumerState<_ConfiguracionForm> createState() => _ConfiguracionFormState();
 }
 
 class _ConfiguracionFormState extends ConsumerState<_ConfiguracionForm> {
@@ -105,13 +97,11 @@ class _ConfiguracionFormState extends ConsumerState<_ConfiguracionForm> {
             cancelacionLimiteMinutos: horas * 60,
             zonaHoraria: _zonaHoraria,
           );
-      ref.invalidate(
-        configuracionReservasProvider(widget.academiaId),
-      );
+      ref.invalidate(configuracionReservasProvider(widget.academiaId));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ajustes guardados.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Ajustes guardados.')));
       }
     } catch (error) {
       if (mounted) {
@@ -138,9 +128,9 @@ class _ConfiguracionFormState extends ConsumerState<_ConfiguracionForm> {
         const SizedBox(height: 8),
         Text(
           'Estas reglas se aplican automáticamente a todas las clases.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.textSecondary,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
         ),
         const SizedBox(height: 20),
         Card(
@@ -174,9 +164,7 @@ class _ConfiguracionFormState extends ConsumerState<_ConfiguracionForm> {
                   controller: _horasController,
                   enabled: !_guardando,
                   keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: const InputDecoration(
                     labelText: 'Horas antes de la clase',
                     helperText:
