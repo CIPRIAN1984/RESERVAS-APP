@@ -81,27 +81,18 @@ class ClasesRepository {
     return (generadas as int?) ?? 0;
   }
 
-  Future<void> unirse({
-    required String claseId,
-    required String alumnoId,
-  }) async {
-    await _client.from('inscripciones').insert({
-      'clase_id': claseId,
-      'alumno_id': alumnoId,
-      'estado': 'inscrito',
-    });
+  Future<void> unirse({required String claseId}) async {
+    await _client.rpc(
+      'reservar_clase',
+      params: {'p_clase_id': claseId},
+    );
   }
 
-  Future<void> borrarse({
-    required String claseId,
-    required String alumnoId,
-  }) async {
-    await _client
-        .from('inscripciones')
-        .update({'estado': 'cancelado'})
-        .eq('clase_id', claseId)
-        .eq('alumno_id', alumnoId)
-        .eq('estado', 'inscrito');
+  Future<void> borrarse({required String claseId}) async {
+    await _client.rpc(
+      'cancelar_reserva',
+      params: {'p_clase_id': claseId},
+    );
   }
 
   Future<List<InscritoAlumno>> listarInscritos(String claseId) async {
