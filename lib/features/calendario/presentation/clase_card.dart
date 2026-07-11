@@ -85,15 +85,17 @@ class ClaseCard extends StatelessWidget {
         child: CircularProgressIndicator(strokeWidth: 2),
       );
     }
-    if (clase.estoyInscrito) {
+    if (clase.tieneReservaActiva) {
       return OutlinedButton(
         onPressed: onBorrarse,
-        child: const Text('Borrarse'),
+        child: Text(
+          clase.enListaEspera ? 'Salir de espera' : 'Cancelar',
+        ),
       );
     }
     return ElevatedButton(
-      onPressed: clase.aforoCompleto ? null : onUnirse,
-      child: Text(clase.aforoCompleto ? 'Completo' : 'Unirse'),
+      onPressed: onUnirse,
+      child: Text(clase.aforoCompleto ? 'Lista de espera' : 'Reservar'),
     );
   }
 }
