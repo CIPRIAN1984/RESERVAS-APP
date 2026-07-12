@@ -17,6 +17,7 @@ if [[ ! -x "${FLUTTER_HOME}/bin/flutter" ]]; then
 fi
 
 export PATH="${FLUTTER_HOME}/bin:${PATH}"
+git config --global --add safe.directory "${FLUTTER_HOME}"
 flutter config --enable-web
 flutter pub get
 flutter build web --release \
