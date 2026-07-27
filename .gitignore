@@ -35,6 +35,13 @@ migrate_working_dir/
 
 # Local secrets (Supabase keys) — copy from dart_define.example.json
 dart_define.json
+dart_define.release.json
+
+# Mobile release credentials/configuration are injected by CI.
+/android/key.properties
+/android/upload-keystore.jks
+/android/app/google-services.json
+/ios/Runner/GoogleService-Info.plist
 
 # Symbolication related
 app.*.symbols

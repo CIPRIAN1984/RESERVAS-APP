@@ -187,3 +187,67 @@ reales requieren autorización expresa y una copia de seguridad verificada.
 5. Para una caída de Supabase, no crear una base alternativa ni cambiar IDs.
    Esperar recuperación o restaurar únicamente dentro de
    `dpcdpcvjcutcqyqcacti` con autorización expresa.
+
+## Activación de notificaciones push
+
+Requisitos externos:
+
+1. Crear un único proyecto Firebase exclusivo de `RESERVAS-APP`.
+2. Registrar Android `com.itaca.itaca` e iOS `com.itaca.itaca`.
+3. En Apple Developer, habilitar Push Notifications para el App ID y cargar la
+   clave APNs en Firebase.
+4. Crear una service account con el acceso mínimo necesario para FCM v1.
+5. Generar un `CRON_SECRET` aleatorio e independiente.
+
+Configurar en Supabase `dpcdpcvjcutcqyqcacti` los secretos
+`FCM_SERVICE_ACCOUNT` y `CRON_SECRET`. Después:
+
+1. Desplegar únicamente `send-push`; `supabase/config.toml` fija
+   `verify_jwt=false`.
+2. Programar una llamada HTTPS periódica con
+   `X-Cron-Secret: <CRON_SECRET>`.
+3. Probar con un usuario ficticio y un dispositivo físico de cada plataforma.
+4. Confirmar registro del token, recepción en primer y segundo plano y borrado
+   de un token inválido.
+5. Confirmar que una indisponibilidad temporal de FCM deja la fila pendiente
+   para el siguiente intento.
+
+Nunca registrar el JSON de la service account, el secreto del cron ni tokens de
+dispositivos en commits, incidencias o logs.
+
+## Generación de artefactos móviles
+
+El workflow manual `Mobile release artifacts` necesita estos secretos:
+
+- `MOBILE_DART_DEFINE_JSON_BASE64`
+- `FIREBASE_ANDROID_CONFIG_BASE64`
+- `FIREBASE_IOS_CONFIG_BASE64`
+- `ANDROID_UPLOAD_KEYSTORE_BASE64`
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEY_PASSWORD`
+- `ANDROID_STORE_PASSWORD`
+
+El JSON de Dart debe apuntar exactamente a
+`https://dpcdpcvjcutcqyqcacti.supabase.co` y contener
+`"PUSH_ENABLED": true`. Los tres archivos binarios/configuración se guardan
+codificados en Base64; el workflow los materializa solo durante la ejecución y
+los elimina al finalizar.
+
+Para cada versión:
+
+1. Aumentar el número de build; nunca reutilizar uno aceptado por una tienda.
+2. Ejecutar CI y `Mobile release artifacts`.
+3. Descargar el AAB firmado, comprobar su firma y subirlo primero a una pista
+   interna de Google Play con Play App Signing.
+4. El job iOS verifica una compilación release sin firma. Abrir el mismo commit
+   en un Mac autorizado, seleccionar el equipo Apple, comprobar Push
+   Notifications y archivar/distribuir desde Xcode o App Store Connect.
+5. Probar instalación, inicio de sesión, recuperación de contraseña, reservas,
+   pagos de prueba y push en dispositivos físicos.
+6. Completar las fichas de privacidad, clasificación por edades, capturas,
+   países y contacto de soporte antes de solicitar revisión.
+
+La URL de privacidad para ambas tiendas es
+`https://itc2-reservas.vercel.app/privacidad`. La publicación no se considera
+terminada hasta que cada consola confirme la aprobación y la versión esté
+disponible en la pista o países elegidos.

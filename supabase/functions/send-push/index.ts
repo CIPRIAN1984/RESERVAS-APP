@@ -11,13 +11,21 @@ Deno.serve(async (req) => {
   // Only the scheduler may call this. CRON_SECRET is a shared secret passed in
   // the X-Cron-Secret header.
   const expected = Deno.env.get("CRON_SECRET");
-  if (expected && req.headers.get("X-Cron-Secret") !== expected) {
+  if (!expected) {
+    logEvent("error", "send-push", "CRON_SECRET ausente; ejecución bloqueada");
+    return jsonResponse({ error: "Servicio no configurado." }, 503);
+  }
+  if (req.headers.get("X-Cron-Secret") !== expected) {
     return jsonResponse({ error: "No autorizado." }, 401);
   }
 
   const fcm = await createFcmClient();
   if (!fcm) {
-    logEvent("warn", "send-push", "FCM sin configurar (FCM_SERVICE_ACCOUNT ausente)");
+    logEvent(
+      "warn",
+      "send-push",
+      "FCM sin configurar (FCM_SERVICE_ACCOUNT ausente)",
+    );
     return jsonResponse({ error: "FCM no configurado." }, 503);
   }
 
@@ -30,12 +38,15 @@ Deno.serve(async (req) => {
     .limit(BATCH);
 
   if (error) {
-    logEvent("error", "send-push", "No se pudo leer la outbox", { error: error.message });
+    logEvent("error", "send-push", "No se pudo leer la outbox", {
+      error: error.message,
+    });
     return jsonResponse({ error: "Error leyendo la outbox." }, 500);
   }
 
   let enviadas = 0;
   let tokensInvalidos = 0;
+  let reintentos = 0;
 
   for (const n of pendientes ?? []) {
     const { data: tokens } = await admin
@@ -44,17 +55,27 @@ Deno.serve(async (req) => {
       .eq("user_id", n.user_id);
 
     const dataStr: Record<string, string> = {};
-    for (const [k, v] of Object.entries((n.data ?? {}) as Record<string, unknown>)) {
+    for (
+      const [k, v] of Object.entries((n.data ?? {}) as Record<string, unknown>)
+    ) {
       dataStr[k] = String(v);
     }
 
+    let retryRequired = false;
     for (const { token } of tokens ?? []) {
       const result = await sendToToken(fcm, token, n.titulo, n.cuerpo, dataStr);
       if (result === "invalid") {
         // Token muerto: se borra para no reintentar indefinidamente.
         await admin.from("device_tokens").delete().eq("token", token);
         tokensInvalidos++;
+      } else if (result === "error") {
+        retryRequired = true;
       }
+    }
+
+    if (retryRequired) {
+      reintentos++;
+      continue;
     }
 
     await admin
@@ -64,6 +85,14 @@ Deno.serve(async (req) => {
     enviadas++;
   }
 
-  logEvent("info", "send-push", "Lote procesado", { enviadas, tokensInvalidos });
-  return jsonResponse({ enviadas, tokens_invalidos: tokensInvalidos });
+  logEvent("info", "send-push", "Lote procesado", {
+    enviadas,
+    tokensInvalidos,
+    reintentos,
+  });
+  return jsonResponse({
+    enviadas,
+    tokens_invalidos: tokensInvalidos,
+    reintentos,
+  });
 });
