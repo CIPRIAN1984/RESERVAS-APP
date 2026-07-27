@@ -16,3 +16,18 @@ puede exponerlas como RPC. Por tanto:
 
 Motivo: reducir la superficie RPC, evitar que helpers internos se conviertan
 en endpoints y mantener los permisos reproducibles entre entornos Supabase.
+
+## 2026-07-27 — Bootstrap del Administrador inicial fuera del registro público
+
+El primer Administrador se crea a partir de un usuario de Auth con correo
+confirmado mediante `bootstrap_initial_admin`. La función:
+
+- solo es ejecutable por `service_role` y por el propietario de la base;
+- usa un bloqueo transaccional para impedir carreras;
+- solo funciona mientras no exista ningún Administrador;
+- no convierte perfiles ya existentes ni acepta usuarios anónimos;
+- nunca se invoca desde Flutter ni depende de metadata controlada por cliente.
+
+Motivo: el alta pública debe limitarse a Dueños y Alumnos. Un secreto de
+bootstrap en el cliente permitiría autoascensos y no puede protegerse en una
+aplicación web o móvil.
