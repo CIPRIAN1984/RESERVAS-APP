@@ -4,9 +4,7 @@ import 'package:itaca/features/privacy/presentation/privacy_screen.dart';
 
 void main() {
   testWidgets('muestra la información esencial de privacidad', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(home: PrivacyScreen()),
-    );
+    await tester.pumpWidget(const MaterialApp(home: PrivacyScreen()));
 
     expect(find.text('Privacidad y datos'), findsOneWidget);
     expect(find.text('Información de privacidad'), findsOneWidget);
