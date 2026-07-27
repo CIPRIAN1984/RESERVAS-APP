@@ -22,6 +22,9 @@ class AppConfig {
     defaultValue: 'development',
   );
 
+  /// Commit or release identifier used to correlate an error with a deploy.
+  static const String releaseName = String.fromEnvironment('APP_RELEASE');
+
   /// Push notifications require Firebase config files (google-services.json /
   /// GoogleService-Info.plist) baked into the native build. This flag lets the
   /// app run without them — when false, Firebase is never initialized.

@@ -15,6 +15,7 @@ import '../features/onboarding/presentation/login_screen.dart';
 import '../features/onboarding/presentation/olvide_contrasena_screen.dart';
 import '../features/pagos/presentation/conectar_stripe_screen.dart';
 import '../features/progreso/presentation/arbol_progreso_screen.dart';
+import '../features/privacy/presentation/privacy_screen.dart';
 import '../features/tarifas/presentation/tarifas_screen.dart';
 import '../features/tienda/presentation/tienda_screen.dart';
 import '../features/onboarding/presentation/pendiente_aprobacion_screen.dart';
@@ -81,6 +82,7 @@ String? _redirect(Ref ref, GoRouterState state) {
   }
 
   if (loc == Routes.restablecerContrasena) return null;
+  if (loc == Routes.privacidad) return null;
 
   final profileAsync = ref.read(currentProfileProvider);
   if (!profileAsync.hasValue) {
@@ -163,6 +165,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.restablecerContrasena,
         builder: (context, state) => const RestablecerContrasenaScreen(),
+      ),
+      GoRoute(
+        path: Routes.privacidad,
+        builder: (context, state) => const PrivacyScreen(),
       ),
       GoRoute(
         path: Routes.registro,

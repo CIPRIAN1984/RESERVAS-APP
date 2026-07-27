@@ -4,5 +4,6 @@
   "STRIPE_PUBLISHABLE_KEY": "pk_test_<your-publishable-key>",
   "SENTRY_DSN": "",
   "APP_ENV": "development",
+  "APP_RELEASE": "",
   "PUSH_ENABLED": false
 }

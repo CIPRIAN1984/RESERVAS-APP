@@ -36,3 +36,14 @@ menos ocho caracteres.
 
 Después del cambio se cierra la sesión temporal y el usuario vuelve al inicio
 de sesión. Supabase envía además una notificación de seguridad por correo.
+
+## Privacidad y diagnóstico
+
+La información de privacidad es accesible antes y después de iniciar sesión.
+Explica las categorías de datos, finalidades, proveedores, conservación y
+derechos, e identifica a la academia como primer punto de contacto.
+
+El diagnóstico de errores es opcional por despliegue. Cuando Sentry está
+configurado, se envía únicamente el identificador interno del usuario; no se
+envían nombre, correo ni capturas de pantalla. ITACA no vende datos ni los usa
+para publicidad personalizada.

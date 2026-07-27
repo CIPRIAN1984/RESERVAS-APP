@@ -31,3 +31,22 @@ confirmado mediante `bootstrap_initial_admin`. La función:
 Motivo: el alta pública debe limitarse a Dueños y Alumnos. Un secreto de
 bootstrap en el cliente permitiría autoascensos y no puede protegerse en una
 aplicación web o móvil.
+
+## 2026-07-27 — Observabilidad con minimización de datos
+
+La capa de errores de Flutter continúa centralizada en `Observability` y solo
+se activa cuando el despliegue aporta un `SENTRY_DSN`.
+
+- `sendDefaultPii`, las capturas de pantalla, la jerarquía visual y la captura
+  automática de peticiones fallidas permanecen desactivadas.
+- El usuario se identifica únicamente por su UUID interno, sin nombre ni
+  correo.
+- La versión reportada es el commit del despliegue.
+- En producción se muestrea el 5 % de las trazas; los errores siguen
+  capturándose.
+- Sin Sentry, los errores controlados solo muestran tipo y contexto en modo
+  debug; no se imprime su contenido en builds de producción.
+
+La disponibilidad web se vigila con una prueba sintética de solo lectura sobre
+el dominio canónico y las rutas críticas. Web Analytics y Speed Insights no se
+activan automáticamente porque su uso y coste requieren una decisión separada.
