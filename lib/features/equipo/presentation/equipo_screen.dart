@@ -87,17 +87,16 @@ class _EquipoScreenState extends ConsumerState<EquipoScreen> {
                   labelText: 'Buscar miembro',
                   prefixIcon: Icon(Icons.search),
                 ),
-                onChanged: (value) => setState(
-                  () => _busqueda = value.trim().toLowerCase(),
-                ),
+                onChanged: (value) =>
+                    setState(() => _busqueda = value.trim().toLowerCase()),
               ),
               const SizedBox(height: 12),
               Text(
                 'Los nuevos miembros se registran primero como Alumnos. '
                 'Desde aquí puedes asignar o retirar el rol Profesor.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
               ),
             ],
           ),
@@ -109,19 +108,20 @@ class _EquipoScreenState extends ConsumerState<EquipoScreen> {
                 if (_busqueda.isEmpty) return true;
                 final nombreCompleto =
                     '${miembro.nombre} ${miembro.apellidos ?? ''} '
-                    '${miembro.rol}'
+                            '${miembro.rol}'
                         .toLowerCase();
                 return nombreCompleto.contains(_busqueda);
               }).toList();
 
               if (visibles.isEmpty) {
-                return const Center(child: Text('No hay miembros que mostrar.'));
+                return const Center(
+                  child: Text('No hay miembros que mostrar.'),
+                );
               }
 
               return RefreshIndicator(
-                onRefresh: () async => ref.refresh(
-                  miembrosEquipoProvider.future,
-                ),
+                onRefresh: () async =>
+                    ref.refresh(miembrosEquipoProvider.future),
                 child: ListView.separated(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(16),

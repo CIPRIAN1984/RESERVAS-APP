@@ -33,10 +33,7 @@ class EquipoRepository {
   }) async {
     await _client.rpc(
       'cambiar_rol_miembro',
-      params: {
-        'p_miembro_id': miembroId,
-        'p_nuevo_rol': nuevoRol,
-      },
+      params: {'p_miembro_id': miembroId, 'p_nuevo_rol': nuevoRol},
     );
   }
 }
