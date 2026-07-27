@@ -14,18 +14,18 @@ Antes de aplicar una migración de permisos:
 
 ## Estado del historial remoto
 
-El 23 de julio de 2026 se comprobó que el proyecto remoto
-`dpcdpcvjcutcqyqcacti` contiene las 22 migraciones funcionales, pero su tabla
-de historial usa versiones temporales `20260712124546…20260712124745`, mientras
-el repositorio conserva los nombres `0001…0022`.
+El 27 de julio de 2026 se compararon las 22 migraciones remotas del proyecto
+`dpcdpcvjcutcqyqcacti` con los archivos locales. El nombre lógico, el tamaño en
+bytes y la huella MD5 del SQL normalizado coinciden exactamente en los 22 casos.
 
-No ejecutar `supabase db push` contra producción hasta comparar ambos
-historiales y reconciliarlos de forma explícita. La reconciliación debe:
+Los archivos locales usan desde entonces las mismas versiones temporales
+registradas en producción (`20260712124546…20260712124745`). Este cambio solo
+reconcilia el historial: no modifica el SQL, el esquema ni los datos.
 
-- demostrar que el esquema remoto corresponde al resultado de `0001…0022`;
-- conservar los datos reales;
-- evitar reaplicar migraciones antiguas;
-- quedar documentada antes de aplicar migraciones nuevas.
+Antes de ejecutar `supabase db push`:
 
-Este bloqueo no afecta a las pruebas locales ni a CI, que reconstruyen la base
-desde cero usando los archivos versionados.
+1. Confirmar con `supabase migration list` que las 22 versiones coinciden en
+   local y remoto.
+2. Comprobar que solo aparecen como pendientes las migraciones nuevas.
+3. Ejecutar primero `supabase db push --dry-run`.
+4. Detener la operación si una migración histórica aparece como pendiente.
