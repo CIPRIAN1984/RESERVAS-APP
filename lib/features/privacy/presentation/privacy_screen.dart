@@ -9,11 +9,11 @@ class PrivacyScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Privacidad y datos')),
       body: ListView(
         padding: const EdgeInsets.all(24),
-        children: const [
+        children: [
           Center(
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 760),
-              child: Column(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(

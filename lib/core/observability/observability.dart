@@ -31,7 +31,6 @@ class Observability {
       options.sendDefaultPii = false;
       // Screens may contain names, attendance or payment state.
       options.attachScreenshot = false;
-      options.attachViewHierarchy = false;
       // Avoid recording password-recovery URLs or backend query details.
       options.captureFailedRequests = false;
     }, appRunner: () => appRunner());
