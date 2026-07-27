@@ -21,7 +21,11 @@ Deno.serve(async (req) => {
 
   const fcm = await createFcmClient();
   if (!fcm) {
-    logEvent("warn", "send-push", "FCM sin configurar (FCM_SERVICE_ACCOUNT ausente)");
+    logEvent(
+      "warn",
+      "send-push",
+      "FCM sin configurar (FCM_SERVICE_ACCOUNT ausente)",
+    );
     return jsonResponse({ error: "FCM no configurado." }, 503);
   }
 
@@ -34,7 +38,9 @@ Deno.serve(async (req) => {
     .limit(BATCH);
 
   if (error) {
-    logEvent("error", "send-push", "No se pudo leer la outbox", { error: error.message });
+    logEvent("error", "send-push", "No se pudo leer la outbox", {
+      error: error.message,
+    });
     return jsonResponse({ error: "Error leyendo la outbox." }, 500);
   }
 
@@ -49,7 +55,9 @@ Deno.serve(async (req) => {
       .eq("user_id", n.user_id);
 
     const dataStr: Record<string, string> = {};
-    for (const [k, v] of Object.entries((n.data ?? {}) as Record<string, unknown>)) {
+    for (
+      const [k, v] of Object.entries((n.data ?? {}) as Record<string, unknown>)
+    ) {
       dataStr[k] = String(v);
     }
 
