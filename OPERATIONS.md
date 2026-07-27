@@ -86,3 +86,27 @@ Configuración requerida en Supabase Auth para el proyecto
 Los archivos de `config.toml` y `supabase/templates` reproducen el
 comportamiento local. En proyectos Supabase alojados, las plantillas y el SMTP
 se configuran en Dashboard; no se despliegan mediante migraciones SQL.
+
+## Prueba integral con datos ficticios
+
+`supabase/tests/e2e_fake_user_journey_test.sql` reproduce el recorrido crítico
+sin tocar datos alojados: bootstrap del Administrador, registro y aprobación de
+una academia, altas de Alumnos, promoción a Profesor, creación de tarifa y
+clase, cuota cobrada simulada, reserva, lista de espera, cancelación, promoción,
+notificación y asistencia.
+
+La prueba se ejecuta dentro de una transacción con `rollback`. Las direcciones
+terminadas en `@test.dev`, los UUID fijos y las referencias `sub_fake_e2e_*`
+son exclusivamente datos de prueba.
+
+Para ejecutarla:
+
+1. Confirmar que Docker está operativo.
+2. Ejecutar `supabase start`.
+3. Ejecutar `supabase test db`.
+4. Exigir que el plan integral complete sus 24 aserciones y que el resto de
+   pruebas pgTAP siga en verde.
+
+La activación de las dos cuotas simula únicamente el estado final escrito por
+un webhook Stripe autenticado. No llama a Stripe, no usa secretos y no debe
+ejecutarse contra el proyecto alojado.
