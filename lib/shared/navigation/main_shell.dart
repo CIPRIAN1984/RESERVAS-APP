@@ -91,6 +91,13 @@ class MainShell extends ConsumerWidget {
     Icons.tune,
   );
 
+  static const _equipoItem = _NavItem(
+    Routes.equipo,
+    'Profesores y equipo',
+    Icons.groups_outlined,
+    Icons.groups,
+  );
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider).value;
@@ -100,6 +107,7 @@ class MainShell extends ConsumerWidget {
 
     final items = [
       if (!isAdmin) ..._itemsAcademia,
+      if (isDueno) _equipoItem,
       if (isDueno) _ajustesReservasItem,
       if (isDueno) _cobrosItem,
       if (isDueno || isAdmin) _cambioEscuelaItem,
