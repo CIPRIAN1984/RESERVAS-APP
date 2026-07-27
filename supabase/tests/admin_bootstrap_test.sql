@@ -95,6 +95,8 @@ select lives_ok(
   'El usuario confirmado puede convertirse en el primer Administrador'
 );
 
+reset role;
+
 select is(
   (
     select rol
@@ -118,6 +120,8 @@ select ok(
   'El Administrador queda activo, sin academia y con datos normalizados'
 );
 
+set local role service_role;
+
 select throws_ok(
   $$ select public.bootstrap_initial_admin(
        '00000000-0000-0000-0000-00000000ad02',
@@ -127,6 +131,8 @@ select throws_ok(
   null,
   'No puede crearse un segundo Administrador mediante el bootstrap'
 );
+
+reset role;
 
 select * from finish();
 rollback;
