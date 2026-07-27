@@ -8,6 +8,7 @@ import '../features/admin/presentation/admin_academias_screen.dart';
 import '../features/calendario/presentation/calendario_screen.dart';
 import '../features/configuracion_reservas/presentation/ajustes_reservas_screen.dart';
 import '../features/estadisticas/presentation/estadisticas_screen.dart';
+import '../features/equipo/presentation/equipo_screen.dart';
 import '../features/novedades/presentation/novedades_screen.dart';
 import '../features/onboarding/presentation/login_screen.dart';
 import '../features/pagos/presentation/conectar_stripe_screen.dart';
@@ -106,6 +107,10 @@ String? _redirect(Ref ref, GoRouterState state) {
     return _inicioPara(profile);
   }
 
+  if (loc == Routes.equipo && !profile.isDueno) {
+    return _inicioPara(profile);
+  }
+
   // Administrador isn't scoped to any single academia, so the member-facing
   // modules (calendario, tienda, etc.) don't apply to it.
   if (_rutasAcademia.contains(loc) && profile.isAdministrador) {
@@ -198,6 +203,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: Routes.ajustesReservas,
             builder: (context, state) => const AjustesReservasScreen(),
+          ),
+          GoRoute(
+            path: Routes.equipo,
+            builder: (context, state) => const EquipoScreen(),
           ),
         ],
       ),
