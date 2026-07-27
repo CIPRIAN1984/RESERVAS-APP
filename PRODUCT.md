@@ -47,3 +47,15 @@ El diagnóstico de errores es opcional por despliegue. Cuando Sentry está
 configurado, se envía únicamente el identificador interno del usuario; no se
 envían nombre, correo ni capturas de pantalla. ITACA no vende datos ni los usa
 para publicidad personalizada.
+
+## Notificaciones móviles
+
+Las notificaciones push son opcionales y solo se activan en compilaciones
+móviles que incluyan la configuración Firebase de `RESERVAS-APP`. La app pide
+permiso al sistema, registra el token del dispositivo para el usuario
+autenticado y lo actualiza cuando Firebase lo rota.
+
+El backend procesa una cola desacoplada. Los tokens inválidos se eliminan y los
+errores transitorios permanecen pendientes para reintento. Si falta la
+configuración de Firebase o el secreto del programador, el envío queda
+bloqueado sin afectar al inicio ni al resto de funciones de la aplicación.

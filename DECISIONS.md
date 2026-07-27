@@ -50,3 +50,21 @@ se activa cuando el despliegue aporta un `SENTRY_DSN`.
 La disponibilidad web se vigila con una prueba sintética de solo lectura sobre
 el dominio canónico y las rutas críticas. Web Analytics y Speed Insights no se
 activan automáticamente porque su uso y coste requieren una decisión separada.
+
+## 2026-07-27 — Identidad y firma de las aplicaciones móviles
+
+Se conserva `com.itaca.itaca` como identificador candidato de Android e iOS
+porque ya forma parte del código nativo y de los deep links. Debe comprobarse
+su disponibilidad en Google Play Console y Apple Developer antes de la primera
+alta; después del primer binario no se cambia.
+
+Las compilaciones Android de producción nunca usan la clave debug. La firma se
+inyecta desde secretos de GitHub y se entrega como Android App Bundle para Play
+App Signing. iOS requiere firma administrada por la cuenta Apple y una
+distribución posterior desde Xcode o App Store Connect.
+
+La configuración Firebase se inyecta por plataforma durante la compilación y
+no se comparte con otros proyectos. El cliente solo habilita push cuando
+`PUSH_ENABLED=true`. `send-push` se despliega sin verificación JWT porque lo
+invoca un programador, pero falla de forma cerrada si `CRON_SECRET` no existe o
+no coincide.

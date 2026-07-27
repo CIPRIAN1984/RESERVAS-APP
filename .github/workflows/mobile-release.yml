@@ -1,0 +1,139 @@
+name: Mobile release artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: Public version, for example 1.0.0
+        required: true
+        default: 1.0.0
+        type: string
+      build_number:
+        description: Monotonically increasing store build number
+        required: true
+        default: "1"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  android-aab:
+    name: Signed Android App Bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+      FIREBASE_ANDROID_CONFIG_BASE64: ${{ secrets.FIREBASE_ANDROID_CONFIG_BASE64 }}
+      MOBILE_DART_DEFINE_JSON_BASE64: ${{ secrets.MOBILE_DART_DEFINE_JSON_BASE64 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Validate required configuration
+        run: |
+          test -n "$ANDROID_UPLOAD_KEYSTORE_BASE64"
+          test -n "$ANDROID_KEY_ALIAS"
+          test -n "$ANDROID_KEY_PASSWORD"
+          test -n "$ANDROID_STORE_PASSWORD"
+          test -n "$FIREBASE_ANDROID_CONFIG_BASE64"
+          test -n "$MOBILE_DART_DEFINE_JSON_BASE64"
+      - name: Materialize ephemeral release files
+        run: |
+          printf '%s' "$ANDROID_UPLOAD_KEYSTORE_BASE64" |
+            base64 --decode > android/upload-keystore.jks
+          printf '%s' "$FIREBASE_ANDROID_CONFIG_BASE64" |
+            base64 --decode > android/app/google-services.json
+          printf '%s' "$MOBILE_DART_DEFINE_JSON_BASE64" |
+            base64 --decode > dart_define.release.json
+          printf 'storeFile=upload-keystore.jks\nkeyAlias=%s\nkeyPassword=%s\nstorePassword=%s\n' \
+            "$ANDROID_KEY_ALIAS" \
+            "$ANDROID_KEY_PASSWORD" \
+            "$ANDROID_STORE_PASSWORD" > android/key.properties
+          jq -e \
+            '.client[].client_info.android_client_info.package_name |
+             select(. == "com.itaca.itaca")' \
+            android/app/google-services.json >/dev/null
+          jq -e \
+            '.SUPABASE_URL == "https://dpcdpcvjcutcqyqcacti.supabase.co" and
+             .PUSH_ENABLED == true' \
+            dart_define.release.json >/dev/null
+      - name: Build signed bundle
+        run: |
+          flutter pub get
+          flutter build appbundle --release \
+            --build-name="${{ inputs.version_name }}" \
+            --build-number="${{ inputs.build_number }}" \
+            --dart-define-from-file=dart_define.release.json \
+            --dart-define=APP_ENV=production \
+            --dart-define=APP_RELEASE="$GITHUB_SHA"
+      - name: Verify bundle signature
+        run: jarsigner -verify build/app/outputs/bundle/release/app-release.aab
+      - uses: actions/upload-artifact@v4
+        with:
+          name: itaca-android-${{ inputs.version_name }}-${{ inputs.build_number }}
+          path: build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 14
+      - name: Remove ephemeral release files
+        if: always()
+        run: |
+          rm -f android/upload-keystore.jks
+          rm -f android/key.properties
+          rm -f android/app/google-services.json
+          rm -f dart_define.release.json
+
+  ios-unsigned:
+    name: Unsigned iOS release verification
+    runs-on: macos-latest
+    timeout-minutes: 35
+    env:
+      FIREBASE_IOS_CONFIG_BASE64: ${{ secrets.FIREBASE_IOS_CONFIG_BASE64 }}
+      MOBILE_DART_DEFINE_JSON_BASE64: ${{ secrets.MOBILE_DART_DEFINE_JSON_BASE64 }}
+      REQUIRE_FIREBASE_CONFIG: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Validate required configuration
+        run: |
+          test -n "$FIREBASE_IOS_CONFIG_BASE64"
+          test -n "$MOBILE_DART_DEFINE_JSON_BASE64"
+      - name: Materialize ephemeral release files
+        run: |
+          printf '%s' "$FIREBASE_IOS_CONFIG_BASE64" |
+            base64 -D > ios/Runner/GoogleService-Info.plist
+          printf '%s' "$MOBILE_DART_DEFINE_JSON_BASE64" |
+            base64 -D > dart_define.release.json
+          /usr/libexec/PlistBuddy -c 'Print :BUNDLE_ID' \
+            ios/Runner/GoogleService-Info.plist |
+            grep --fixed-strings --line-regexp 'com.itaca.itaca'
+          jq -e \
+            '.SUPABASE_URL == "https://dpcdpcvjcutcqyqcacti.supabase.co" and
+             .PUSH_ENABLED == true' \
+            dart_define.release.json >/dev/null
+      - name: Verify iOS release compilation
+        run: |
+          flutter pub get
+          flutter build ios --release --no-codesign \
+            --build-name="${{ inputs.version_name }}" \
+            --build-number="${{ inputs.build_number }}" \
+            --dart-define-from-file=dart_define.release.json \
+            --dart-define=APP_ENV=production \
+            --dart-define=APP_RELEASE="$GITHUB_SHA"
+      - name: Remove ephemeral release files
+        if: always()
+        run: |
+          rm -f ios/Runner/GoogleService-Info.plist
+          rm -f dart_define.release.json
