@@ -25,3 +25,14 @@ No puede modificar su propio rol, otros Dueños, Administradores ni miembros de
 otra academia. Los nuevos miembros se registran primero como Alumnos, de modo
 que la identidad y el correo quedan verificados por Supabase Auth antes de
 conceder permisos de Profesor.
+
+## Recuperación de contraseña
+
+Desde el inicio de sesión cualquier usuario puede solicitar un enlace de
+recuperación. La pantalla siempre muestra una respuesta neutra para no revelar
+si un correo está registrado. El enlace abre la aplicación web o móvil, valida
+la sesión temporal de Supabase y permite establecer una contraseña nueva de al
+menos ocho caracteres.
+
+Después del cambio se cierra la sesión temporal y el usuario vuelve al inicio
+de sesión. Supabase envía además una notificación de seguridad por correo.

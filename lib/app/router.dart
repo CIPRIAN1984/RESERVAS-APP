@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../core/auth/auth_state.dart';
 import '../core/models/profile.dart';
@@ -11,6 +12,7 @@ import '../features/estadisticas/presentation/estadisticas_screen.dart';
 import '../features/equipo/presentation/equipo_screen.dart';
 import '../features/novedades/presentation/novedades_screen.dart';
 import '../features/onboarding/presentation/login_screen.dart';
+import '../features/onboarding/presentation/olvide_contrasena_screen.dart';
 import '../features/pagos/presentation/conectar_stripe_screen.dart';
 import '../features/progreso/presentation/arbol_progreso_screen.dart';
 import '../features/tarifas/presentation/tarifas_screen.dart';
@@ -18,6 +20,7 @@ import '../features/tienda/presentation/tienda_screen.dart';
 import '../features/onboarding/presentation/pendiente_aprobacion_screen.dart';
 import '../features/onboarding/presentation/registro_academia_screen.dart';
 import '../features/onboarding/presentation/registro_screen.dart';
+import '../features/onboarding/presentation/restablecer_contrasena_screen.dart';
 import '../features/onboarding/presentation/splash_screen.dart';
 import '../features/perfil/presentation/perfil_screen.dart';
 import '../features/perfil/presentation/solicitudes_cambio_escuela_screen.dart';
@@ -66,10 +69,18 @@ String _inicioPara(Profile profile) =>
 String? _redirect(Ref ref, GoRouterState state) {
   final loc = state.matchedLocation;
   final userId = ref.read(currentUserIdProvider);
+  final authEvent = ref.read(authStateChangesProvider).value?.event;
 
   if (userId == null) {
     return Routes.publicRoutes.contains(loc) ? null : Routes.login;
   }
+
+  if (authEvent == sb.AuthChangeEvent.passwordRecovery &&
+      loc != Routes.restablecerContrasena) {
+    return Routes.restablecerContrasena;
+  }
+
+  if (loc == Routes.restablecerContrasena) return null;
 
   final profileAsync = ref.read(currentProfileProvider);
   if (!profileAsync.hasValue) {
@@ -144,6 +155,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.login,
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: Routes.olvideContrasena,
+        builder: (context, state) => const OlvideContrasenaScreen(),
+      ),
+      GoRoute(
+        path: Routes.restablecerContrasena,
+        builder: (context, state) => const RestablecerContrasenaScreen(),
       ),
       GoRoute(
         path: Routes.registro,
