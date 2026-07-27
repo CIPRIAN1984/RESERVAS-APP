@@ -29,3 +29,37 @@ Antes de ejecutar `supabase db push`:
 2. Comprobar que solo aparecen como pendientes las migraciones nuevas.
 3. Ejecutar primero `supabase db push --dry-run`.
 4. Detener la operación si una migración histórica aparece como pendiente.
+
+## Bootstrap del Administrador inicial
+
+Este procedimiento se ejecuta una sola vez y únicamente si no existe ningún
+perfil con `rol = 'administrador'`.
+
+1. En Supabase Auth, crear el usuario definitivo del Administrador sin metadata
+   de registro y confirmar su correo. No reutilizar una cuenta de Alumno o
+   Dueño.
+2. Copiar el UUID del usuario y, desde SQL Editor del proyecto exacto
+   `dpcdpcvjcutcqyqcacti`, ejecutar:
+
+   ```sql
+   select public.bootstrap_initial_admin(
+     '<uuid-del-usuario>'::uuid,
+     '<nombre>',
+     null
+   );
+   ```
+
+3. Confirmar que existe exactamente un perfil Administrador activo y sin
+   academia:
+
+   ```sql
+   select id, rol, estado, academia_id
+   from public.profiles
+   where rol = 'administrador';
+   ```
+
+4. Iniciar sesión en la aplicación y comprobar el acceso al panel de academias.
+
+La función rechaza usuarios sin correo confirmado, perfiles existentes y
+cualquier intento posterior. Nunca usar la clave `service_role` en Flutter,
+Vercel público, una captura, un ticket o documentación versionada.
