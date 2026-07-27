@@ -43,9 +43,7 @@ class _RestablecerContrasenaScreenState
         context.go(Routes.login);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'Contraseña actualizada. Ya puedes iniciar sesión.',
-            ),
+            content: Text('Contraseña actualizada. Ya puedes iniciar sesión.'),
           ),
         );
       }
@@ -89,8 +87,7 @@ class _RestablecerContrasenaScreenState
                         ),
                         const SizedBox(height: 24),
                         FilledButton(
-                          onPressed: () =>
-                              context.go(Routes.olvideContrasena),
+                          onPressed: () => context.go(Routes.olvideContrasena),
                           child: const Text('Solicitar otro enlace'),
                         ),
                       ],
