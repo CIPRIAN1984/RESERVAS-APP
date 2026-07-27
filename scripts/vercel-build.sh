@@ -26,4 +26,5 @@ flutter build web --release \
   --dart-define="STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}" \
   --dart-define="SENTRY_DSN=${SENTRY_DSN:-}" \
   --dart-define="APP_ENV=${APP_ENV:-preview}" \
+  --dart-define="APP_RELEASE=${APP_RELEASE:-${VERCEL_GIT_COMMIT_SHA:-}}" \
   --dart-define="PUSH_ENABLED=${PUSH_ENABLED:-false}"

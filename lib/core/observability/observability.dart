@@ -22,10 +22,18 @@ class Observability {
     await SentryFlutter.init((options) {
       options.dsn = AppConfig.sentryDsn;
       options.environment = AppConfig.environmentName;
+      if (AppConfig.releaseName.isNotEmpty) {
+        options.release = AppConfig.releaseName;
+      }
       // Sample a fraction of transactions in production; everything in dev.
-      options.tracesSampleRate = kReleaseMode ? 0.2 : 1.0;
+      options.tracesSampleRate = kReleaseMode ? 0.05 : 1.0;
       // Never ship user PII to the error backend.
       options.sendDefaultPii = false;
+      // Screens may contain names, attendance or payment state.
+      options.attachScreenshot = false;
+      options.attachViewHierarchy = false;
+      // Avoid recording password-recovery URLs or backend query details.
+      options.captureFailedRequests = false;
     }, appRunner: () => appRunner());
   }
 
@@ -36,7 +44,12 @@ class Observability {
     String? hint,
   }) async {
     if (!AppConfig.isSentryEnabled) {
-      debugPrint('Observability (disabled) — $hint: $error');
+      if (kDebugMode) {
+        debugPrint(
+          'Observability disabled — ${hint ?? 'handled error'} '
+          '(${error.runtimeType})',
+        );
+      }
       return;
     }
     await Sentry.captureException(

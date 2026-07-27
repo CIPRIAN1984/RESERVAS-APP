@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../app/routes.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../application/profile_providers.dart';
@@ -338,6 +340,12 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                       label: const Text('Solicitar cambio de escuela'),
                     ),
                   ],
+                  const SizedBox(height: 16),
+                  TextButton.icon(
+                    onPressed: () => context.push(Routes.privacidad),
+                    icon: const Icon(Icons.privacy_tip_outlined),
+                    label: const Text('Privacidad y protección de datos'),
+                  ),
                 ],
               ),
             ),

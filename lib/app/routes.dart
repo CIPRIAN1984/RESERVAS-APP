@@ -5,6 +5,7 @@ class Routes {
   static const String login = '/login';
   static const String olvideContrasena = '/olvide-contrasena';
   static const String restablecerContrasena = '/restablecer-contrasena';
+  static const String privacidad = '/privacidad';
   static const String registro = '/registro';
   static const String registroAcademia = '/registro/academia';
   static const String splash = '/splash';
@@ -27,6 +28,7 @@ class Routes {
     login,
     olvideContrasena,
     restablecerContrasena,
+    privacidad,
     registro,
     registroAcademia,
   };

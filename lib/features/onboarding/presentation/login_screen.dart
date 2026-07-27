@@ -139,6 +139,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           : () => context.push(Routes.registro),
                       child: const Text('¿No tienes cuenta? Regístrate'),
                     ),
+                    TextButton(
+                      onPressed: () => context.push(Routes.privacidad),
+                      child: const Text('Privacidad y protección de datos'),
+                    ),
                   ],
                 ),
               ),

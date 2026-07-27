@@ -110,3 +110,80 @@ Para ejecutarla:
 La activación de las dos cuotas simula únicamente el estado final escrito por
 un webhook Stripe autenticado. No llama a Stripe, no usa secretos y no debe
 ejecutarse contra el proyecto alojado.
+
+## Observabilidad de producción
+
+Fuentes autorizadas para `RESERVAS-APP`:
+
+| Señal | Destino exacto | Uso |
+| --- | --- | --- |
+| CI | `CIPRIAN1984/RESERVAS-APP` | formato, análisis, pruebas, pgTAP, secretos y build |
+| Despliegue | Vercel `itc2-reservas` | estado y logs de compilación |
+| Disponibilidad | `https://itc2-reservas.vercel.app` | smoke diario de rutas públicas |
+| Backend | Supabase `dpcdpcvjcutcqyqcacti` | Advisors, Auth, Postgres y Edge Functions |
+| Errores cliente | Sentry, si hay DSN de este proyecto | errores y trazas sin PII predeterminada |
+
+`Production smoke` se ejecuta diariamente y también admite ejecución manual.
+Solo realiza peticiones GET al dominio canónico y comprueba `/`,
+`/olvide-contrasena` y `/privacidad`.
+
+Tras cada despliegue de producción:
+
+1. Confirmar que Vercel muestra estado `READY` para `itc2-reservas`.
+2. Ejecutar manualmente `Production smoke`.
+3. Revisar errores de la última hora en Vercel y Supabase.
+4. Si Sentry está activo, comprobar que la release coincide con el commit.
+5. No copiar payloads, tokens, correos ni datos personales a incidencias.
+
+No activar Web Analytics, Speed Insights, drains ni integraciones de pago sin
+revisar primero el plan, el coste y el impacto de privacidad.
+
+## Respuesta a incidentes
+
+Clasificación:
+
+- **P0:** fuga de datos, acceso cruzado entre academias o cobros incorrectos.
+- **P1:** autenticación, reservas o pagos no disponibles para todos.
+- **P2:** función degradada con alternativa operativa.
+- **P3:** defecto menor sin pérdida de datos.
+
+Procedimiento:
+
+1. Registrar hora, entorno, commit y señal de detección sin incluir PII.
+2. Contener: desactivar solo la función afectada o volver al despliegue Vercel
+   anterior. No revertir una migración destructivamente.
+3. Preservar logs y referencias de Stripe/Supabase con acceso restringido.
+4. Corregir en una rama y PR independientes con prueba de regresión.
+5. Restaurar servicio, ejecutar el smoke y revisar errores durante una hora.
+6. Documentar causa, alcance, línea temporal y acciones preventivas.
+7. Si afecta a datos personales, escalar inmediatamente al responsable de la
+   academia para evaluar comunicaciones y plazos legales.
+
+## Solicitudes de privacidad
+
+1. La academia recibe la solicitud por un canal previamente verificado.
+2. Verifica la identidad sin pedir contraseñas ni códigos de un solo uso.
+3. Localiza el perfil por UUID dentro de su academia; nunca consulta otras.
+4. Para acceso o portabilidad, exporta solo los datos del solicitante y sus
+   relaciones autorizadas.
+5. Para rectificación, usa los flujos normales y deja trazabilidad mínima.
+6. Para supresión, identifica antes obligaciones de facturación, pagos,
+   antifraude o reclamaciones. Elimina o anonimiza el resto y revoca sesiones,
+   tokens push y archivos.
+7. Registra fecha, responsable, decisión y finalización sin adjuntar el
+   contenido exportado al ticket.
+
+Las operaciones masivas, la eliminación de Auth y cualquier cambio en datos
+reales requieren autorización expresa y una copia de seguridad verificada.
+
+## Recuperación y continuidad
+
+1. Comprobar diariamente el estado de copias de Supabase en el proyecto exacto.
+2. Probar trimestralmente la restauración en un entorno no productivo aislado.
+3. Antes de una migración de riesgo, documentar copia, compatibilidad hacia
+   atrás y procedimiento de avance; las migraciones son forward-only.
+4. Para una regresión de frontend, promover un despliegue Vercel anterior y
+   confirmar el dominio canónico con el smoke.
+5. Para una caída de Supabase, no crear una base alternativa ni cambiar IDs.
+   Esperar recuperación o restaurar únicamente dentro de
+   `dpcdpcvjcutcqyqcacti` con autorización expresa.
