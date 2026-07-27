@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../models/academia.dart';
@@ -69,6 +70,19 @@ class AuthRepository {
   }
 
   Future<void> signOut() => _client.auth.signOut();
+
+  Future<void> requestPasswordRecovery(String email) async {
+    await _client.auth.resetPasswordForEmail(
+      email,
+      redirectTo: kIsWeb
+          ? 'https://itc2-reservas.vercel.app/restablecer-contrasena'
+          : 'itaca://restablecer-contrasena',
+    );
+  }
+
+  Future<void> updatePassword(String password) async {
+    await _client.auth.updateUser(sb.UserAttributes(password: password));
+  }
 
   /// Academias already `approved`, for the "join an existing academia" picker.
   Future<List<AcademiaOption>> listAcademiasAprobadas() async {

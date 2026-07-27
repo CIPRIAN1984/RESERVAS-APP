@@ -3,6 +3,8 @@ class Routes {
   Routes._();
 
   static const String login = '/login';
+  static const String olvideContrasena = '/olvide-contrasena';
+  static const String restablecerContrasena = '/restablecer-contrasena';
   static const String registro = '/registro';
   static const String registroAcademia = '/registro/academia';
   static const String splash = '/splash';
@@ -21,5 +23,11 @@ class Routes {
   static const String tarifas = '/tarifas';
   static const String perfil = '/perfil';
 
-  static const Set<String> publicRoutes = {login, registro, registroAcademia};
+  static const Set<String> publicRoutes = {
+    login,
+    olvideContrasena,
+    restablecerContrasena,
+    registro,
+    registroAcademia,
+  };
 }

@@ -63,3 +63,26 @@ perfil con `rol = 'administrador'`.
 La función rechaza usuarios sin correo confirmado, perfiles existentes y
 cualquier intento posterior. Nunca usar la clave `service_role` en Flutter,
 Vercel público, una captura, un ticket o documentación versionada.
+
+## Correo y recuperación de contraseña
+
+Configuración requerida en Supabase Auth para el proyecto
+`dpcdpcvjcutcqyqcacti`:
+
+1. Definir **Site URL** como `https://itc2-reservas.vercel.app`.
+2. Añadir exactamente estas Redirect URLs:
+   - `https://itc2-reservas.vercel.app/restablecer-contrasena`
+   - `itaca://restablecer-contrasena`
+3. Copiar el asunto y HTML de `supabase/templates/recovery.html` a la plantilla
+   **Reset password** del Dashboard.
+4. Activar la notificación de cambio de contraseña usando
+   `supabase/templates/password_changed_notification.html`.
+5. Configurar un SMTP transaccional propio con dominio verificado antes de
+   incorporar usuarios reales. Las credenciales SMTP se guardan solo en
+   Supabase, nunca en Git, Flutter ni Vercel.
+6. Probar en web, Android e iOS que el enlace abre la pantalla de nueva
+   contraseña y que un enlace usado o caducado no permite cambiarla.
+
+Los archivos de `config.toml` y `supabase/templates` reproducen el
+comportamiento local. En proyectos Supabase alojados, las plantillas y el SMTP
+se configuran en Dashboard; no se despliegan mediante migraciones SQL.
