@@ -132,7 +132,7 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
               child: Text(
                 'Todavía no hay productos en el catálogo.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: AppColors.subtle,
                 ),
               ),
             );
@@ -162,14 +162,14 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
                               Text(
                                 producto.descripcion!,
                                 style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: AppColors.textSecondary),
+                                    ?.copyWith(color: AppColors.subtle),
                               ),
                             ],
                             const SizedBox(height: 8),
                             Text(
                               '${producto.precio.toStringAsFixed(2)} € · Stock: ${producto.stock}',
                               style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: AppColors.accentSecondary),
+                                  ?.copyWith(color: AppColors.ink),
                             ),
                           ],
                         ),

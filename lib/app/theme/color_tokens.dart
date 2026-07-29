@@ -1,45 +1,75 @@
 import 'package:flutter/material.dart';
 
-/// Semantic color tokens for the dark-mode-first design system.
-/// Feature code should reference these, not raw [Color] literals.
+/// Tokens de color del sistema de diseño **I+**.
+///
+/// Regla que gobierna todo: la interfaz es blanco, negro y gris. El color solo
+/// aparece donde **significa** algo — cinturones, estados y el amarillo de
+/// acento. Ver la skill `diseno-i-plus`.
+///
+/// El código de las pantallas referencia estos tokens, nunca literales `Color`.
 class AppColors {
   AppColors._();
 
-  static const Color seed = Color(0xFF6C5CE7);
+  // ── Superficies y texto ────────────────────────────────────────────────
+  /// Fondo de pantalla.
+  static const Color ground = Color(0xFFFFFFFF);
 
-  static const Color surfaceBase = Color(0xFF121214);
-  static const Color surfaceElevated = Color(0xFF1C1C1F);
-  static const Color surfaceElevatedHigh = Color(0xFF262629);
+  /// Fondo de tarjeta y de campos de formulario.
+  static const Color surface = Color(0xFFF4F4F5);
 
-  static const Color accentPrimary = Color(0xFF6C5CE7);
-  static const Color accentSecondary = Color(0xFF00D9C0);
+  /// Superficie un punto más marcada (snackbars, menús, pulsado).
+  static const Color surfaceStrong = Color(0xFFE9E9EC);
 
-  static const Color success = Color(0xFF33D17A);
-  static const Color warning = Color(0xFFFFB020);
-  static const Color danger = Color(0xFFFF5A5F);
+  /// Bordes y separadores.
+  static const Color line = Color(0xFFE7E7EA);
 
-  static const Color textPrimary = Color(0xFFF2F2F5);
-  static const Color textSecondary = Color(0xFFA0A0AA);
-  static const Color textDisabled = Color(0xFF5C5C66);
+  /// Tinta: texto principal, iconos activos y botones primarios.
+  static const Color ink = Color(0xFF0A0A0A);
 
-  static const Color divider = Color(0xFF2A2A2E);
+  /// Texto secundario y iconos inactivos.
+  static const Color subtle = Color(0xFF71717A);
 
-  // ── Light theme surfaces ──────────────────────────────────────────────
-  // Mirror of the dark tokens above for the light variant. The accent/seed
-  // and semantic colors (success/warning/danger, belts) are shared.
-  static const Color lightSurfaceBase = Color(0xFFF7F7FA);
-  static const Color lightSurfaceElevated = Color(0xFFFFFFFF);
-  static const Color lightSurfaceElevatedHigh = Color(0xFFECECF1);
-  static const Color lightTextPrimary = Color(0xFF1A1A1F);
-  static const Color lightTextSecondary = Color(0xFF5C5C66);
-  static const Color lightDivider = Color(0xFFE2E2E8);
+  /// Texto deshabilitado.
+  static const Color disabled = Color(0xFFA1A1AA);
 
-  /// Belt colors reused in ranking badges and the technique tree (module 4).
+  // ── Acento ─────────────────────────────────────────────────────────────
+  /// Amarillo eléctrico: día seleccionado y avisos críticos. Único color de
+  /// marca; se usa con cuentagotas y siempre con texto [ink] encima.
+  static const Color acid = Color(0xFFE9FF3D);
+
+  // ── Semánticos (pastel, con su color de texto) ─────────────────────────
+  static const Color successBg = Color(0xFFD1FAE5);
+  static const Color successFg = Color(0xFF065F46);
+  static const Color dangerBg = Color(0xFFFEE2E2);
+  static const Color dangerFg = Color(0xFFB91C1C);
+  static const Color infoBg = Color(0xFFE0F2FE);
+  static const Color infoFg = Color(0xFF075985);
+  static const Color neutralBg = Color(0xFFE4E4E7);
+  static const Color neutralFg = Color(0xFF3F3F46);
+  static const Color warningBg = Color(0xFFFEF3C7);
+  static const Color warningFg = Color(0xFF92400E);
+  static const Color accentBg = Color(0xFFFAE8FF);
+  static const Color accentFg = Color(0xFFA21CAF);
+
+  /// Rojo sólido para acciones destructivas (cancelar suscripción, borrar).
+  static const Color destructive = Color(0xFFDC2626);
+
+  // ── Cinturones ─────────────────────────────────────────────────────────
+  /// Los cinturones **son el dato**, no decoración: aquí el color se queda.
+  /// El blanco necesita borde para verse sobre fondo claro (ver [beltNeedsBorder]).
   static const Map<String, Color> beltColors = {
-    'blanco': Color(0xFFF2F2F5),
-    'azul': Color(0xFF2E6BFF),
-    'morado': Color(0xFF8E44E0),
-    'marron': Color(0xFF8B5E3C),
-    'negro': Color(0xFF121214),
+    'blanco': Color(0xFFFFFFFF),
+    'azul': Color(0xFF1D8FEF),
+    'morado': Color(0xFF8B2FE0),
+    'marron': Color(0xFF8A4B22),
+    'negro': Color(0xFF111111),
   };
+
+  /// Borde para los cinturones demasiado claros para distinguirse del fondo.
+  static bool beltNeedsBorder(String cinturon) => cinturon == 'blanco';
+
+  static const Color beltBorder = Color(0xFFD4D4D8);
+
+  static Color belt(String? cinturon) =>
+      beltColors[cinturon] ?? beltColors['blanco']!;
 }

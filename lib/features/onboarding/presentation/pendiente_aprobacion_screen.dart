@@ -20,7 +20,7 @@ class PendienteAprobacionScreen extends ConsumerWidget {
                 const Icon(
                   Icons.hourglass_top_outlined,
                   size: 56,
-                  color: AppColors.warning,
+                  color: AppColors.warningFg,
                 ),
                 const SizedBox(height: 24),
                 Text(
@@ -34,7 +34,7 @@ class PendienteAprobacionScreen extends ConsumerWidget {
                   'antes de que puedas acceder a ITACA. Te avisaremos en cuanto esté lista.',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: AppColors.subtle,
                   ),
                 ),
                 const SizedBox(height: 32),

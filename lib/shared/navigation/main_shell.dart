@@ -139,7 +139,7 @@ class MainShell extends ConsumerWidget {
                   ],
                 ),
               ),
-              const Divider(height: 1, color: AppColors.divider),
+              const Divider(height: 1, color: AppColors.line),
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.zero,
@@ -153,7 +153,7 @@ class MainShell extends ConsumerWidget {
                         ),
                         title: Text(item.label),
                         selected: item.route == location,
-                        selectedTileColor: AppColors.accentPrimary.withValues(
+                        selectedTileColor: AppColors.ink.withValues(
                           alpha: 0.12,
                         ),
                         onTap: () {
@@ -164,12 +164,12 @@ class MainShell extends ConsumerWidget {
                   ],
                 ),
               ),
-              const Divider(height: 1, color: AppColors.divider),
+              const Divider(height: 1, color: AppColors.line),
               ListTile(
-                leading: const Icon(Icons.logout, color: AppColors.danger),
+                leading: const Icon(Icons.logout, color: AppColors.destructive),
                 title: const Text(
                   'Cerrar sesión',
-                  style: TextStyle(color: AppColors.danger),
+                  style: TextStyle(color: AppColors.destructive),
                 ),
                 onTap: () {
                   Navigator.of(context).pop();

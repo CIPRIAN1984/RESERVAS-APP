@@ -32,7 +32,7 @@ class EstadisticasScreen extends ConsumerWidget {
               'Todavía no hay alumnos en la academia.',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
             ),
           );
         }
@@ -44,7 +44,7 @@ class EstadisticasScreen extends ConsumerWidget {
                 child: Text(
                   mesLabel[0].toUpperCase() + mesLabel.substring(1),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: AppColors.subtle,
                   ),
                 ),
               ),
@@ -87,17 +87,17 @@ class _RankingTile extends StatelessWidget {
     1 => const Color(0xFFFFC947),
     2 => const Color(0xFFC7CBD1),
     3 => const Color(0xFFCE8946),
-    _ => AppColors.surfaceElevatedHigh,
+    _ => AppColors.surfaceStrong,
   };
 
   @override
   Widget build(BuildContext context) {
     final colorCinturon = entry.cinturon != null
-        ? AppColors.beltColors[entry.cinturon!] ?? AppColors.textSecondary
-        : AppColors.textSecondary;
+        ? AppColors.beltColors[entry.cinturon!] ?? AppColors.subtle
+        : AppColors.subtle;
 
     return Card(
-      color: esYo ? AppColors.accentPrimary.withValues(alpha: 0.12) : null,
+      color: esYo ? AppColors.ink.withValues(alpha: 0.12) : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
@@ -110,7 +110,7 @@ class _RankingTile extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: posicion <= 3
                       ? _colorPosicion
-                      : AppColors.textSecondary,
+                      : AppColors.subtle,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -121,12 +121,12 @@ class _RankingTile extends StatelessWidget {
               backgroundColor: colorCinturon.withValues(alpha: 0.4),
               child: CircleAvatar(
                 radius: 19,
-                backgroundColor: AppColors.surfaceElevated,
+                backgroundColor: AppColors.surface,
                 backgroundImage: entry.fotoUrl != null
                     ? CachedNetworkImageProvider(entry.fotoUrl!)
                     : null,
                 child: entry.fotoUrl == null
-                    ? const Icon(Icons.person, color: AppColors.textSecondary)
+                    ? const Icon(Icons.person, color: AppColors.subtle)
                     : null,
               ),
             ),
@@ -144,7 +144,7 @@ class _RankingTile extends StatelessWidget {
                     Text(
                       'Cinturón ${entry.cinturon}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: AppColors.subtle,
                       ),
                     ),
                   ],
@@ -157,14 +157,14 @@ class _RankingTile extends StatelessWidget {
                 Text(
                   '${entry.asistenciasCount}',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.accentSecondary,
+                    color: AppColors.ink,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
                   'asistencias',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: AppColors.subtle,
                   ),
                 ),
               ],

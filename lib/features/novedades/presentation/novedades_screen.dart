@@ -108,7 +108,7 @@ class _NovedadCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       color: novedad.fijado
-          ? AppColors.accentPrimary.withValues(alpha: 0.10)
+          ? AppColors.ink.withValues(alpha: 0.10)
           : null,
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -121,7 +121,7 @@ class _NovedadCard extends StatelessWidget {
                   const Icon(
                     Icons.push_pin,
                     size: 16,
-                    color: AppColors.accentPrimary,
+                    color: AppColors.ink,
                   ),
                   const SizedBox(width: 6),
                 ],
@@ -135,7 +135,7 @@ class _NovedadCard extends StatelessWidget {
                   PopupMenuButton<String>(
                     icon: const Icon(
                       Icons.more_vert,
-                      color: AppColors.textSecondary,
+                      color: AppColors.subtle,
                     ),
                     onSelected: (value) {
                       if (value == 'fijar') onAlternarFijado();
@@ -164,7 +164,7 @@ class _NovedadCard extends StatelessWidget {
               '${novedad.autorNombre ?? 'Desconocido'} · ${DateFormat('d MMM, HH:mm', 'es_ES').format(novedad.createdAt.toLocal())}',
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+              ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
             ),
           ],
         ),

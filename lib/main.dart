@@ -48,7 +48,7 @@ class _MissingConfigApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
+      theme: AppTheme.light,
       home: const Scaffold(
         body: Center(
           child: Padding(

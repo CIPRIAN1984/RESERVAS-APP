@@ -53,7 +53,7 @@ class ClaseCard extends StatelessWidget {
                     Text(
                       'Prof. ${clase.profesorNombre}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: AppColors.subtle,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -61,8 +61,8 @@ class ClaseCard extends StatelessWidget {
                       '${clase.inscritosCount}/${clase.aforoMaximo} inscritos',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: clase.aforoCompleto
-                            ? AppColors.warning
-                            : AppColors.textSecondary,
+                            ? AppColors.warningFg
+                            : AppColors.subtle,
                       ),
                     ),
                   ],

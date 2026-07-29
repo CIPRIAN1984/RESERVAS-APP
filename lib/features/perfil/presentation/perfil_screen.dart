@@ -161,7 +161,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                     children: [
                       CircleAvatar(
                         radius: 48,
-                        backgroundColor: AppColors.surfaceElevated,
+                        backgroundColor: AppColors.surface,
                         backgroundImage: profile.fotoUrl != null
                             ? CachedNetworkImageProvider(profile.fotoUrl!)
                             : null,
@@ -169,12 +169,12 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                             ? const Icon(
                                 Icons.person,
                                 size: 48,
-                                color: AppColors.textSecondary,
+                                color: AppColors.subtle,
                               )
                             : null,
                       ),
                       Material(
-                        color: AppColors.accentPrimary,
+                        color: AppColors.ink,
                         shape: const CircleBorder(),
                         child: InkWell(
                           customBorder: const CircleBorder(),
@@ -219,7 +219,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                         : Text(
                             academia.nombre,
                             style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: AppColors.textSecondary),
+                                ?.copyWith(color: AppColors.subtle),
                           ),
                     loading: () => const SizedBox.shrink(),
                     error: (e, st) => const SizedBox.shrink(),

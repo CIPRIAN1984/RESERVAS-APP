@@ -29,7 +29,7 @@ class MisPedidosTab extends ConsumerWidget {
               'Todavía no has hecho ningún pedido.',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
             ),
           );
         }

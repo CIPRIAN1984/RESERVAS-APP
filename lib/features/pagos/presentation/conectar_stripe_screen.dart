@@ -87,7 +87,7 @@ class _ConectarStripeScreenState extends ConsumerState<ConectarStripeScreen> {
                     _descripcionPara(estado),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: AppColors.subtle,
                     ),
                   ),
                   if (_error != null) ...[
@@ -136,9 +136,9 @@ class _ConectarStripeScreenState extends ConsumerState<ConectarStripeScreen> {
   };
 
   Color _colorPara(String estado) => switch (estado) {
-    'complete' => AppColors.success,
-    'pending' => AppColors.warning,
-    _ => AppColors.textSecondary,
+    'complete' => AppColors.successFg,
+    'pending' => AppColors.warningFg,
+    _ => AppColors.subtle,
   };
 
   String _tituloPara(String estado) => switch (estado) {

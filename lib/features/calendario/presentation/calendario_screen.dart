@@ -149,15 +149,15 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
             ),
             calendarStyle: const CalendarStyle(
               markerDecoration: BoxDecoration(
-                color: AppColors.accentPrimary,
+                color: AppColors.ink,
                 shape: BoxShape.circle,
               ),
               todayDecoration: BoxDecoration(
-                color: AppColors.surfaceElevatedHigh,
+                color: AppColors.surfaceStrong,
                 shape: BoxShape.circle,
               ),
               selectedDecoration: BoxDecoration(
-                color: AppColors.accentPrimary,
+                color: AppColors.ink,
                 shape: BoxShape.circle,
               ),
             ),
@@ -178,7 +178,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
               );
             },
           ),
-          const Divider(height: 1, color: AppColors.divider),
+          const Divider(height: 1, color: AppColors.line),
           Expanded(
             child: clasesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -200,7 +200,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                     child: Text(
                       'No hay clases este día.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: AppColors.subtle,
                       ),
                     ),
                   );
