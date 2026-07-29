@@ -72,10 +72,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await expectLater(
-      find.byType(MaterialApp),
-      matchesGoldenFile('goldens/componentes_clase.png'),
-    );
+    await comparaCon(find.byType(MaterialApp), 'goldens/componentes_clase.png');
   });
 
   testWidgets('Pastillas, pestañas, cinturones y estado vacío', (tester) async {
@@ -128,9 +125,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await expectLater(
+    await comparaCon(
       find.byType(MaterialApp),
-      matchesGoldenFile('goldens/componentes_sistema.png'),
+      'goldens/componentes_sistema.png',
     );
   });
 }

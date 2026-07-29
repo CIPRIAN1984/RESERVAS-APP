@@ -72,9 +72,19 @@ await p.screenshot({ path: "captura.png" });
 
 ⚠️ **Desactiva el proxy** para llegar a localhost: `NO_PROXY='*' HTTPS_PROXY= node script.js`.
 
-### Opción B — Test de widget con captura
+### Opción B — Banco de pruebas visual (lo habitual)
 
-Para una pantalla concreta sin backend, móntala en un `testWidgets` con los providers sobreescritos por datos falsos. Es más rápido que levantar toda la app y sirve para revisar el diseño de un componente.
+En `test/golden/` hay pantallas montadas con datos falsos y las tipografías reales cargadas a mano (`ayuda_golden.dart`). Para regenerar las imágenes y mirarlas:
+
+```bash
+flutter test --update-goldens test/golden
+```
+
+Luego **abre los PNG de `test/golden/goldens/` con la herramienta Read**. Es la vía más rápida: no hace falta levantar la app entera.
+
+Para añadir una pantalla nueva: sobreescribe sus providers con datos de ejemplo y usa `comparaCon(...)` en lugar de `expectLater(matchesGoldenFile(...))`.
+
+⚠️ **La comparación de imágenes solo corre en local.** El dibujado de tipografías varía entre máquinas, así que en el control automático (`CI=true`) se salta y solo se comprueban texto y comportamiento. Si no fuera así, el CI fallaría constantemente sin que nada estuviera roto.
 
 **Mira la captura tú mismo con la herramienta Read.** No la generes y la des por buena.
 

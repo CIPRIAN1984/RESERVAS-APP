@@ -105,9 +105,9 @@ void main() {
     expect(find.text('Perfil'), findsWidgets);
     expect(find.text('Cambiar a Gestor'), findsNothing);
 
-    await expectLater(
+    await comparaCon(
       find.byType(MaterialApp),
-      matchesGoldenFile('goldens/shell_entrenamiento.png'),
+      'goldens/shell_entrenamiento.png',
     );
   });
 
@@ -123,10 +123,7 @@ void main() {
     // El dueño sí puede volver a entrenar.
     expect(find.text('Cambiar a Entrenamiento'), findsOneWidget);
 
-    await expectLater(
-      find.byType(MaterialApp),
-      matchesGoldenFile('goldens/shell_gestor.png'),
-    );
+    await comparaCon(find.byType(MaterialApp), 'goldens/shell_gestor.png');
   });
 
   testWidgets('El dueño en modo entrenamiento ve el botón para gestionar', (

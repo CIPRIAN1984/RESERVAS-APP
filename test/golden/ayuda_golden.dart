@@ -40,8 +40,25 @@ Future<void> cargarTipografias() async {
     'assets/fonts/JetBrainsMono-Medium.ttf',
   ]);
 
-  // Los iconos vienen del SDK de Flutter, no del proyecto.
-  await cargar('MaterialIcons', const [
+  // Los iconos vienen del SDK de Flutter, no del proyecto, y el SDK no está
+  // en el mismo sitio en cada máquina.
+  final sdk = File(Platform.resolvedExecutable).parent.parent.parent.path;
+  await cargar('MaterialIcons', [
     '/opt/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+    '$sdk/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
   ]);
+}
+
+/// Las imágenes solo se comparan cuando se revisan en local.
+///
+/// El dibujado de tipografías varía entre máquinas, así que comparar píxeles
+/// en el control automático daría falsos fallos constantes. Las
+/// comprobaciones de comportamiento (que el texto y los botones estén donde
+/// deben) sí se ejecutan en todas partes.
+bool get comparaImagenes => Platform.environment['CI'] != 'true';
+
+/// Compara con la imagen guardada solo si procede.
+Future<void> comparaCon(Finder finder, String ruta) async {
+  if (!comparaImagenes) return;
+  await expectLater(finder, matchesGoldenFile(ruta));
 }

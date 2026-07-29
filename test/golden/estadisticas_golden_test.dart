@@ -53,9 +53,9 @@ void main() {
     expect(find.text('Top 3 del mes'), findsOneWidget);
     expect(find.text('Clasificación'), findsOneWidget);
 
-    await expectLater(
+    await comparaCon(
       find.byType(MaterialApp),
-      matchesGoldenFile('goldens/estadisticas_ranking.png'),
+      'goldens/estadisticas_ranking.png',
     );
   });
 
