@@ -5,7 +5,9 @@ import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../core/auth/auth_state.dart';
 import '../core/models/profile.dart';
+import '../features/academia/presentation/academia_screen.dart';
 import '../features/admin/presentation/admin_academias_screen.dart';
+import '../features/herramientas/presentation/herramientas_screen.dart';
 import '../features/calendario/presentation/calendario_screen.dart';
 import '../features/configuracion_reservas/presentation/ajustes_reservas_screen.dart';
 import '../features/estadisticas/presentation/estadisticas_screen.dart';
@@ -60,7 +62,12 @@ const _rutasAcademia = {
   Routes.tienda,
   Routes.tarifas,
   Routes.ajustesReservas,
+  Routes.herramientas,
+  Routes.academia,
 };
+
+/// Destinos del modo Gestor: solo para quien lleva la academia.
+const _rutasGestor = {Routes.herramientas, Routes.academia};
 
 String _inicioPara(Profile profile) =>
     profile.isAdministrador ? Routes.admin : Routes.inicio;
@@ -102,6 +109,11 @@ String? _redirect(Ref ref, GoRouterState state) {
   }
 
   if (loc == Routes.admin && !profile.isAdministrador) {
+    return _inicioPara(profile);
+  }
+
+  // Un alumno no entra en el modo Gestor ni escribiendo la dirección a mano.
+  if (_rutasGestor.contains(loc) && !(profile.isDueno || profile.isProfesor)) {
     return _inicioPara(profile);
   }
 
@@ -186,6 +198,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: Routes.inicio,
             builder: (context, state) => const CalendarioScreen(),
+          ),
+          GoRoute(
+            path: Routes.herramientas,
+            builder: (context, state) => const HerramientasScreen(),
+          ),
+          GoRoute(
+            path: Routes.academia,
+            builder: (context, state) => const AcademiaScreen(),
           ),
           GoRoute(
             path: Routes.estadisticas,

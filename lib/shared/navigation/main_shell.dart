@@ -2,195 +2,176 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../app/app_mode.dart';
 import '../../app/routes.dart';
 import '../../app/theme/color_tokens.dart';
 import '../../core/auth/auth_state.dart';
+import '../../core/models/profile.dart';
 
-/// Shell for the authenticated app. Uses a Drawer rather than a bottom
-/// NavigationBar because Material's bottom nav guidance tops out around 5
-/// destinations — this app has 7 modules plus a conditional Admin entry,
-/// which a Drawer accommodates without overflow menus.
+/// Estructura de la app autenticada: **barra inferior fija**, con dos juegos
+/// de destinos según el modo (ver [AppMode]).
+///
+/// Antes había un cajón lateral con doce destinos mezclados: quien entrena y
+/// quien gestiona veían la misma lista. Separarlo en dos modos, como hace
+/// MAAT, deja cada barra en cuatro destinos y hace evidente en qué papel
+/// estás en cada momento.
 class MainShell extends ConsumerWidget {
   const MainShell({required this.child, super.key});
 
   final Widget child;
 
-  // Modules scoped to academia membership — not shown to Administrador, who
-  // isn't a member of any single academia (its job is managing the platform).
-  static const _itemsAcademia = <_NavItem>[
-    _NavItem(
-      Routes.inicio,
-      'Inicio',
-      Icons.calendar_month_outlined,
-      Icons.calendar_month,
-    ),
-    _NavItem(
+  /// Lo que ve cualquiera que venga a entrenar.
+  static const _entrenamiento = <_Destino>[
+    _Destino(Routes.inicio, 'Inicio', Icons.home_outlined, Icons.home),
+    _Destino(
       Routes.estadisticas,
       'Estadísticas',
-      Icons.leaderboard_outlined,
-      Icons.leaderboard,
+      Icons.bar_chart_outlined,
+      Icons.bar_chart,
     ),
-    _NavItem(
+    _Destino(
       Routes.novedades,
       'Novedades',
       Icons.campaign_outlined,
       Icons.campaign,
     ),
-    _NavItem(
-      Routes.tienda,
-      'Tienda y Material',
-      Icons.storefront_outlined,
-      Icons.storefront,
+    _Destino(Routes.perfil, 'Perfil', Icons.person_outline, Icons.person),
+  ];
+
+  /// Lo que ve quien lleva la academia. El hueco de "Miembros" se añadirá
+  /// aquí cuando exista la gestión de alumnos.
+  static const _gestor = <_Destino>[
+    _Destino(Routes.inicio, 'Hoy', Icons.today_outlined, Icons.today),
+    _Destino(
+      Routes.herramientas,
+      'Herramientas',
+      Icons.handyman_outlined,
+      Icons.handyman,
     ),
-    _NavItem(
-      Routes.tarifas,
-      'Tarifas',
-      Icons.card_membership_outlined,
-      Icons.card_membership,
+    _Destino(
+      Routes.novedades,
+      'Novedades',
+      Icons.campaign_outlined,
+      Icons.campaign,
+    ),
+    _Destino(
+      Routes.academia,
+      'Academia',
+      Icons.apartment_outlined,
+      Icons.apartment,
     ),
   ];
 
-  static const _perfilItem = _NavItem(
-    Routes.perfil,
-    'Perfil',
-    Icons.person_outline,
-    Icons.person,
-  );
+  /// El Administrador de plataforma no pertenece a ninguna academia: no
+  /// entrena ni gestiona una, así que no tiene modos.
+  static const _administrador = <_Destino>[
+    _Destino(
+      Routes.admin,
+      'Academias',
+      Icons.verified_user_outlined,
+      Icons.verified_user,
+    ),
+    _Destino(
+      Routes.solicitudesCambioEscuela,
+      'Cambios',
+      Icons.swap_horiz_outlined,
+      Icons.swap_horiz,
+    ),
+    _Destino(Routes.perfil, 'Perfil', Icons.person_outline, Icons.person),
+  ];
 
-  static const _adminItem = _NavItem(
-    Routes.admin,
-    'Gestión de academias',
-    Icons.verified_user_outlined,
-    Icons.verified_user,
-  );
+  static List<_Destino> _destinosPara(Profile? profile, AppMode modo) {
+    if (profile?.isAdministrador ?? false) return _administrador;
+    return modo == AppMode.gestor ? _gestor : _entrenamiento;
+  }
 
-  static const _cambioEscuelaItem = _NavItem(
-    Routes.solicitudesCambioEscuela,
-    'Cambios de escuela',
-    Icons.swap_horiz_outlined,
-    Icons.swap_horiz,
-  );
-
-  static const _cobrosItem = _NavItem(
-    Routes.cobros,
-    'Cobros',
-    Icons.credit_card_outlined,
-    Icons.credit_card,
-  );
-
-  static const _ajustesReservasItem = _NavItem(
-    Routes.ajustesReservas,
-    'Ajustes de reservas',
-    Icons.tune_outlined,
-    Icons.tune,
-  );
-
-  static const _equipoItem = _NavItem(
-    Routes.equipo,
-    'Profesores y equipo',
-    Icons.groups_outlined,
-    Icons.groups,
-  );
+  /// Solo profesor y dueño pueden cambiar de modo: son los únicos que hacen
+  /// las dos cosas.
+  static bool _puedeCambiarModo(Profile? profile) =>
+      profile != null && (profile.isDueno || profile.isProfesor);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider).value;
-    final isAdmin = profile?.isAdministrador ?? false;
-    final isDueno = profile?.isDueno ?? false;
+    final modo = ref.watch(appModeProvider);
     final location = GoRouterState.of(context).matchedLocation;
 
-    final items = [
-      if (!isAdmin) ..._itemsAcademia,
-      if (isDueno) _equipoItem,
-      if (isDueno) _ajustesReservasItem,
-      if (isDueno) _cobrosItem,
-      if (isDueno || isAdmin) _cambioEscuelaItem,
-      if (isAdmin) _adminItem,
-      _perfilItem,
-    ];
-    final current = items.firstWhere(
-      (i) => i.route == location,
-      orElse: () => items.first,
-    );
+    final destinos = _destinosPara(profile, modo);
+    final indiceActual = destinos.indexWhere((d) => d.ruta == location);
+    final cambiaModo = _puedeCambiarModo(profile);
 
     return Scaffold(
-      appBar: AppBar(title: Text(current.label)),
-      drawer: Drawer(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-                child: Row(
-                  children: [
-                    Text(
-                      'ITACA',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                    const Spacer(),
-                    if (profile != null)
-                      Chip(
-                        label: Text(profile.rol),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                  ],
-                ),
+      body: SafeArea(bottom: false, child: child),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: cambiaModo
+          ? _BotonCambioModo(
+              modo: modo,
+              onPressed: () {
+                final nuevo = ref.read(appModeProvider.notifier).alternar();
+                // Lleva al primer destino del modo nuevo para no quedarse en
+                // una pantalla que ya no está en la barra.
+                context.go(_destinosPara(profile, nuevo).first.ruta);
+              },
+            )
+          : null,
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: AppColors.line)),
+        ),
+        child: NavigationBar(
+          selectedIndex: indiceActual < 0 ? 0 : indiceActual,
+          onDestinationSelected: (i) {
+            final destino = destinos[i];
+            if (destino.ruta != location) context.go(destino.ruta);
+          },
+          destinations: [
+            for (final d in destinos)
+              NavigationDestination(
+                icon: Icon(d.icono),
+                selectedIcon: Icon(d.iconoActivo),
+                label: d.etiqueta,
+                tooltip: d.etiqueta,
               ),
-              const Divider(height: 1, color: AppColors.line),
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    for (final item in items)
-                      ListTile(
-                        leading: Icon(
-                          item.route == location
-                              ? item.selectedIcon
-                              : item.icon,
-                        ),
-                        title: Text(item.label),
-                        selected: item.route == location,
-                        selectedTileColor: AppColors.ink.withValues(
-                          alpha: 0.12,
-                        ),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          if (item.route != location) context.go(item.route);
-                        },
-                      ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1, color: AppColors.line),
-              ListTile(
-                leading: const Icon(Icons.logout, color: AppColors.destructive),
-                title: const Text(
-                  'Cerrar sesión',
-                  style: TextStyle(color: AppColors.destructive),
-                ),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  ref.read(authRepositoryProvider).signOut();
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
+          ],
         ),
       ),
-      body: SafeArea(child: child),
     );
   }
 }
 
-class _NavItem {
-  const _NavItem(this.route, this.label, this.icon, this.selectedIcon);
+/// Píldora flotante para saltar de un modo al otro.
+class _BotonCambioModo extends StatelessWidget {
+  const _BotonCambioModo({required this.modo, required this.onPressed});
 
-  final String route;
-  final String label;
-  final IconData icon;
-  final IconData selectedIcon;
+  final AppMode modo;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      // Se despega de la barra inferior para no taparla.
+      padding: const EdgeInsets.only(bottom: 4),
+      child: FloatingActionButton.extended(
+        onPressed: onPressed,
+        elevation: 3,
+        shape: const StadiumBorder(),
+        backgroundColor: AppColors.ink,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.swap_vert, size: 20),
+        label: Text(
+          modo.etiquetaCambio,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+}
+
+class _Destino {
+  const _Destino(this.ruta, this.etiqueta, this.icono, this.iconoActivo);
+
+  final String ruta;
+  final String etiqueta;
+  final IconData icono;
+  final IconData iconoActivo;
 }

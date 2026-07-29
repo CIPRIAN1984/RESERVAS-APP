@@ -165,9 +165,9 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                     const SizedBox(height: 4),
                     Text(
                       '${inscritos.length}/${widget.clase.aforoMaximo} confirmados · ${listaEspera.length} en espera',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.subtle,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
                     ),
                   ],
                 ),

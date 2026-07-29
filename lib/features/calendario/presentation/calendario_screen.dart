@@ -199,9 +199,9 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                   return Center(
                     child: Text(
                       'No hay clases este día.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.subtle,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
                     ),
                   );
                 }

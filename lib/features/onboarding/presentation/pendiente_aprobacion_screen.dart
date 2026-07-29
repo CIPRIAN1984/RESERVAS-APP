@@ -33,9 +33,9 @@ class PendienteAprobacionScreen extends ConsumerWidget {
                   'El administrador de la plataforma tiene que revisar y aprobar tu academia '
                   'antes de que puedas acceder a ITACA. Te avisaremos en cuanto esté lista.',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.subtle,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
                 ),
                 const SizedBox(height: 32),
                 OutlinedButton.icon(

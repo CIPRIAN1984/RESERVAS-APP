@@ -43,9 +43,9 @@ class EstadisticasScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Text(
                   mesLabel[0].toUpperCase() + mesLabel.substring(1),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.subtle,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(color: AppColors.subtle),
                 ),
               ),
             ),
@@ -108,9 +108,7 @@ class _RankingTile extends StatelessWidget {
                 '$posicion',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: posicion <= 3
-                      ? _colorPosicion
-                      : AppColors.subtle,
+                  color: posicion <= 3 ? _colorPosicion : AppColors.subtle,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -143,9 +141,9 @@ class _RankingTile extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       'Cinturón ${entry.cinturon}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.subtle,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
                     ),
                   ],
                 ],
@@ -163,9 +161,9 @@ class _RankingTile extends StatelessWidget {
                 ),
                 Text(
                   'asistencias',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.subtle,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
                 ),
               ],
             ),

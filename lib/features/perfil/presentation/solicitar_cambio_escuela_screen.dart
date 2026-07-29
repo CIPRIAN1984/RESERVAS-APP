@@ -93,9 +93,9 @@ class _SolicitarCambioEscuelaScreenState
                     Text(
                       'El dueño de esa academia tiene que aceptarla.',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.subtle,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
                     ),
                   ],
                 ),

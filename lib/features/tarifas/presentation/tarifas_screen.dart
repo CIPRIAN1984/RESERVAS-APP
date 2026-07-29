@@ -150,9 +150,9 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                   padding: const EdgeInsets.all(16),
                   child: Text(
                     'No tienes ninguna suscripción activa todavía.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.subtle,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
                   ),
                 ),
               );
@@ -225,9 +225,9 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
             if (tarifas.isEmpty) {
               return Text(
                 'Tu academia todavía no tiene tarifas publicadas.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.subtle,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
               );
             }
             return Column(
@@ -307,9 +307,9 @@ class _TarifasGestionView extends ConsumerWidget {
             return Center(
               child: Text(
                 'Todavía no hay tarifas creadas.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.subtle,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
               ),
             );
           }

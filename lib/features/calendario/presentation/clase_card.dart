@@ -52,9 +52,9 @@ class ClaseCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Prof. ${clase.profesorNombre}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.subtle,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
                     ),
                     const SizedBox(height: 4),
                     Text(

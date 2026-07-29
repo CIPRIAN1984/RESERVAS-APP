@@ -86,9 +86,9 @@ class _ConectarStripeScreenState extends ConsumerState<ConectarStripeScreen> {
                   Text(
                     _descripcionPara(estado),
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.subtle,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 16),

@@ -131,9 +131,9 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
             return Center(
               child: Text(
                 'Todavía no hay productos en el catálogo.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.subtle,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
               ),
             );
           }
