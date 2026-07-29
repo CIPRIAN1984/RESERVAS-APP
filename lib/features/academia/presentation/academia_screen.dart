@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../app/routes.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
-import '../../../shared/widgets/pantalla.dart';
 
 /// Centro de gestión de la academia: identidad, equipo y los ajustes que
 /// solo toca quien la lleva. Reúne en un sitio lo que antes estaba suelto
@@ -22,8 +21,6 @@ class AcademiaScreen extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.only(bottom: 32),
       children: [
-        const TituloPantalla('Academia'),
-
         // Identidad de la academia.
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),

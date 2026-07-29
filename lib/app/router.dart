@@ -27,6 +27,7 @@ import '../features/onboarding/presentation/splash_screen.dart';
 import '../features/perfil/presentation/perfil_screen.dart';
 import '../features/perfil/presentation/solicitudes_cambio_escuela_screen.dart';
 import '../shared/navigation/main_shell.dart';
+import '../shared/widgets/pantalla.dart';
 import 'routes.dart';
 
 /// Notifies go_router to re-run [_redirect] whenever auth/profile state changes.
@@ -205,7 +206,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: Routes.academia,
-            builder: (context, state) => const AcademiaScreen(),
+            builder: (context, state) => const PantallaConTitulo(
+              titulo: 'Academia',
+              child: AcademiaScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.estadisticas,
@@ -213,39 +217,72 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: Routes.novedades,
-            builder: (context, state) => const NovedadesScreen(),
+            builder: (context, state) => const PantallaConTitulo(
+              titulo: 'Novedades',
+              child: NovedadesScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.tienda,
-            builder: (context, state) => const TiendaScreen(),
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Tienda y material',
+              onVolver: () => context.go(Routes.academia),
+              child: const TiendaScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.tarifas,
-            builder: (context, state) => const TarifasScreen(),
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Tarifas y planes',
+              onVolver: () => context.go(Routes.academia),
+              child: const TarifasScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.perfil,
-            builder: (context, state) => const PerfilScreen(),
+            builder: (context, state) => const PantallaConTitulo(
+              titulo: 'Perfil',
+              child: PerfilScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.admin,
-            builder: (context, state) => const AdminAcademiasScreen(),
+            builder: (context, state) => const PantallaConTitulo(
+              titulo: 'Academias',
+              child: AdminAcademiasScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.solicitudesCambioEscuela,
-            builder: (context, state) => const SolicitudesCambioEscuelaScreen(),
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Cambios de escuela',
+              onVolver: () => context.go(Routes.academia),
+              child: const SolicitudesCambioEscuelaScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.cobros,
-            builder: (context, state) => const ConectarStripeScreen(),
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Cobros',
+              onVolver: () => context.go(Routes.academia),
+              child: const ConectarStripeScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.ajustesReservas,
-            builder: (context, state) => const AjustesReservasScreen(),
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Ajustes de reservas',
+              onVolver: () => context.go(Routes.academia),
+              child: const AjustesReservasScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.equipo,
-            builder: (context, state) => const EquipoScreen(),
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Equipo',
+              onVolver: () => context.go(Routes.academia),
+              child: const EquipoScreen(),
+            ),
           ),
         ],
       ),

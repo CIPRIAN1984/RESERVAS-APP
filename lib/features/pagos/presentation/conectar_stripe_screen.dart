@@ -153,6 +153,6 @@ class _ConectarStripeScreenState extends ConsumerState<ConectarStripeScreen> {
     'pending' =>
       'Empezaste a conectar tu cuenta de Stripe pero faltan datos por completar. Continúa la configuración para poder cobrar.',
     _ =>
-      'Para poder cobrar las cuotas y la tienda directamente en tu cuenta, conecta tu Stripe. El dinero va siempre a tu cuenta, ITACA nunca lo retiene.',
+      'Para poder cobrar las cuotas y la tienda directamente en tu cuenta, conecta tu Stripe. El dinero va siempre a tu cuenta, I+ nunca lo retiene.',
   };
 }

@@ -13,7 +13,7 @@ class SplashScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'ITACA',
+              'I+',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w700,

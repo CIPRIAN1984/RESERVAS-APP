@@ -57,7 +57,7 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: pago.clientSecret,
-          merchantDisplayName: 'ITACA',
+          merchantDisplayName: 'I+',
         ),
       );
       await Stripe.instance.presentPaymentSheet();

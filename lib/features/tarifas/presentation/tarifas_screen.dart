@@ -66,7 +66,7 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: pago.clientSecret,
-          merchantDisplayName: 'ITACA',
+          merchantDisplayName: 'I+',
         ),
       );
       await Stripe.instance.presentPaymentSheet();

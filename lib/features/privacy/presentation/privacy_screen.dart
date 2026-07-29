@@ -27,7 +27,7 @@ class PrivacyScreen extends StatelessWidget {
                     title: 'Quién gestiona tus datos',
                     body:
                         'La academia en la que estás registrado gestiona los '
-                        'datos de sus miembros mediante ITACA. Para ejercer '
+                        'datos de sus miembros mediante I+. Para ejercer '
                         'tus derechos o resolver una consulta, contacta con '
                         'la persona responsable de tu academia.',
                   ),

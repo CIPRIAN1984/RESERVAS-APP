@@ -8,35 +8,92 @@ import '../../app/theme/color_tokens.dart';
 /// Cabecera estándar de pantalla: título muy marcado y, opcionalmente, una
 /// acción a la derecha y un antetítulo en monoespaciada.
 class TituloPantalla extends StatelessWidget {
-  const TituloPantalla(this.titulo, {this.antetitulo, this.accion, super.key});
+  const TituloPantalla(
+    this.titulo, {
+    this.antetitulo,
+    this.accion,
+    this.onVolver,
+    super.key,
+  });
 
   final String titulo;
   final String? antetitulo;
   final Widget? accion;
 
+  /// Cuando se pasa, aparece una flecha de volver encima del título. Se usa
+  /// en las pantallas a las que se llega desde otra, no desde la barra
+  /// inferior (Equipo, Cobros, Ajustes de reservas…).
+  final VoidCallback? onVolver;
+
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+      padding: EdgeInsets.fromLTRB(20, onVolver == null ? 20 : 8, 20, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (antetitulo != null) ...[
-                  Text(antetitulo!.toUpperCase(), style: t.labelSmall),
-                  const SizedBox(height: 4),
-                ],
-                Text(titulo, style: t.displayLarge),
-              ],
+          if (onVolver != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: IconButton(
+                onPressed: onVolver,
+                icon: const Icon(Icons.arrow_back),
+                tooltip: 'Volver',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                alignment: Alignment.centerLeft,
+              ),
             ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (antetitulo != null) ...[
+                      Text(antetitulo!.toUpperCase(), style: t.labelSmall),
+                      const SizedBox(height: 4),
+                    ],
+                    Text(titulo, style: t.displayLarge),
+                  ],
+                ),
+              ),
+              if (accion != null) ...[const SizedBox(width: 12), accion!],
+            ],
           ),
-          if (accion != null) ...[const SizedBox(width: 12), accion!],
         ],
       ),
+    );
+  }
+}
+
+/// Envuelve una pantalla con su cabecera.
+///
+/// Al pasar a barra inferior desaparecieron las barras de título de arriba,
+/// así que el encabezado lo pone el router en un único sitio y cada pantalla
+/// se ocupa solo de su contenido.
+class PantallaConTitulo extends StatelessWidget {
+  const PantallaConTitulo({
+    required this.titulo,
+    required this.child,
+    this.onVolver,
+    super.key,
+  });
+
+  final String titulo;
+  final Widget child;
+  final VoidCallback? onVolver;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TituloPantalla(titulo, onVolver: onVolver),
+        Expanded(child: child),
+      ],
     );
   }
 }
