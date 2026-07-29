@@ -130,7 +130,10 @@ class AcademiaScreen extends ConsumerWidget {
         _Fila(
           icono: Icons.privacy_tip_outlined,
           texto: 'Privacidad y protección de datos',
-          onTap: () => context.go(Routes.privacidad),
+          // `push` y no `go`: Privacidad vive fuera del armazón con barra
+          // inferior. Con `go` te sacaba de la app y no había forma de
+          // volver más que el botón atrás del navegador.
+          onTap: () => context.push(Routes.privacidad),
         ),
 
         const SizedBox(height: 20),

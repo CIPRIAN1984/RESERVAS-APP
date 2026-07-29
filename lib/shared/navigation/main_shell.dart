@@ -89,6 +89,18 @@ class MainShell extends ConsumerWidget {
     return modo == AppMode.gestor ? _gestor : _entrenamiento;
   }
 
+  /// Pantallas que cuelgan de un destino de la barra. Sin esto, estando en
+  /// Equipo o en Cobros no coincidía ninguna ruta y la barra marcaba el
+  /// primer destino: parecía que estabas en «Hoy» cuando no lo estabas.
+  static const _rutaPadre = <String, String>{
+    Routes.equipo: Routes.academia,
+    Routes.cobros: Routes.academia,
+    Routes.ajustesReservas: Routes.academia,
+    Routes.solicitudesCambioEscuela: Routes.academia,
+    Routes.tienda: Routes.herramientas,
+    Routes.tarifas: Routes.herramientas,
+  };
+
   /// Solo profesor y dueño pueden cambiar de modo: son los únicos que hacen
   /// las dos cosas.
   static bool _puedeCambiarModo(Profile? profile) =>
@@ -101,7 +113,12 @@ class MainShell extends ConsumerWidget {
     final location = GoRouterState.of(context).matchedLocation;
 
     final destinos = _destinosPara(profile, modo);
-    final indiceActual = destinos.indexWhere((d) => d.ruta == location);
+    // El Administrador sí tiene «Cambios de escuela» como destino propio, así
+    // que para él no se remonta al padre.
+    final rutaMarcada = destinos.any((d) => d.ruta == location)
+        ? location
+        : (_rutaPadre[location] ?? location);
+    final indiceActual = destinos.indexWhere((d) => d.ruta == rutaMarcada);
     final cambiaModo = _puedeCambiarModo(profile);
 
     return Scaffold(
