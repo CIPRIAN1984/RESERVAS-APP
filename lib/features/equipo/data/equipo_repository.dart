@@ -36,4 +36,53 @@ class EquipoRepository {
       params: {'p_miembro_id': miembroId, 'p_nuevo_rol': nuevoRol},
     );
   }
+
+  /// Reconoce una cuota cobrada en mano. El servidor comprueba que quien
+  /// llama es el Dueño y que alumno y tarifa son de su academia.
+  Future<void> activarCuotaEfectivo({
+    required String alumnoId,
+    required String tarifaId,
+    required DateTime hasta,
+  }) async {
+    await _client.rpc(
+      'activar_cuota_efectivo',
+      params: {
+        'p_alumno_id': alumnoId,
+        'p_tarifa_id': tarifaId,
+        'p_fecha_fin': hasta.toUtc().toIso8601String(),
+      },
+    );
+  }
+
+  Future<void> retirarCuotaEfectivo(String suscripcionId) async {
+    await _client.rpc(
+      'desactivar_cuota_efectivo',
+      params: {'p_suscripcion_id': suscripcionId},
+    );
+  }
+
+  /// Cuotas activas de la academia, por alumno, para saber quién está al
+  /// corriente sin pedir una consulta por cada fila de la lista.
+  Future<Map<String, ({String id, String tarifa, bool efectivo})>>
+  cuotasActivas(String academiaId) async {
+    final rows =
+        await _client
+                .from('suscripciones')
+                .select('id, alumno_id, proveedor_pago, tarifa:tarifas(nombre)')
+                .eq('academia_id', academiaId)
+                .eq('estado', 'activa')
+                .eq('payment_status', 'active')
+            as List;
+
+    return {
+      for (final row in rows.cast<Map<String, dynamic>>())
+        row['alumno_id'] as String: (
+          id: row['id'] as String,
+          tarifa:
+              (row['tarifa'] as Map<String, dynamic>?)?['nombre'] as String? ??
+              'Cuota',
+          efectivo: row['proveedor_pago'] == 'efectivo',
+        ),
+    };
+  }
 }

@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/models/profile.dart';
 import '../../../core/utils/error_messages.dart';
+import '../../../shared/widgets/pantalla.dart';
 import '../application/equipo_providers.dart';
+import 'dar_cuota_sheet.dart';
 
 class EquipoScreen extends ConsumerStatefulWidget {
   const EquipoScreen({super.key});
@@ -72,9 +74,72 @@ class _EquipoScreenState extends ConsumerState<EquipoScreen> {
     }
   }
 
+  Future<void> _darCuota(Profile alumno) async {
+    final hecho = await mostrarDarCuota(context, alumno);
+    if (hecho && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Cuota registrada para ${alumno.nombre}.')),
+      );
+    }
+  }
+
+  Future<void> _retirarCuota(Profile alumno, String suscripcionId) async {
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Retirar la cuota de ${alumno.nombre}'),
+        content: const Text(
+          'Dejará de poder reservar clases hasta que vuelva a pagar.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Retirar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true || !mounted) return;
+
+    setState(() => _actualizandoId = alumno.id);
+    try {
+      await ref
+          .read(equipoRepositoryProvider)
+          .retirarCuotaEfectivo(suscripcionId);
+      ref.invalidate(cuotasActivasProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Cuota de ${alumno.nombre} retirada.')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              mensajeErrorAmigable(
+                error,
+                generico: 'No se ha podido retirar la cuota.',
+              ),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _actualizandoId = null);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final miembrosAsync = ref.watch(miembrosEquipoProvider);
+    // Una sola consulta para toda la academia: con 166 alumnos, una por
+    // fila pondría la lista de rodillas.
+    final cuotas = ref.watch(cuotasActivasProvider).value ?? const {};
 
     return Column(
       children: [
@@ -131,6 +196,7 @@ class _EquipoScreenState extends ConsumerState<EquipoScreen> {
                     final miembro = visibles[index];
                     final gestionable = miembro.isAlumno || miembro.isProfesor;
                     final actualizando = _actualizandoId == miembro.id;
+                    final cuota = cuotas[miembro.id];
                     return Card(
                       child: ListTile(
                         leading: CircleAvatar(
@@ -145,32 +211,49 @@ class _EquipoScreenState extends ConsumerState<EquipoScreen> {
                               miembro.apellidos!,
                           ].join(' '),
                         ),
-                        subtitle: Text(
-                          miembro.isDueno
-                              ? 'Dueño'
-                              : miembro.isProfesor
-                              ? 'Profesor'
-                              : 'Alumno',
+                        // Wrap y no Row: con nombres largos o pantallas
+                        // estrechas, la pastilla se salía por la derecha.
+                        subtitle: Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              miembro.isDueno
+                                  ? 'Dueño'
+                                  : miembro.isProfesor
+                                  ? 'Profesor'
+                                  : 'Alumno',
+                            ),
+                            // Solo el Alumno necesita cuota para reservar.
+                            if (miembro.isAlumno)
+                              if (cuota == null)
+                                const PastillaEstado.error('Sin cuota')
+                              else
+                                PastillaEstado.exito(
+                                  cuota.efectivo ? 'Efectivo' : 'Al corriente',
+                                ),
+                          ],
                         ),
-                        trailing: gestionable
-                            ? actualizando
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : TextButton(
-                                      onPressed: _actualizandoId == null
-                                          ? () => _cambiarRol(miembro)
-                                          : null,
-                                      child: Text(
-                                        miembro.isProfesor
-                                            ? 'Hacer alumno'
-                                            : 'Hacer profesor',
-                                      ),
-                                    )
+                        trailing: actualizando
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : gestionable
+                            ? _MenuMiembro(
+                                miembro: miembro,
+                                cuota: cuota,
+                                habilitado: _actualizandoId == null,
+                                onCambiarRol: () => _cambiarRol(miembro),
+                                onDarCuota: () => _darCuota(miembro),
+                                onRetirarCuota: cuota != null && cuota.efectivo
+                                    ? () => _retirarCuota(miembro, cuota.id)
+                                    : null,
+                              )
                             : const Chip(label: Text('Propietario')),
                       ),
                     );
@@ -194,6 +277,53 @@ class _EquipoScreenState extends ConsumerState<EquipoScreen> {
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+/// Acciones sobre un miembro. Van en un menú y no sueltas en la fila porque
+/// son tres y la fila se volvía ilegible en un móvil.
+class _MenuMiembro extends StatelessWidget {
+  const _MenuMiembro({
+    required this.miembro,
+    required this.cuota,
+    required this.habilitado,
+    required this.onCambiarRol,
+    required this.onDarCuota,
+    required this.onRetirarCuota,
+  });
+
+  final Profile miembro;
+  final ({String id, String tarifa, bool efectivo})? cuota;
+  final bool habilitado;
+  final VoidCallback onCambiarRol;
+  final VoidCallback onDarCuota;
+  final VoidCallback? onRetirarCuota;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<VoidCallback>(
+      enabled: habilitado,
+      tooltip: 'Acciones sobre ${miembro.nombre}',
+      onSelected: (accion) => accion(),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: onCambiarRol,
+          child: Text(
+            miembro.isProfesor ? 'Devolver a alumno' : 'Hacer profesor',
+          ),
+        ),
+        if (miembro.isAlumno)
+          PopupMenuItem(
+            value: onDarCuota,
+            child: Text(cuota == null ? 'Registrar cobro' : 'Renovar cuota'),
+          ),
+        if (onRetirarCuota != null)
+          PopupMenuItem(
+            value: onRetirarCuota,
+            child: const Text('Retirar cuota'),
+          ),
       ],
     );
   }
