@@ -14,7 +14,6 @@ import '../features/novedades/presentation/novedades_screen.dart';
 import '../features/onboarding/presentation/login_screen.dart';
 import '../features/onboarding/presentation/olvide_contrasena_screen.dart';
 import '../features/pagos/presentation/conectar_stripe_screen.dart';
-import '../features/progreso/presentation/arbol_progreso_screen.dart';
 import '../features/privacy/presentation/privacy_screen.dart';
 import '../features/tarifas/presentation/tarifas_screen.dart';
 import '../features/tienda/presentation/tienda_screen.dart';
@@ -58,7 +57,6 @@ const _rutasAcademia = {
   Routes.inicio,
   Routes.estadisticas,
   Routes.novedades,
-  Routes.progreso,
   Routes.tienda,
   Routes.tarifas,
   Routes.ajustesReservas,
@@ -196,10 +194,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: Routes.novedades,
             builder: (context, state) => const NovedadesScreen(),
-          ),
-          GoRoute(
-            path: Routes.progreso,
-            builder: (context, state) => const ArbolProgresoScreen(),
           ),
           GoRoute(
             path: Routes.tienda,

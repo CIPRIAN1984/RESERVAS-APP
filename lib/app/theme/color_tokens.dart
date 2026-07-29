@@ -42,9 +42,4 @@ class AppColors {
     'marron': Color(0xFF8B5E3C),
     'negro': Color(0xFF121214),
   };
-
-  /// Progress-state colors for module 4 (árbol de progreso).
-  static const Color tecnicaBloqueada = Color(0xFF5C5C66);
-  static const Color tecnicaEnProceso = Color(0xFFFFB020);
-  static const Color tecnicaConseguida = Color(0xFF33D17A);
 }

@@ -89,7 +89,7 @@ export PATH=/opt/flutter/bin:$PATH
 ## 4. Decisiones ya tomadas — no volver a proponerlas
 
 - ✅ **Se conserva la arquitectura multi-academia** por debajo, aunque el lanzamiento sea de una sola academia.
-- ⏸️ **El árbol de técnicas genérico está desactivado de facto**: las técnicas sembradas (berimbolo, loop choke…) son de relleno y **no son el sistema Ítaca**. No presentarlas como el método. El sistema pedagógico vive en `itacaplus`.
+- ❌ **El árbol de progreso (técnicas) está ELIMINADO de raíz** (julio 2026, decisión de Cipri: *"quítalo de raíz para siempre, no lo quiero"*). Se borraron las pantallas, las tablas `tecnicas` / `media_tecnica` / `progreso_alumno_tecnica` y sus funciones. Las técnicas que había eran una plantilla genérica de relleno, **no el sistema Ítaca** — el método pedagógico vive en `itacaplus` y no se replica aquí. Hay una prueba pgTAP que falla si alguien lo reintroduce. **No volver a proponerlo.**
 - ❌ **No conectar Stripe real** hasta que haya semanas de funcionamiento en paralelo con MAAT.
 - ❌ **No mezclar este repositorio con `itacaplus`.**
 - ✅ **Identidad visual:** ver §6 y la skill `diseno-i-plus`.

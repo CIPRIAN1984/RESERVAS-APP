@@ -114,12 +114,16 @@ select throws_ok(
   'Un alumno no puede crear clases (solo profesor/dueño)'
 );
 
--- ── 7. El Dueño A no puede sembrar técnicas en la academia B (RPC definer) ───
+-- ── 7. El árbol de progreso sigue eliminado ─────────────────────────────────
+-- Se retiró de raíz por decisión de producto (ver la migración
+-- 20260729090000_eliminar_arbol_progreso.sql). Esta comprobación evita que
+-- vuelva a colarse en una migración futura.
 select pg_temp.actuar_como('00000000-0000-0000-0000-0000000000a1');
-select throws_ok(
-  $$ select public.sembrar_tecnicas_default('00000000-0000-0000-0000-0000000000BB') $$,
-  null,
-  'sembrar_tecnicas_default rechaza a quien no es administrador'
+select ok(
+  to_regclass('public.tecnicas') is null
+    and to_regclass('public.media_tecnica') is null
+    and to_regclass('public.progreso_alumno_tecnica') is null,
+  'Las tablas del árbol de progreso no existen'
 );
 
 -- ── 8. El Dueño A no puede aprobar su propia academia ───────────────────────

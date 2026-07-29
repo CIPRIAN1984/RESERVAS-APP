@@ -84,9 +84,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navNews => 'Novedades';
 
   @override
-  String get navProgress => 'Progreso';
-
-  @override
   String get navShop => 'Tienda';
 
   @override

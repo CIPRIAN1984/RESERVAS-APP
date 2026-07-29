@@ -242,12 +242,6 @@ abstract class AppLocalizations {
   /// **'Novedades'**
   String get navNews;
 
-  /// No description provided for @navProgress.
-  ///
-  /// In es, this message translates to:
-  /// **'Progreso'**
-  String get navProgress;
-
   /// No description provided for @navShop.
   ///
   /// In es, this message translates to:

@@ -37,12 +37,6 @@ class MainShell extends ConsumerWidget {
       Icons.campaign,
     ),
     _NavItem(
-      Routes.progreso,
-      'Árbol de Progreso',
-      Icons.account_tree_outlined,
-      Icons.account_tree,
-    ),
-    _NavItem(
       Routes.tienda,
       'Tienda y Material',
       Icons.storefront_outlined,
