@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:itaca/app/theme/app_theme.dart';
 
 /// Carga las tipografías reales en el entorno de pruebas.
@@ -10,6 +12,11 @@ import 'package:itaca/app/theme/app_theme.dart';
 /// `pubspec.yaml`, así que sin esto el texto se dibujaría como cajas negras
 /// y los iconos como cuadros vacíos.
 Future<void> cargarTipografias() async {
+  // Las fechas en castellano las inicializa main.dart; en pruebas hay que
+  // hacerlo a mano o cualquier pantalla con fechas revienta.
+  await initializeDateFormatting('es_ES');
+  Intl.defaultLocale = 'es_ES';
+
   Future<void> cargar(String familia, List<String> rutas) async {
     final loader = FontLoader(familia);
     for (final ruta in rutas) {
