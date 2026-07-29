@@ -4,7 +4,7 @@
 -- permite a un Alumno reservar plaza. Si esta puerta se abre de más, cualquier
 -- alumno podría darse cuota a sí mismo y entrenar gratis.
 begin;
-select plan(17);
+select plan(18);
 
 -- ------------------------------------------------------------
 -- Escenario: dos academias, para comprobar el aislamiento
@@ -190,6 +190,11 @@ select lives_ok(
   'El Dueño da cuota en efectivo a un Alumno de su academia'
 );
 
+-- Se vuelve al rol privilegiado: como Dueño, los permisos de fila filtran
+-- lo que se ve, y estas comprobaciones son sobre lo que hizo la función, no
+-- sobre quién puede leerlo.
+reset role;
+
 select is(
   (select count(*)::int
      from public.suscripciones
@@ -220,6 +225,7 @@ select is(
 -- Renovar no acumula cuotas
 -- ------------------------------------------------------------
 
+select pg_temp.actuar_como('00000000-0000-0000-0000-0000000cf101');
 select lives_ok(
   $$ select public.activar_cuota_efectivo(
        '00000000-0000-0000-0000-0000000cf102',
@@ -228,6 +234,7 @@ select lives_ok(
      ) $$,
   'Se puede renovar la cuota del mismo alumno'
 );
+reset role;
 
 select is(
   (select count(*)::int
@@ -243,23 +250,38 @@ select is(
 -- Retirar la cuota
 -- ------------------------------------------------------------
 
--- Una suscripción de Stripe no se toca desde aquí.
+-- Una suscripción de Stripe no se toca desde aquí. Se inserta con el rol
+-- privilegiado porque la tabla no admite escrituras desde el cliente.
+reset role;
 insert into public.suscripciones
   (id, alumno_id, tarifa_id, academia_id, estado,
    proveedor_pago, referencia_externa, payment_status)
 values
   ('00000000-0000-0000-0000-0000000cfb99',
-   '00000000-0000-0000-0000-0000000cf102',
+   '00000000-0000-0000-0000-0000000cf104',
    '00000000-0000-0000-0000-0000000cfa01',
    '00000000-0000-0000-0000-0000000cf0aa',
    'activa', 'stripe', 'sub_test_123', 'active');
 
+select pg_temp.actuar_como('00000000-0000-0000-0000-0000000cf101');
 select throws_ok(
   $$ select public.desactivar_cuota_efectivo(
        '00000000-0000-0000-0000-0000000cfb99'
      ) $$,
   null,
   'Una cuota de Stripe no se retira desde la app'
+);
+
+-- Y tampoco se le encima una en efectivo: el indice unico no lo permite, y
+-- es mejor decirlo que reventar con un error de clave duplicada.
+select throws_ok(
+  $$ select public.activar_cuota_efectivo(
+       '00000000-0000-0000-0000-0000000cf104',
+       '00000000-0000-0000-0000-0000000cfa01',
+       now() + interval '30 days'
+     ) $$,
+  null,
+  'No se encima una cuota en efectivo a quien ya paga por tarjeta'
 );
 
 rollback;

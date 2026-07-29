@@ -15,6 +15,10 @@ import '../../core/models/profile.dart';
 /// quien gestiona veían la misma lista. Separarlo en dos modos, como hace
 /// MAAT, deja cada barra en cuatro destinos y hace evidente en qué papel
 /// estás en cada momento.
+/// Ancho máximo del contenido. Por encima de esto no se gana legibilidad:
+/// una línea de texto muy larga se lee peor, no mejor.
+const double _anchoMaximo = 560;
+
 class MainShell extends ConsumerWidget {
   const MainShell({required this.child, super.key});
 
@@ -101,7 +105,19 @@ class MainShell extends ConsumerWidget {
     final cambiaModo = _puedeCambiarModo(profile);
 
     return Scaffold(
-      body: SafeArea(bottom: false, child: child),
+      // La app está pensada para el móvil. En el navegador de un portátil se
+      // estiraba de lado a lado y todo parecía enorme y vacío: las tarjetas
+      // ocupaban 1900 px de ancho y el texto quedaba perdido. Se limita el
+      // ancho en un único sitio para que valga en todas las pantallas.
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _anchoMaximo),
+            child: child,
+          ),
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: cambiaModo
           ? _BotonCambioModo(

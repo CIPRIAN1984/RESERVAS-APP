@@ -21,6 +21,23 @@ class EstadisticasScreen extends ConsumerWidget {
     final userId = ref.watch(currentUserIdProvider);
     final mes = DateFormat.yMMMM('es_ES').format(DateTime.now());
 
+    // El título vive fuera del `when`: antes, cuando no había ranking, el
+    // estado vacío sustituía la pantalla entera y se llevaba por delante la
+    // cabecera, así que no sabías ni en qué pantalla estabas.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TituloPantalla('Estadísticas', antetitulo: mes),
+        Expanded(child: _contenido(context, rankingAsync, userId)),
+      ],
+    );
+  }
+
+  Widget _contenido(
+    BuildContext context,
+    AsyncValue<List<RankingEntry>> rankingAsync,
+    String? userId,
+  ) {
     return rankingAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, st) => const EmptyState(
@@ -31,7 +48,7 @@ class EstadisticasScreen extends ConsumerWidget {
         if (ranking.isEmpty) {
           return const EmptyState(
             icon: Icons.leaderboard_outlined,
-            message: 'Todavía no hay alumnos en la academia.',
+            message: 'Todavía no hay clases con asistencia este mes.',
           );
         }
 
@@ -41,7 +58,6 @@ class EstadisticasScreen extends ConsumerWidget {
         return ListView(
           padding: const EdgeInsets.only(bottom: 28),
           children: [
-            TituloPantalla('Estadísticas', antetitulo: mes),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
               child: Text(

@@ -125,27 +125,51 @@ begin
     raise exception 'Esa tarifa está desactivada.';
   end if;
 
-  -- Cerrar la cuota en efectivo anterior, si la hubiera: un alumno tiene una
-  -- cuota, no una pila de ellas. Las de Stripe no se tocan (las manda Stripe);
-  -- si tuviera una activa, la nueva simplemente convive y `reservar_clase`
-  -- encuentra cualquiera de las dos.
+  -- Cerrar la cuota en efectivo anterior: un alumno tiene una cuota, no una
+  -- pila de ellas. Hay un índice único por alumno sobre los estados 'activa'
+  -- y 'pendiente_pago', así que además es obligatorio dejar sitio.
   update public.suscripciones
      set estado = 'expirada',
          fecha_fin = least(coalesce(fecha_fin, now()), now())
    where alumno_id = p_alumno_id
      and academia_id = v_actor_academia_id
      and proveedor_pago = 'efectivo'
-     and estado = 'activa';
+     and estado in ('activa', 'pendiente_pago');
 
+  -- Una de Stripe no se toca desde aquí, pero tampoco puede convivir con
+  -- esta por el índice único. Mejor decirlo claro que reventar con un error
+  -- de clave duplicada que no significa nada para quien lo lee.
+  if exists (
+    select 1
+      from public.suscripciones
+     where alumno_id = p_alumno_id
+       and proveedor_pago = 'stripe'
+       and estado in ('activa', 'pendiente_pago')
+  ) then
+    raise exception 'Ese alumno ya tiene una cuota domiciliada por tarjeta. '
+                    'Cancélala primero desde Stripe.';
+  end if;
+
+  -- OJO: el disparador `set_suscripcion_defaults` pisa estado,
+  -- payment_status, fecha_inicio y fecha_fin en cada alta — es la protección
+  -- que impide que nadie se auto-active la cuota. Por eso hay que insertar
+  -- primero y activar después con un UPDATE; hacerlo en el INSERT no tiene
+  -- ningún efecto y la cuota se queda en 'pendiente_pago' sin que se note.
   insert into public.suscripciones (
-    alumno_id, tarifa_id, academia_id, estado,
-    fecha_inicio, fecha_fin, proveedor_pago, referencia_externa, payment_status
+    alumno_id, tarifa_id, academia_id, proveedor_pago, referencia_externa
   )
   values (
-    p_alumno_id, p_tarifa_id, v_actor_academia_id, 'activa',
-    now(), p_fecha_fin, 'efectivo', null, 'active'
+    p_alumno_id, p_tarifa_id, v_actor_academia_id, 'efectivo', null
   )
   returning id into v_suscripcion_id;
+
+  -- El disparador `check_suscripcion_estado_transicion` deja pasar este
+  -- cambio porque quien llama es el Dueño, comprobado más arriba.
+  update public.suscripciones
+     set estado = 'activa',
+         payment_status = 'active',
+         fecha_fin = p_fecha_fin
+   where id = v_suscripcion_id;
 
   return v_suscripcion_id;
 end;
