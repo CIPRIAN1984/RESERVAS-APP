@@ -2,59 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/widgets/pantalla.dart';
-import '../../calendario/presentation/calendario_screen.dart';
 import '../../tarifas/presentation/tarifas_screen.dart';
 import '../../tienda/presentation/tienda_screen.dart';
 
-/// Panel de gestión diaria de la academia, con las dos pestañas de MAAT:
-/// **Horario** (programar clases) y **Productos** (planes y material).
-class HerramientasScreen extends ConsumerStatefulWidget {
+/// Lo que la academia administra y no es el día a día: catálogos y ajustes.
+///
+/// Antes tenía una pestaña «Horario» que embebía el calendario entero. Era
+/// exactamente la misma pantalla que **Hoy**, saludo del atleta incluido: dos
+/// sitios distintos para lo mismo, y ninguno de los dos claramente el bueno.
+/// El horario vive en Hoy y aquí quedan las herramientas.
+class HerramientasScreen extends ConsumerWidget {
   const HerramientasScreen({super.key});
 
   @override
-  ConsumerState<HerramientasScreen> createState() => _HerramientasScreenState();
-}
-
-class _HerramientasScreenState extends ConsumerState<HerramientasScreen> {
-  int _tab = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-          child: Text(
-            'Herramientas',
-            style: Theme.of(context).textTheme.displayLarge,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: PestanasPildora(
-            valor: _tab,
-            etiquetas: const ['Horario', 'Productos'],
-            onCambio: (i) => setState(() => _tab = i),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Expanded(
-          child: _tab == 0 ? const CalendarioScreen() : const _Productos(),
-        ),
-      ],
-    );
-  }
-}
-
-/// Los dos catálogos que gestiona la academia. Se dejan como accesos y no
-/// como pestañas anidadas: meter pestañas dentro de pestañas se vuelve
-/// confuso enseguida.
-class _Productos extends StatelessWidget {
-  const _Productos();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [

@@ -7,9 +7,9 @@ import '../data/clase_resumen.dart';
 
 /// Una sesión concreta en el listado del día.
 ///
-/// `onUnirse`/`onBorrarse` solo llegan para el Alumno (muestran la acción de
-/// reservar); `onTap` solo para Profesor/Dueño/Administrador (lleva a la
-/// lista de asistentes).
+/// Qué acciones trae depende del **modo**, no del rol: `onUnirse`/`onBorrarse`
+/// en modo Entrenamiento (reservar plaza), `onTap` en modo Gestor (lleva a la
+/// lista de asistentes). Un dueño ve una u otra según lo que esté haciendo.
 class ClaseCard extends StatelessWidget {
   const ClaseCard({
     required this.clase,

@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../app/app_mode.dart';
+import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
+import '../../../shared/widgets/pantalla.dart';
 import '../application/clases_providers.dart';
 import '../data/clase_resumen.dart';
-import 'clase_detalle_screen.dart';
 import 'clase_card.dart';
+import 'clase_detalle_screen.dart';
 import 'crear_clase_screen.dart';
 
 class CalendarioScreen extends ConsumerStatefulWidget {
@@ -133,7 +134,12 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
           : null,
       body: Column(
         children: [
-          if (!gestionando) const _CabeceraInicio(),
+          // En Entrenamiento manda el saludo; en Gestor, un título de
+          // pantalla normal, porque «Hoy» es una herramienta de trabajo.
+          if (gestionando)
+            const TituloPantalla('Hoy')
+          else
+            const _CabeceraInicio(),
           TableCalendar<ClaseResumen>(
             firstDay: DateTime.now().subtract(const Duration(days: 365)),
             lastDay: DateTime.now().add(const Duration(days: 365)),

@@ -202,7 +202,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: Routes.herramientas,
-            builder: (context, state) => const HerramientasScreen(),
+            builder: (context, state) => const PantallaConTitulo(
+              titulo: 'Herramientas',
+              child: HerramientasScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.academia,
