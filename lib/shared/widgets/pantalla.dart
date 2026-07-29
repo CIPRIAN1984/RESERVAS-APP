@@ -257,3 +257,72 @@ class PuntoCinturon extends StatelessWidget {
     );
   }
 }
+
+/// Acceso a otra pantalla presentado como tarjeta: icono, título, una línea
+/// que explica qué hay dentro y galón a la derecha.
+///
+/// Vive aquí y no en una pantalla concreta porque lo usan tanto Herramientas
+/// (modo Gestor) como Perfil (modo Entrenamiento), y deben verse idénticos.
+class TarjetaAcceso extends StatelessWidget {
+  const TarjetaAcceso({
+    required this.icono,
+    required this.titulo,
+    required this.descripcion,
+    required this.destino,
+    super.key,
+  });
+
+  final IconData icono;
+  final String titulo;
+  final String descripcion;
+  final Widget destino;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => Scaffold(
+              appBar: AppBar(title: Text(titulo)),
+              body: SafeArea(child: destino),
+            ),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              Icon(icono, size: 26),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      titulo,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      descripcion,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: AppColors.disabled,
+                size: 22,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

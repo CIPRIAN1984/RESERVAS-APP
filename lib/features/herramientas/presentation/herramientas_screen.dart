@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../calendario/presentation/calendario_screen.dart';
 import '../../tarifas/presentation/tarifas_screen.dart';
@@ -59,7 +58,7 @@ class _Productos extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [
-        _TarjetaAcceso(
+        TarjetaAcceso(
           icono: Icons.card_membership_outlined,
           titulo: 'Tarifas y planes',
           descripcion:
@@ -68,7 +67,7 @@ class _Productos extends StatelessWidget {
           destino: const TarifasScreen(),
         ),
         const SizedBox(height: 12),
-        _TarjetaAcceso(
+        TarjetaAcceso(
           icono: Icons.storefront_outlined,
           titulo: 'Tienda y material',
           descripcion:
@@ -77,69 +76,6 @@ class _Productos extends StatelessWidget {
           destino: const TiendaScreen(),
         ),
       ],
-    );
-  }
-}
-
-class _TarjetaAcceso extends StatelessWidget {
-  const _TarjetaAcceso({
-    required this.icono,
-    required this.titulo,
-    required this.descripcion,
-    required this.destino,
-  });
-
-  final IconData icono;
-  final String titulo;
-  final String descripcion;
-  final Widget destino;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => Scaffold(
-              appBar: AppBar(title: Text(titulo)),
-              body: SafeArea(child: destino),
-            ),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Row(
-            children: [
-              Icon(icono, size: 26),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      titulo,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      descripcion,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.disabled,
-                size: 22,
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

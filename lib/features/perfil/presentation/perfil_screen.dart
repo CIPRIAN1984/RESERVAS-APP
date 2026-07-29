@@ -7,6 +7,9 @@ import 'package:image_picker/image_picker.dart';
 import '../../../app/routes.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
+import '../../../shared/widgets/pantalla.dart';
+import '../../tarifas/presentation/tarifas_screen.dart';
+import '../../tienda/presentation/tienda_screen.dart';
 import '../application/profile_providers.dart';
 import 'solicitar_cambio_escuela_screen.dart';
 
@@ -224,6 +227,35 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                     loading: () => const SizedBox.shrink(),
                     error: (e, st) => const SizedBox.shrink(),
                   ),
+                  // Cuota y tienda viven aquí para el alumno. Antes colgaban
+                  // del cajón lateral; al sustituirlo por la barra inferior se
+                  // quedaron sin sitio desde el que llegar, y el alumno no
+                  // podía ni ver su cuota ni comprar material.
+                  if (!profile.isAdministrador) ...[
+                    const SizedBox(height: 32),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Mi academia',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TarjetaAcceso(
+                      icono: Icons.card_membership_outlined,
+                      titulo: 'Mi cuota',
+                      descripcion: 'Consulta tu plan, cámbialo o date de baja.',
+                      destino: const TarifasScreen(),
+                    ),
+                    const SizedBox(height: 12),
+                    TarjetaAcceso(
+                      icono: Icons.storefront_outlined,
+                      titulo: 'Tienda y material',
+                      descripcion:
+                          'Compra material y consulta lo que tienes prestado.',
+                      destino: const TiendaScreen(),
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   Align(
                     alignment: Alignment.centerLeft,
