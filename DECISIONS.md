@@ -68,3 +68,32 @@ no se comparte con otros proyectos. El cliente solo habilita push cuando
 `PUSH_ENABLED=true`. `send-push` se despliega sin verificación JWT porque lo
 invoca un programador, pero falla de forma cerrada si `CRON_SECRET` no existe o
 no coincide.
+
+## 2026-07-29 — Eliminación definitiva del árbol de progreso
+
+El módulo de técnicas (pantallas, tablas `tecnicas`, `media_tecnica` y
+`progreso_alumno_tecnica`, sus funciones y disparadores) se retira de raíz por
+decisión de producto. No se vuelve a proponer.
+
+Motivo: las técnicas que contenía eran una plantilla genérica de BJJ de relleno
+—no el método Ítaca, que vive en el repositorio `itacaplus` y no se replica
+aquí—, y mantener un módulo vacío de significado añadía superficie de código,
+de base de datos y de permisos sin aportar nada al lanzamiento.
+
+Comprobación previa al borrado, ejecutada contra producción antes de aplicar
+`20260729090000_eliminar_arbol_progreso.sql`:
+
+- `tecnicas`: 14 filas, exactamente las 14 de la plantilla sembrada por trigger.
+- `media_tecnica`: 0 filas.
+- `progreso_alumno_tecnica`: 14 filas, todas en el estado por defecto
+  (`bloqueada`) y todas con `marcado_por = NULL`.
+
+Es decir, ninguna fila creada ni evaluada por una persona: el borrado no
+destruyó trabajo de nadie. La operación es irreversible.
+
+`aprobar_academia` se redefinió **antes** de borrar `sembrar_tecnicas_default`,
+para que la RPC no quedara en ningún momento apuntando a una función
+inexistente. Dos suites pgTAP que antes comprobaban la siembra ahora comprueban
+lo contrario: que el módulo sigue eliminado.
+
+Aplicada a producción el 29/07/2026, a la vez que se fusionó el rediseño I+.
