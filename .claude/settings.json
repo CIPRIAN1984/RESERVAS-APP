@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze*)",
+      "Bash(flutter test*)",
+      "Bash(flutter pub get*)",
+      "Bash(flutter build web*)",
+      "Bash(dart format*)",
+      "Bash(dart run build_runner*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(git fetch*)",
+      "Bash(git add*)",
+      "Bash(git show*)",
+      "Bash(git rev-parse*)",
+      "Bash(git rev-list*)",
+      "Bash(git ls-files*)",
+      "Bash(git ls-remote*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Comprobando si el archivo es sensible...",
+            "command": "jq -r '.tool_input.file_path // \"\"' | { read -r f; case \"$f\" in *supabase/migrations/*|*supabase/functions/*|*/core/auth/*) printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"Archivo sensible: base de datos, permisos, cobros o autenticacion. Regla del proyecto: explicarle el cambio a Cipri antes de aplicarlo.\",\"additionalContext\":\"AVISO: tocas seguridad o dinero. Recuerda: un revoke de columna NO sirve si el rol ya tiene UPDATE de tabla completa (hay que revocar la tabla y volver a conceder columnas). Toda migracion que toque permisos necesita su prueba pgTAP. Nunca conectes Stripe real sin permiso explicito.\"}}' ;; esac; }"
+          }
+        ]
+      }
+    ]
+  }
+}
