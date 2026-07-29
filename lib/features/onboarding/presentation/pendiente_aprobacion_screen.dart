@@ -20,7 +20,7 @@ class PendienteAprobacionScreen extends ConsumerWidget {
                 const Icon(
                   Icons.hourglass_top_outlined,
                   size: 56,
-                  color: AppColors.warning,
+                  color: AppColors.warningFg,
                 ),
                 const SizedBox(height: 24),
                 Text(
@@ -31,11 +31,11 @@ class PendienteAprobacionScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 Text(
                   'El administrador de la plataforma tiene que revisar y aprobar tu academia '
-                  'antes de que puedas acceder a ITACA. Te avisaremos en cuanto esté lista.',
+                  'antes de que puedas acceder a I+. Te avisaremos en cuanto esté lista.',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
                 ),
                 const SizedBox(height: 32),
                 OutlinedButton.icon(

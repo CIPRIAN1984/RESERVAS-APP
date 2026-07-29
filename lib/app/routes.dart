@@ -17,9 +17,10 @@ class Routes {
   static const String equipo = '/equipo';
 
   static const String inicio = '/inicio';
+  static const String herramientas = '/herramientas';
+  static const String academia = '/academia';
   static const String estadisticas = '/estadisticas';
   static const String novedades = '/novedades';
-  static const String progreso = '/progreso';
   static const String tienda = '/tienda';
   static const String tarifas = '/tarifas';
   static const String perfil = '/perfil';

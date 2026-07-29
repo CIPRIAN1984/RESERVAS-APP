@@ -24,10 +24,10 @@ class ItacaApp extends ConsumerWidget {
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
+      // La identidad I+ es clara. No hay variante oscura: mantener dos temas
+      // obligaría a revisar cada pantalla dos veces sin que nadie lo pidiera.
       theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      // Follows the OS light/dark setting instead of forcing dark.
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.light,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,

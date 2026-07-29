@@ -5,7 +5,9 @@ import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../core/auth/auth_state.dart';
 import '../core/models/profile.dart';
+import '../features/academia/presentation/academia_screen.dart';
 import '../features/admin/presentation/admin_academias_screen.dart';
+import '../features/herramientas/presentation/herramientas_screen.dart';
 import '../features/calendario/presentation/calendario_screen.dart';
 import '../features/configuracion_reservas/presentation/ajustes_reservas_screen.dart';
 import '../features/estadisticas/presentation/estadisticas_screen.dart';
@@ -14,7 +16,6 @@ import '../features/novedades/presentation/novedades_screen.dart';
 import '../features/onboarding/presentation/login_screen.dart';
 import '../features/onboarding/presentation/olvide_contrasena_screen.dart';
 import '../features/pagos/presentation/conectar_stripe_screen.dart';
-import '../features/progreso/presentation/arbol_progreso_screen.dart';
 import '../features/privacy/presentation/privacy_screen.dart';
 import '../features/tarifas/presentation/tarifas_screen.dart';
 import '../features/tienda/presentation/tienda_screen.dart';
@@ -26,6 +27,7 @@ import '../features/onboarding/presentation/splash_screen.dart';
 import '../features/perfil/presentation/perfil_screen.dart';
 import '../features/perfil/presentation/solicitudes_cambio_escuela_screen.dart';
 import '../shared/navigation/main_shell.dart';
+import '../shared/widgets/pantalla.dart';
 import 'routes.dart';
 
 /// Notifies go_router to re-run [_redirect] whenever auth/profile state changes.
@@ -58,11 +60,15 @@ const _rutasAcademia = {
   Routes.inicio,
   Routes.estadisticas,
   Routes.novedades,
-  Routes.progreso,
   Routes.tienda,
   Routes.tarifas,
   Routes.ajustesReservas,
+  Routes.herramientas,
+  Routes.academia,
 };
+
+/// Destinos del modo Gestor: solo para quien lleva la academia.
+const _rutasGestor = {Routes.herramientas, Routes.academia};
 
 String _inicioPara(Profile profile) =>
     profile.isAdministrador ? Routes.admin : Routes.inicio;
@@ -104,6 +110,11 @@ String? _redirect(Ref ref, GoRouterState state) {
   }
 
   if (loc == Routes.admin && !profile.isAdministrador) {
+    return _inicioPara(profile);
+  }
+
+  // Un alumno no entra en el modo Gestor ni escribiendo la dirección a mano.
+  if (_rutasGestor.contains(loc) && !(profile.isDueno || profile.isProfesor)) {
     return _inicioPara(profile);
   }
 
@@ -190,48 +201,88 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const CalendarioScreen(),
           ),
           GoRoute(
+            path: Routes.herramientas,
+            builder: (context, state) => const HerramientasScreen(),
+          ),
+          GoRoute(
+            path: Routes.academia,
+            builder: (context, state) => const PantallaConTitulo(
+              titulo: 'Academia',
+              child: AcademiaScreen(),
+            ),
+          ),
+          GoRoute(
             path: Routes.estadisticas,
             builder: (context, state) => const EstadisticasScreen(),
           ),
           GoRoute(
             path: Routes.novedades,
-            builder: (context, state) => const NovedadesScreen(),
-          ),
-          GoRoute(
-            path: Routes.progreso,
-            builder: (context, state) => const ArbolProgresoScreen(),
+            builder: (context, state) => const PantallaConTitulo(
+              titulo: 'Novedades',
+              child: NovedadesScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.tienda,
-            builder: (context, state) => const TiendaScreen(),
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Tienda y material',
+              onVolver: () => context.go(Routes.academia),
+              child: const TiendaScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.tarifas,
-            builder: (context, state) => const TarifasScreen(),
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Tarifas y planes',
+              onVolver: () => context.go(Routes.academia),
+              child: const TarifasScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.perfil,
-            builder: (context, state) => const PerfilScreen(),
+            builder: (context, state) => const PantallaConTitulo(
+              titulo: 'Perfil',
+              child: PerfilScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.admin,
-            builder: (context, state) => const AdminAcademiasScreen(),
+            builder: (context, state) => const PantallaConTitulo(
+              titulo: 'Academias',
+              child: AdminAcademiasScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.solicitudesCambioEscuela,
-            builder: (context, state) => const SolicitudesCambioEscuelaScreen(),
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Cambios de escuela',
+              onVolver: () => context.go(Routes.academia),
+              child: const SolicitudesCambioEscuelaScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.cobros,
-            builder: (context, state) => const ConectarStripeScreen(),
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Cobros',
+              onVolver: () => context.go(Routes.academia),
+              child: const ConectarStripeScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.ajustesReservas,
-            builder: (context, state) => const AjustesReservasScreen(),
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Ajustes de reservas',
+              onVolver: () => context.go(Routes.academia),
+              child: const AjustesReservasScreen(),
+            ),
           ),
           GoRoute(
             path: Routes.equipo,
-            builder: (context, state) => const EquipoScreen(),
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Equipo',
+              onVolver: () => context.go(Routes.academia),
+              child: const EquipoScreen(),
+            ),
           ),
         ],
       ),

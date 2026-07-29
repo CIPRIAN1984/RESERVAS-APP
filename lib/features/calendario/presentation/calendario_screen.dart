@@ -132,6 +132,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
           : null,
       body: Column(
         children: [
+          const _CabeceraInicio(),
           TableCalendar<ClaseResumen>(
             firstDay: DateTime.now().subtract(const Duration(days: 365)),
             lastDay: DateTime.now().add(const Duration(days: 365)),
@@ -149,15 +150,15 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
             ),
             calendarStyle: const CalendarStyle(
               markerDecoration: BoxDecoration(
-                color: AppColors.accentPrimary,
+                color: AppColors.ink,
                 shape: BoxShape.circle,
               ),
               todayDecoration: BoxDecoration(
-                color: AppColors.surfaceElevatedHigh,
+                color: AppColors.surfaceStrong,
                 shape: BoxShape.circle,
               ),
               selectedDecoration: BoxDecoration(
-                color: AppColors.accentPrimary,
+                color: AppColors.ink,
                 shape: BoxShape.circle,
               ),
             ),
@@ -178,7 +179,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
               );
             },
           ),
-          const Divider(height: 1, color: AppColors.divider),
+          const Divider(height: 1, color: AppColors.line),
           Expanded(
             child: clasesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -199,9 +200,9 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                   return Center(
                     child: Text(
                       'No hay clases este día.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
                     ),
                   );
                 }
@@ -236,6 +237,94 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Encabezado del modo Entrenamiento: marca, saludo y check-in rápido.
+class _CabeceraInicio extends ConsumerWidget {
+  const _CabeceraInicio();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final nombre = ref.watch(currentProfileProvider).value?.nombre;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: const BoxDecoration(
+              color: AppColors.ink,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: const Text(
+              'I+',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              nombre == null ? '¡Hola!' : '¡Hola, $nombre!',
+              style: Theme.of(context).textTheme.headlineMedium,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          IconButton(
+            onPressed: () => _mostrarQr(context),
+            icon: const Icon(Icons.qr_code_2, size: 26),
+            tooltip: 'Mostrar mi código de check-in',
+            style: IconButton.styleFrom(
+              side: const BorderSide(color: AppColors.line),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              minimumSize: const Size(48, 48),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarQr(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (_) => const Padding(
+        padding: EdgeInsets.fromLTRB(24, 0, 24, 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Check-in rápido',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Enseña este código en recepción para registrar tu asistencia.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.subtle),
+            ),
+            SizedBox(height: 24),
+            Icon(Icons.qr_code_2, size: 180),
+            SizedBox(height: 12),
+            Text(
+              'Pendiente de conectar con el lector de recepción',
+              style: TextStyle(fontSize: 12, color: AppColors.subtle),
+            ),
+          ],
+        ),
       ),
     );
   }

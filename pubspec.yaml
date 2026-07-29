@@ -1,5 +1,5 @@
 name: itaca
-description: "ITACA — gestión de academias de BJJ."
+description: "I+ — reservas y gestión para academias de artes marciales."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -117,9 +117,32 @@ flutter:
   assets:
     - assets/icon/
 
+  # Tipografías de la identidad I+, incrustadas en la app. No se cargan por
+  # red: en redes con DNS filtrado la descarga falla y el texto cambia de
+  # fuente (ocurrió en producción con google_fonts).
+  fonts:
+    - family: InterTight
+      fonts:
+        - asset: assets/fonts/InterTight-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/InterTight-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/InterTight-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/InterTight-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/InterTight-ExtraBold.ttf
+          weight: 800
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/JetBrainsMono-Medium.ttf
+          weight: 500
+
 flutter_launcher_icons:
   android: true
   image_path: "assets/icon/icon.png"
-  adaptive_icon_background: "#6C5CE7"
+  adaptive_icon_background: "#0A0A0A"
   adaptive_icon_foreground: "assets/icon/icon_foreground.png"
   min_sdk_android: 21

@@ -149,13 +149,17 @@ select ok(
   'Existe lectura autenticada limitada al directorio propio'
 );
 
+-- El módulo de técnicas se eliminó de raíz (ver
+-- 20260729090000_eliminar_arbol_progreso.sql): su función de siembra ya no
+-- debe existir en la base de datos.
 select ok(
-  not has_function_privilege(
-    'authenticated',
-    'public.sembrar_tecnicas_default(uuid)',
-    'EXECUTE'
+  not exists (
+    select 1
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname = 'sembrar_tecnicas_default'
   ),
-  'La siembra de técnicas solo se alcanza desde la aprobación validada'
+  'La función de siembra de técnicas ya no existe'
 );
 
 select * from finish();

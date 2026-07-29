@@ -86,9 +86,9 @@ class _ConectarStripeScreenState extends ConsumerState<ConectarStripeScreen> {
                   Text(
                     _descripcionPara(estado),
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 16),
@@ -136,9 +136,9 @@ class _ConectarStripeScreenState extends ConsumerState<ConectarStripeScreen> {
   };
 
   Color _colorPara(String estado) => switch (estado) {
-    'complete' => AppColors.success,
-    'pending' => AppColors.warning,
-    _ => AppColors.textSecondary,
+    'complete' => AppColors.successFg,
+    'pending' => AppColors.warningFg,
+    _ => AppColors.subtle,
   };
 
   String _tituloPara(String estado) => switch (estado) {
@@ -153,6 +153,6 @@ class _ConectarStripeScreenState extends ConsumerState<ConectarStripeScreen> {
     'pending' =>
       'Empezaste a conectar tu cuenta de Stripe pero faltan datos por completar. Continúa la configuración para poder cobrar.',
     _ =>
-      'Para poder cobrar las cuotas y la tienda directamente en tu cuenta, conecta tu Stripe. El dinero va siempre a tu cuenta, ITACA nunca lo retiene.',
+      'Para poder cobrar las cuotas y la tienda directamente en tu cuenta, conecta tu Stripe. El dinero va siempre a tu cuenta, I+ nunca lo retiene.',
   };
 }

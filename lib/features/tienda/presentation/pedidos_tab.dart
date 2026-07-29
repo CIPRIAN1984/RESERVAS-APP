@@ -50,7 +50,7 @@ class PedidosTab extends ConsumerWidget {
               'Todavía no hay pedidos.',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
             ),
           );
         }
@@ -87,7 +87,7 @@ class PedidosTab extends ConsumerWidget {
                         Text(
                           '${pedido.alumnoNombre ?? 'Alumno'} · x${pedido.cantidad} · ${pedido.precioSnapshot.toStringAsFixed(2)} €',
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.textSecondary),
+                              ?.copyWith(color: AppColors.subtle),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -96,7 +96,7 @@ class PedidosTab extends ConsumerWidget {
                             'es_ES',
                           ).format(pedido.createdAt.toLocal()),
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.textSecondary),
+                              ?.copyWith(color: AppColors.subtle),
                         ),
                         const SizedBox(height: 12),
                         Wrap(

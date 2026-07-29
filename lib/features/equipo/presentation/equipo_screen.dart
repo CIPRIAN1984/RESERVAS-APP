@@ -96,7 +96,7 @@ class _EquipoScreenState extends ConsumerState<EquipoScreen> {
                 'Desde aquí puedes asignar o retirar el rol Profesor.',
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+                ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
               ),
             ],
           ),

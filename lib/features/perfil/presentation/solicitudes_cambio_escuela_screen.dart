@@ -58,7 +58,7 @@ class SolicitudesCambioEscuelaScreen extends ConsumerWidget {
               'No hay solicitudes de cambio de escuela pendientes.',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
             ),
           );
         }
@@ -86,7 +86,7 @@ class SolicitudesCambioEscuelaScreen extends ConsumerWidget {
                         'Desde ${solicitud.academiaOrigenNombre} · '
                         '${DateFormat('d MMM', 'es_ES').format(solicitud.createdAt.toLocal())}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: AppColors.subtle,
                         ),
                       ),
                       const SizedBox(height: 16),

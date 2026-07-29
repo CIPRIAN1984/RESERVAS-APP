@@ -68,9 +68,9 @@ class PrestamosTab extends ConsumerWidget {
             return Center(
               child: Text(
                 'Todavía no hay préstamos registrados.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
               ),
             );
           }

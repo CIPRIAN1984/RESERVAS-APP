@@ -27,19 +27,19 @@ class PrivacyScreen extends StatelessWidget {
                     title: 'Quién gestiona tus datos',
                     body:
                         'La academia en la que estás registrado gestiona los '
-                        'datos de sus miembros mediante ITACA. Para ejercer '
+                        'datos de sus miembros mediante I+. Para ejercer '
                         'tus derechos o resolver una consulta, contacta con '
                         'la persona responsable de tu academia.',
                   ),
                   _PrivacySection(
                     title: 'Datos utilizados',
                     body:
-                        'ITACA trata los datos necesarios para identificar tu '
+                        'I+ trata los datos necesarios para identificar tu '
                         'cuenta y operar la academia: perfil, rol, reservas, '
-                        'asistencias, progreso, suscripciones, pedidos y, si '
-                        'aceptas notificaciones, el identificador técnico del '
+                        'asistencias, suscripciones, pedidos y, si aceptas '
+                        'notificaciones, el identificador técnico del '
                         'dispositivo. Los pagos con tarjeta los procesa '
-                        'Stripe; ITACA no almacena los datos completos de la '
+                        'Stripe; I+ no almacena los datos completos de la '
                         'tarjeta.',
                   ),
                   _PrivacySection(

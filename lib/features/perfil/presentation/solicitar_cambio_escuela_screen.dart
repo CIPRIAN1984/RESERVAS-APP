@@ -80,7 +80,7 @@ class _SolicitarCambioEscuelaScreenState
                     const Icon(
                       Icons.hourglass_top_outlined,
                       size: 48,
-                      color: AppColors.warning,
+                      color: AppColors.warningFg,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -93,9 +93,9 @@ class _SolicitarCambioEscuelaScreenState
                     Text(
                       'El dueño de esa academia tiene que aceptarla.',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
                     ),
                   ],
                 ),
@@ -122,7 +122,7 @@ class _SolicitarCambioEscuelaScreenState
             'tendrá que aceptar tu solicitud.',
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
           ),
           const SizedBox(height: 24),
           FutureBuilder(

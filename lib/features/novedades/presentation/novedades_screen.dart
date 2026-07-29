@@ -107,9 +107,7 @@ class _NovedadCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: novedad.fijado
-          ? AppColors.accentPrimary.withValues(alpha: 0.10)
-          : null,
+      color: novedad.fijado ? AppColors.ink.withValues(alpha: 0.10) : null,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -118,11 +116,7 @@ class _NovedadCard extends StatelessWidget {
             Row(
               children: [
                 if (novedad.fijado) ...[
-                  const Icon(
-                    Icons.push_pin,
-                    size: 16,
-                    color: AppColors.accentPrimary,
-                  ),
+                  const Icon(Icons.push_pin, size: 16, color: AppColors.ink),
                   const SizedBox(width: 6),
                 ],
                 Expanded(
@@ -133,10 +127,7 @@ class _NovedadCard extends StatelessWidget {
                 ),
                 if (puedeGestionar)
                   PopupMenuButton<String>(
-                    icon: const Icon(
-                      Icons.more_vert,
-                      color: AppColors.textSecondary,
-                    ),
+                    icon: const Icon(Icons.more_vert, color: AppColors.subtle),
                     onSelected: (value) {
                       if (value == 'fijar') onAlternarFijado();
                       if (value == 'eliminar') onEliminar();
@@ -164,7 +155,7 @@ class _NovedadCard extends StatelessWidget {
               '${novedad.autorNombre ?? 'Desconocido'} · ${DateFormat('d MMM, HH:mm', 'es_ES').format(novedad.createdAt.toLocal())}',
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+              ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
             ),
           ],
         ),

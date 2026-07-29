@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "ITACA",
+  "appTitle": "I+",
   "actionSave": "Save",
   "actionCancel": "Cancel",
   "actionRetry": "Retry",
@@ -24,7 +24,6 @@
   "navHome": "Home",
   "navStats": "Stats",
   "navNews": "News",
-  "navProgress": "Progress",
   "navShop": "Shop",
   "navPricing": "Pricing",
   "navProfile": "Profile"

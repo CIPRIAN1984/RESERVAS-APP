@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In es, this message translates to:
-  /// **'ITACA'**
+  /// **'I+'**
   String get appTitle;
 
   /// No description provided for @actionSave.
@@ -241,12 +241,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Novedades'**
   String get navNews;
-
-  /// No description provided for @navProgress.
-  ///
-  /// In es, this message translates to:
-  /// **'Progreso'**
-  String get navProgress;
 
   /// No description provided for @navShop.
   ///

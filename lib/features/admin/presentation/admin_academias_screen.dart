@@ -56,10 +56,10 @@ class AdminAcademiasScreen extends ConsumerWidget {
   };
 
   Color _colorEstado(String estado) => switch (estado) {
-    'pending' => AppColors.warning,
-    'approved' => AppColors.success,
-    'rejected' => AppColors.danger,
-    _ => AppColors.textSecondary,
+    'pending' => AppColors.warningFg,
+    'approved' => AppColors.successFg,
+    'rejected' => AppColors.destructive,
+    _ => AppColors.subtle,
   };
 
   @override
@@ -74,7 +74,7 @@ class AdminAcademiasScreen extends ConsumerWidget {
               'Todavía no hay academias registradas.',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
             ),
           );
         }
@@ -117,7 +117,7 @@ class AdminAcademiasScreen extends ConsumerWidget {
                         Text(
                           academia.direccion!,
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.textSecondary),
+                              ?.copyWith(color: AppColors.subtle),
                         ),
                       ],
                       if (academia.emailContacto?.isNotEmpty ?? false) ...[
@@ -125,7 +125,7 @@ class AdminAcademiasScreen extends ConsumerWidget {
                         Text(
                           academia.emailContacto!,
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.textSecondary),
+                              ?.copyWith(color: AppColors.subtle),
                         ),
                       ],
                       if (academia.estado == 'pending') ...[

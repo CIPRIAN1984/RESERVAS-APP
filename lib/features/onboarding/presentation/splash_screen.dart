@@ -13,16 +13,16 @@ class SplashScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'ITACA',
+              'I+',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: AppColors.ink,
                 letterSpacing: 4,
               ),
             ),
             SizedBox(height: 24),
-            CircularProgressIndicator(color: AppColors.accentPrimary),
+            CircularProgressIndicator(color: AppColors.ink),
           ],
         ),
       ),

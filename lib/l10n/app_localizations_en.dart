@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'ITACA';
+  String get appTitle => 'I+';
 
   @override
   String get actionSave => 'Save';
@@ -80,9 +80,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navNews => 'News';
-
-  @override
-  String get navProgress => 'Progress';
 
   @override
   String get navShop => 'Shop';

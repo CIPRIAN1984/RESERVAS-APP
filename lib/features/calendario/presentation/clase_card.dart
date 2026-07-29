@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../app/theme/color_tokens.dart';
+import '../../../shared/widgets/pantalla.dart';
 import '../data/clase_resumen.dart';
 
-/// Displays one class occurrence. `onUnirse`/`onBorrarse` are only passed for
-/// Alumno (shows the join/leave action); `onTap` is only passed for
-/// Profesor/Dueño/Administrador (navigates to the roster/attendance screen).
+/// Una sesión concreta en el listado del día.
+///
+/// `onUnirse`/`onBorrarse` solo llegan para el Alumno (muestran la acción de
+/// reservar); `onTap` solo para Profesor/Dueño/Administrador (lleva a la
+/// lista de asistentes).
 class ClaseCard extends StatelessWidget {
   const ClaseCard({
     required this.clase,
@@ -25,75 +28,202 @@ class ClaseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final horario =
-        '${DateFormat.Hm().format(clase.fechaHoraInicio.toLocal())} - ${DateFormat.Hm().format(clase.fechaHoraFin.toLocal())}';
+    final t = Theme.of(context).textTheme;
+    final inicio = DateFormat.Hm().format(clase.fechaHoraInicio.toLocal());
+    final fin = DateFormat.Hm().format(clase.fechaHoraFin.toLocal());
+    final hayAccion = onUnirse != null || onBorrarse != null;
+    final libres = clase.aforoMaximo - clase.inscritosCount;
 
     return Card(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      horario,
-                      style: Theme.of(context).textTheme.labelLarge,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Marca de la academia, como en el prototipo.
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: const BoxDecoration(
+                      color: AppColors.ink,
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      clase.titulo,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Prof. ${clase.profesorNombre}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'I+',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${clase.inscritosCount}/${clase.aforoMaximo} inscritos',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: clase.aforoCompleto
-                            ? AppColors.warning
-                            : AppColors.textSecondary,
-                      ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          clase.titulo,
+                          style: t.titleMedium,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$inicio – $fin',
+                          style: t.bodyMedium?.copyWith(
+                            color: AppColors.subtle,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  if (clase.tieneReservaActiva)
+                    clase.enListaEspera
+                        ? const PastillaEstado.aviso(
+                            'En espera',
+                            icono: Icons.hourglass_top,
+                          )
+                        : const PastillaEstado.exito(
+                            'Inscrito',
+                            icono: Icons.check,
+                          ),
+                ],
               ),
-              if (onUnirse != null || onBorrarse != null)
-                _buildAccionAlumno(context),
+              const SizedBox(height: 14),
+
+              // Aforo e instructor, con iconos como en MAAT.
+              Row(
+                children: [
+                  _Dato(
+                    icono: Icons.groups_outlined,
+                    texto:
+                        '${clase.inscritosCount}/${clase.aforoMaximo}'
+                        ' inscritos',
+                    destacado: clase.aforoCompleto,
+                  ),
+                  const SizedBox(width: 20),
+                  Flexible(
+                    child: _Dato(
+                      icono: Icons.person_outline,
+                      texto: clase.profesorNombre,
+                    ),
+                  ),
+                ],
+              ),
+
+              if (hayAccion) ...[
+                const SizedBox(height: 14),
+                _Accion(
+                  clase: clase,
+                  cargando: loadingAccion,
+                  onUnirse: onUnirse,
+                  onBorrarse: onBorrarse,
+                ),
+                if (!clase.aforoCompleto && !clase.tieneReservaActiva) ...[
+                  const SizedBox(height: 10),
+                  Center(
+                    child: Text(
+                      libres == 1 ? 'Queda 1 plaza' : 'Quedan $libres plazas',
+                      style: t.labelSmall,
+                    ),
+                  ),
+                ],
+              ],
             ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildAccionAlumno(BuildContext context) {
-    if (loadingAccion) {
+class _Dato extends StatelessWidget {
+  const _Dato({
+    required this.icono,
+    required this.texto,
+    this.destacado = false,
+  });
+
+  final IconData icono;
+  final String texto;
+  final bool destacado;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = destacado ? AppColors.warningFg : AppColors.subtle;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icono, size: 17, color: color),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            texto,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: color),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Accion extends StatelessWidget {
+  const _Accion({
+    required this.clase,
+    required this.cargando,
+    this.onUnirse,
+    this.onBorrarse,
+  });
+
+  final ClaseResumen clase;
+  final bool cargando;
+  final VoidCallback? onUnirse;
+  final VoidCallback? onBorrarse;
+
+  @override
+  Widget build(BuildContext context) {
+    if (cargando) {
       return const SizedBox(
-        width: 20,
-        height: 20,
-        child: CircularProgressIndicator(strokeWidth: 2),
+        height: 52,
+        child: Center(
+          child: SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(strokeWidth: 2.4),
+          ),
+        ),
       );
     }
+
     if (clase.tieneReservaActiva) {
       return OutlinedButton(
         onPressed: onBorrarse,
-        child: Text(clase.enListaEspera ? 'Salir de espera' : 'Cancelar'),
+        child: Text(
+          clase.enListaEspera
+              ? 'Salir de la lista de espera'
+              : 'Cancelar reserva',
+        ),
       );
     }
+
     return ElevatedButton(
       onPressed: onUnirse,
-      child: Text(clase.aforoCompleto ? 'Lista de espera' : 'Reservar'),
+      child: Text(
+        clase.aforoCompleto
+            ? 'Apuntarme a la lista de espera'
+            : 'Reservar plaza',
+      ),
     );
   }
 }

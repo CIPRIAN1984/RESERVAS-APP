@@ -130,7 +130,7 @@ class _ConfiguracionFormState extends ConsumerState<_ConfiguracionForm> {
           'Estas reglas se aplican automáticamente a todas las clases.',
           style: Theme.of(
             context,
-          ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
         ),
         const SizedBox(height: 20),
         Card(

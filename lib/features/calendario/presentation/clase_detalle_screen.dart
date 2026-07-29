@@ -76,12 +76,12 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
     final marcando = _marcando.contains(alumno.alumnoId);
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: AppColors.surfaceElevated,
+        backgroundColor: AppColors.surface,
         backgroundImage: alumno.fotoUrl != null
             ? CachedNetworkImageProvider(alumno.fotoUrl!)
             : null,
         child: alumno.fotoUrl == null
-            ? const Icon(Icons.person, color: AppColors.textSecondary)
+            ? const Icon(Icons.person, color: AppColors.subtle)
             : null,
       ),
       title: Text(alumno.nombreCompleto),
@@ -89,7 +89,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
           ? Text('Cinturón ${alumno.cinturon}')
           : null,
       trailing: alumno.asistenciaValidada
-          ? const Icon(Icons.check_circle, color: AppColors.success)
+          ? const Icon(Icons.check_circle, color: AppColors.successFg)
           : marcando
           ? const SizedBox(
               width: 20,
@@ -108,7 +108,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
   Widget _buildEspera(InscritoAlumno alumno, int posicion) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: AppColors.surfaceElevated,
+        backgroundColor: AppColors.surface,
         child: Text('$posicion'),
       ),
       title: Text(alumno.nombreCompleto),
@@ -117,7 +117,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
             ? 'Lista de espera'
             : 'Lista de espera · Cinturón ${alumno.cinturon}',
       ),
-      trailing: const Icon(Icons.schedule, color: AppColors.warning),
+      trailing: const Icon(Icons.schedule, color: AppColors.warningFg),
     );
   }
 
@@ -165,21 +165,21 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                     const SizedBox(height: 4),
                     Text(
                       '${inscritos.length}/${widget.clase.aforoMaximo} confirmados · ${listaEspera.length} en espera',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
                     ),
                   ],
                 ),
               ),
-              const Divider(height: 1, color: AppColors.divider),
+              const Divider(height: 1, color: AppColors.line),
               Expanded(
                 child: inscritos.isEmpty && listaEspera.isEmpty
                     ? Center(
                         child: Text(
                           'Todavía no hay participantes.',
                           style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: AppColors.textSecondary),
+                              ?.copyWith(color: AppColors.subtle),
                         ),
                       )
                     : ListView(
@@ -193,7 +193,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                             for (final alumno in inscritos)
                               _buildInscrito(context, alumno, userId),
                           if (listaEspera.isNotEmpty) ...[
-                            const Divider(height: 24, color: AppColors.divider),
+                            const Divider(height: 24, color: AppColors.line),
                             const _SectionTitle(title: 'Lista de espera'),
                             for (var i = 0; i < listaEspera.length; i++)
                               _buildEspera(listaEspera[i], i + 1),
@@ -221,7 +221,7 @@ class _SectionTitle extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: AppColors.textSecondary,
+          color: AppColors.subtle,
           fontWeight: FontWeight.w700,
         ),
       ),

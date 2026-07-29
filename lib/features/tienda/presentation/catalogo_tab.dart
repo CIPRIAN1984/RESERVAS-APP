@@ -57,7 +57,7 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: pago.clientSecret,
-          merchantDisplayName: 'ITACA',
+          merchantDisplayName: 'I+',
         ),
       );
       await Stripe.instance.presentPaymentSheet();
@@ -131,9 +131,9 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
             return Center(
               child: Text(
                 'Todavía no hay productos en el catálogo.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
               ),
             );
           }
@@ -162,14 +162,14 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
                               Text(
                                 producto.descripcion!,
                                 style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: AppColors.textSecondary),
+                                    ?.copyWith(color: AppColors.subtle),
                               ),
                             ],
                             const SizedBox(height: 8),
                             Text(
                               '${producto.precio.toStringAsFixed(2)} € · Stock: ${producto.stock}',
                               style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: AppColors.accentSecondary),
+                                  ?.copyWith(color: AppColors.ink),
                             ),
                           ],
                         ),

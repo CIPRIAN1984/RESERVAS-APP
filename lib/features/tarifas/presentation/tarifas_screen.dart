@@ -66,7 +66,7 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: pago.clientSecret,
-          merchantDisplayName: 'ITACA',
+          merchantDisplayName: 'I+',
         ),
       );
       await Stripe.instance.presentPaymentSheet();
@@ -150,16 +150,16 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                   padding: const EdgeInsets.all(16),
                   child: Text(
                     'No tienes ninguna suscripción activa todavía.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
                   ),
                 ),
               );
             }
             final enProceso = suscripcion.estado == 'pendiente_pago';
             return Card(
-              color: AppColors.accentPrimary.withValues(alpha: 0.12),
+              color: AppColors.ink.withValues(alpha: 0.12),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -179,7 +179,7 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                       Text(
                         'Pago en proceso...',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: AppColors.subtle,
                         ),
                       ),
                     ] else ...[
@@ -225,9 +225,9 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
             if (tarifas.isEmpty) {
               return Text(
                 'Tu academia todavía no tiene tarifas publicadas.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
               );
             }
             return Column(
@@ -307,9 +307,9 @@ class _TarifasGestionView extends ConsumerWidget {
             return Center(
               child: Text(
                 'Todavía no hay tarifas creadas.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
               ),
             );
           }
