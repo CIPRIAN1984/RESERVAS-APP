@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/app_mode.dart';
 import '../../../core/auth/auth_state.dart';
 import 'catalogo_tab.dart';
 import 'mis_pedidos_tab.dart';
@@ -19,8 +20,9 @@ class TiendaScreen extends ConsumerWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final puedeGestionar =
-        profile.isProfesor || profile.isDueno || profile.isAdministrador;
+    // En modo Entrenamiento se compra; en modo Gestor se administra el
+    // catálogo, los pedidos y los préstamos.
+    final puedeGestionar = ref.watch(enModoGestionProvider);
     final academiaId = profile.academiaId!;
 
     final tabs = puedeGestionar

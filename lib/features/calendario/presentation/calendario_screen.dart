@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../../app/theme/color_tokens.dart';
+import '../../../app/app_mode.dart';
 import '../../../core/auth/auth_state.dart';
 import '../application/clases_providers.dart';
 import '../data/clase_resumen.dart';
@@ -97,9 +98,9 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     final profile = ref.watch(currentProfileProvider).value;
     final userId = ref.watch(currentUserIdProvider);
     final academiaId = profile?.academiaId;
-    final puedeGestionar =
-        profile != null &&
-        (profile.isProfesor || profile.isDueno || profile.isAdministrador);
+    // Por MODO, no por rol: un dueño en modo Entrenamiento viene a apuntarse
+    // a clase, no a gestionarlas.
+    final gestionando = ref.watch(enModoGestionProvider);
 
     final selectedDay = ref.watch(selectedDayProvider);
     final visibleMonth = ref.watch(visibleMonthProvider);
@@ -113,7 +114,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     }
 
     return Scaffold(
-      floatingActionButton: (puedeGestionar && academiaId != null)
+      floatingActionButton: (gestionando && academiaId != null)
           ? FloatingActionButton.extended(
               onPressed: () async {
                 await Navigator.of(context).push(
@@ -132,7 +133,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
           : null,
       body: Column(
         children: [
-          const _CabeceraInicio(),
+          if (!gestionando) const _CabeceraInicio(),
           TableCalendar<ClaseResumen>(
             firstDay: DateTime.now().subtract(const Duration(days: 365)),
             lastDay: DateTime.now().add(const Duration(days: 365)),
@@ -213,7 +214,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                   itemBuilder: (context, index) {
                     final clase = delDia[index];
                     final cargando = _accionEnCursoClaseId == clase.id;
-                    if (puedeGestionar) {
+                    if (gestionando) {
                       return ClaseCard(
                         clase: clase,
                         onTap: () => Navigator.of(context).push(

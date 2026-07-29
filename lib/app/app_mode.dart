@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/auth/auth_state.dart';
+
 /// Los dos modos de la app, como en MAAT: se entrena o se gestiona, nunca
 /// las dos cosas a la vez en la misma pantalla.
 ///
@@ -39,3 +41,25 @@ class AppModeNotifier extends Notifier<AppMode> {
 final appModeProvider = NotifierProvider<AppModeNotifier, AppMode>(
   AppModeNotifier.new,
 );
+
+/// ¿La pantalla debe comportarse como herramienta de gestión?
+///
+/// **Esta es la pregunta que deben hacerse las pantallas, no «¿qué rol
+/// tiene?».** Un dueño también entrena: cuando está en modo Entrenamiento
+/// quiere apuntarse a clase y ver su cuota, igual que cualquier alumno, y no
+/// quiere el botón de crear clases estorbando.
+///
+/// Confundir rol con modo fue el fallo del rediseño: las pantallas decidían
+/// por rol, así que a un dueño se le daba la versión de gestión siempre y se
+/// quedaba sin poder reservar.
+///
+/// Es `true` solo si se dan las dos cosas: el modo activo es [AppMode.gestor]
+/// **y** el rol tiene permiso para gestionar. Lo segundo no sobra: el modo lo
+/// elige el cliente, y el permiso no puede depender de eso.
+final enModoGestionProvider = Provider<bool>((ref) {
+  final profile = ref.watch(currentProfileProvider).value;
+  if (profile == null) return false;
+  final puedeGestionar =
+      profile.isProfesor || profile.isDueno || profile.isAdministrador;
+  return puedeGestionar && ref.watch(appModeProvider) == AppMode.gestor;
+});

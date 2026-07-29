@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' hide Card;
 
+import '../../../../app/app_mode.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/utils/error_messages.dart';
@@ -21,8 +22,9 @@ class TarifasScreen extends ConsumerWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final puedeGestionar =
-        profile.isProfesor || profile.isDueno || profile.isAdministrador;
+    // En modo Entrenamiento se ve «mi cuota»; en modo Gestor, el catálogo
+    // de tarifas de la academia.
+    final puedeGestionar = ref.watch(enModoGestionProvider);
 
     return puedeGestionar
         ? _TarifasGestionView(academiaId: profile.academiaId!)
