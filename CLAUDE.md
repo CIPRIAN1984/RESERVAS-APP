@@ -61,11 +61,11 @@ export PATH=/opt/flutter/bin:$PATH
 
 ---
 
-## 3. Modelo de datos (real, 25 migraciones)
+## 3. Modelo de datos (real, 26 migraciones)
 
 **Núcleo:** `academias` · `profiles`
 **Clases:** `clases` · `clases_recurrentes` · `inscripciones` · `asistencias`
-**Contenido:** `novedades` · `tecnicas` · `media_tecnica` · `progreso_alumno_tecnica`
+**Contenido:** `novedades`
 **Tienda:** `productos` · `pedidos` · `prestamos`
 **Cobros:** `tarifas` · `suscripciones` · `stripe_webhook_events`
 **Otros:** `solicitudes_cambio_escuela` · `device_tokens` · `notificaciones_outbox`
@@ -109,9 +109,18 @@ export PATH=/opt/flutter/bin:$PATH
 
 ---
 
-## 6. Identidad visual
+## 6. Identidad visual y navegación
 
-La app adopta el diseño **I+**: claro, monocromo, con amarillo eléctrico como único acento y color reservado a lo que significa algo (cinturones y estados de pago). Tipografías **Inter Tight** y **JetBrains Mono**, incrustadas en la app (no de Google Fonts: en redes con DNS filtrado la carga remota falla).
+La app adopta el diseño **I+**: claro, monocromo, con amarillo eléctrico como único acento y color reservado a lo que significa algo (cinturones y estados de pago). Tipografías **Inter Tight** y **JetBrains Mono**, incrustadas como assets (no de Google Fonts: en redes con DNS filtrado la carga remota falla). **Solo hay tema claro.**
+
+**Dos modos con barra inferior**, no menú lateral:
+- **Entrenamiento** (todos): Inicio · Estadísticas · Novedades · Perfil
+- **Gestor** (dueño y profesor): Hoy · Herramientas · Novedades · Academia — con hueco reservado para *Miembros*
+- El **Administrador de plataforma** no tiene modos: Academias · Cambios · Perfil
+
+Un botón flotante alterna de modo, visible solo para dueño y profesor. El router bloquea las rutas de gestor a los alumnos, no solo las oculta.
+
+Las cabeceras las pone el router con `PantallaConTitulo`, en un único sitio.
 
 👉 **Antes de tocar cualquier pantalla, invoca la skill `diseno-i-plus`.**
 
@@ -121,7 +130,7 @@ La app adopta el diseño **I+**: claro, monocromo, con amarillo eléctrico como 
 
 - `flutter analyze` sin ningún aviso y `flutter test` en verde son el mínimo.
 - Las pruebas de base de datos son **pgTAP** en `supabase/tests/` (9 suites). Se ejecutan en CI con `supabase test db`.
-- **Para cambios visuales no basta con que compile**: hay que levantar la app web y mirarla. Invoca la skill `verificar-app`.
+- **Para cambios visuales no basta con que compile**: hay que mirarlo renderizado. Hay un banco de pruebas visual en `test/golden/` que dibuja pantallas con las tipografías reales y guarda la imagen (`flutter test --update-goldens test/golden`). Invoca la skill `verificar-app`.
 - CI (GitHub Actions): formato, análisis, deriva de codegen, tests, build web, pgTAP y escaneo de secretos.
 
 ---
