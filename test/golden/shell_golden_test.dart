@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -13,45 +10,7 @@ import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/profile.dart';
 import 'package:itaca/shared/navigation/main_shell.dart';
 
-/// Banco de pruebas visual de la estructura de navegación.
-///
-/// Renderiza el armazón de la app con perfiles falsos, sin backend, y guarda
-/// una imagen de cada modo. Sirve para revisar el diseño sin levantar la app
-/// entera: `flutter test --update-goldens test/golden`.
-///
-/// Las tipografías reales se cargan a mano porque el entorno de pruebas no
-/// lee `pubspec.yaml`; sin esto el texto saldría como cajas negras.
-Future<void> _cargarTipografias() async {
-  Future<void> cargar(String familia, List<String> rutas) async {
-    final loader = FontLoader(familia);
-    for (final ruta in rutas) {
-      loader.addFont(
-        File(ruta).readAsBytes().then((b) => ByteData.view(b.buffer)),
-      );
-    }
-    await loader.load();
-  }
-
-  await cargar(AppTheme.fontSans, [
-    'assets/fonts/InterTight-Regular.ttf',
-    'assets/fonts/InterTight-Medium.ttf',
-    'assets/fonts/InterTight-SemiBold.ttf',
-    'assets/fonts/InterTight-Bold.ttf',
-    'assets/fonts/InterTight-ExtraBold.ttf',
-  ]);
-  await cargar(AppTheme.fontMono, [
-    'assets/fonts/JetBrainsMono-Regular.ttf',
-    'assets/fonts/JetBrainsMono-Medium.ttf',
-  ]);
-
-  // Los iconos vienen del SDK de Flutter, no del proyecto. Sin esto se
-  // dibujarían como cuadros vacíos.
-  const iconos =
-      '/opt/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf';
-  if (File(iconos).existsSync()) {
-    await cargar('MaterialIcons', [iconos]);
-  }
-}
+import 'ayuda_golden.dart';
 
 Profile _perfil({required String rol}) => Profile(
   id: 'u1',
@@ -131,7 +90,7 @@ class _ModoFijo extends AppModeNotifier {
 }
 
 void main() {
-  setUpAll(_cargarTipografias);
+  setUpAll(cargarTipografias);
 
   testWidgets('Barra inferior — modo Entrenamiento (alumno)', (tester) async {
     await tester.binding.setSurfaceSize(const Size(412, 760));
