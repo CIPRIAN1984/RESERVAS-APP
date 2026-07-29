@@ -15,6 +15,10 @@ import '../../core/models/profile.dart';
 /// quien gestiona veían la misma lista. Separarlo en dos modos, como hace
 /// MAAT, deja cada barra en cuatro destinos y hace evidente en qué papel
 /// estás en cada momento.
+/// Ancho máximo del contenido. Por encima de esto no se gana legibilidad:
+/// una línea de texto muy larga se lee peor, no mejor.
+const double _anchoMaximo = 560;
+
 class MainShell extends ConsumerWidget {
   const MainShell({required this.child, super.key});
 
@@ -85,6 +89,18 @@ class MainShell extends ConsumerWidget {
     return modo == AppMode.gestor ? _gestor : _entrenamiento;
   }
 
+  /// Pantallas que cuelgan de un destino de la barra. Sin esto, estando en
+  /// Equipo o en Cobros no coincidía ninguna ruta y la barra marcaba el
+  /// primer destino: parecía que estabas en «Hoy» cuando no lo estabas.
+  static const _rutaPadre = <String, String>{
+    Routes.equipo: Routes.academia,
+    Routes.cobros: Routes.academia,
+    Routes.ajustesReservas: Routes.academia,
+    Routes.solicitudesCambioEscuela: Routes.academia,
+    Routes.tienda: Routes.herramientas,
+    Routes.tarifas: Routes.herramientas,
+  };
+
   /// Solo profesor y dueño pueden cambiar de modo: son los únicos que hacen
   /// las dos cosas.
   static bool _puedeCambiarModo(Profile? profile) =>
@@ -97,11 +113,28 @@ class MainShell extends ConsumerWidget {
     final location = GoRouterState.of(context).matchedLocation;
 
     final destinos = _destinosPara(profile, modo);
-    final indiceActual = destinos.indexWhere((d) => d.ruta == location);
+    // El Administrador sí tiene «Cambios de escuela» como destino propio, así
+    // que para él no se remonta al padre.
+    final rutaMarcada = destinos.any((d) => d.ruta == location)
+        ? location
+        : (_rutaPadre[location] ?? location);
+    final indiceActual = destinos.indexWhere((d) => d.ruta == rutaMarcada);
     final cambiaModo = _puedeCambiarModo(profile);
 
     return Scaffold(
-      body: SafeArea(bottom: false, child: child),
+      // La app está pensada para el móvil. En el navegador de un portátil se
+      // estiraba de lado a lado y todo parecía enorme y vacío: las tarjetas
+      // ocupaban 1900 px de ancho y el texto quedaba perdido. Se limita el
+      // ancho en un único sitio para que valga en todas las pantallas.
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _anchoMaximo),
+            child: child,
+          ),
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: cambiaModo
           ? _BotonCambioModo(

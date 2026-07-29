@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../app/app_mode.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/async_value_view.dart';
@@ -52,19 +53,20 @@ class NovedadesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider).value;
     final userId = ref.watch(currentUserIdProvider);
-    final puedePublicar =
-        profile != null &&
-        (profile.isProfesor || profile.isDueno || profile.isAdministrador);
+    // Publicar es gestionar: solo en modo Gestor. En Entrenamiento un
+    // dueño lee las novedades como cualquier alumno.
+    final puedePublicar = ref.watch(enModoGestionProvider);
+    final academiaId = profile?.academiaId;
     final novedadesAsync = ref.watch(novedadesProvider);
 
     return Scaffold(
-      floatingActionButton: (puedePublicar && profile.academiaId != null)
+      floatingActionButton: (puedePublicar && academiaId != null)
           ? FloatingActionButton.extended(
               onPressed: () async {
                 await Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => CrearNovedadScreen(
-                      academiaId: profile.academiaId!,
+                      academiaId: academiaId,
                       autorId: userId!,
                     ),
                   ),

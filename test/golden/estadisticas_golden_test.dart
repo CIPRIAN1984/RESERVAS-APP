@@ -76,6 +76,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Todavía no hay alumnos en la academia.'), findsOneWidget);
+    expect(
+      find.text('Todavía no hay clases con asistencia este mes.'),
+      findsOneWidget,
+    );
+    // El estado vacío sustituía la pantalla entera y se llevaba por delante
+    // la cabecera: no sabías ni en qué pantalla estabas.
+    expect(find.text('Estadísticas'), findsOneWidget);
   });
 }
