@@ -103,7 +103,7 @@ void main() {
     expect(find.text('Inicio'), findsWidgets);
     expect(find.text('Estadísticas'), findsWidgets);
     expect(find.text('Perfil'), findsWidgets);
-    expect(find.text('Cambiar a Gestor'), findsNothing);
+    expect(find.byTooltip('Cambiar a Gestor'), findsNothing);
 
     await comparaCon(
       find.byType(MaterialApp),
@@ -120,8 +120,10 @@ void main() {
 
     expect(find.text('Herramientas'), findsWidgets);
     expect(find.text('Academia'), findsWidgets);
-    // El dueño sí puede volver a entrenar.
-    expect(find.text('Cambiar a Entrenamiento'), findsOneWidget);
+    // El dueño sí puede volver a entrenar. En el botón cabe solo la etiqueta
+    // corta; la larga queda como texto de accesibilidad.
+    expect(find.text('Entrenar'), findsOneWidget);
+    expect(find.byTooltip('Cambiar a Entrenamiento'), findsOneWidget);
 
     await comparaCon(find.byType(MaterialApp), 'goldens/shell_gestor.png');
   });
@@ -135,7 +137,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Cambiar a Gestor'), findsOneWidget);
+    expect(find.text('Gestor'), findsOneWidget);
+    expect(find.byTooltip('Cambiar a Gestor'), findsOneWidget);
+
+    // El caso apretado: cinco sitios y «Estadísticas», que es la etiqueta más
+    // larga de las dos barras. Hay que mirar la imagen, no solo que compile.
+    await comparaCon(
+      find.byType(MaterialApp),
+      'goldens/shell_entrenamiento_dueno.png',
+    );
   });
 
   testWidgets('El administrador de plataforma no tiene modos', (tester) async {
@@ -146,6 +156,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Academias'), findsWidgets);
-    expect(find.text('Cambiar a Gestor'), findsNothing);
+    expect(find.byTooltip('Cambiar a Gestor'), findsNothing);
   });
 }

@@ -5,6 +5,7 @@ import 'package:flutter_stripe/flutter_stripe.dart' hide Card;
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/utils/error_messages.dart';
+import '../../../shared/widgets/pantalla.dart';
 import '../application/tienda_providers.dart';
 import '../data/producto.dart';
 import 'crear_producto_screen.dart';
@@ -138,7 +139,14 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
             );
           }
           return ListView.separated(
-            padding: const EdgeInsets.all(16),
+            // Quien gestiona tiene el botón de añadir producto flotando
+            // encima: hay que dejarle sitio.
+            padding: EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              widget.puedeGestionar ? espacioBotonesFlotantes : 16,
+            ),
             itemCount: productos.length,
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {

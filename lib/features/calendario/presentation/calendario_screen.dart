@@ -214,7 +214,14 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                   );
                 }
                 return ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  // En Gestor flota «Crear clase» sobre la lista: hay que
+                  // dejarle sitio o tapa la última clase del día.
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    16,
+                    16,
+                    gestionando ? espacioBotonesFlotantes : 16,
+                  ),
                   itemCount: delDia.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {

@@ -97,3 +97,35 @@ inexistente. Dos suites pgTAP que antes comprobaban la siembra ahora comprueban
 lo contrario: que el módulo sigue eliminado.
 
 Aplicada a producción el 29/07/2026, a la vez que se fusionó el rediseño I+.
+
+## 2026-07-30 — El cambio de modo baja a la barra inferior
+
+El botón para saltar entre **Entrenamiento** y **Gestor** era un botón
+flotante. Se ha movido al último sitio de la barra inferior, visible solo para
+dueño y profesor.
+
+Motivo: en un móvil de 412 px de ancho no caben dos botones flotantes uno al
+lado del otro. El de modo mide 177 px y el de la acción de la pantalla
+(«Crear clase») mide 234 px; sumados con los márgenes pasan de 440 px. Estando
+centrado tapaba «Reservar plaza» y la última fila de Perfil; llevándolo a la
+izquierda seguía solapándose 31 px con «Crear clase». No era un problema de
+colocación sino de sitio: sobra un botón flotante.
+
+Lo global va a la barra; el aire se reserva a la acción principal de cada
+pantalla. Como efecto lateral, el cambio de modo pasa a estar siempre visible y
+con su nombre escrito, en vez de depender de un icono y de una pulsación larga
+para ver el rótulo.
+
+Reglas que quedan y están cubiertas por pruebas
+(`test/shared/botones_flotantes_test.dart`):
+
+- En modo Entrenamiento no hay ningún botón flotante en Inicio.
+- El botón de la pantalla nunca se solapa con la última tarjeta de su lista:
+  las listas de pantallas **con** botón flotante llevan
+  `espacioBotonesFlotantes` de hueco al final.
+- Las pantallas **sin** botón flotante no llevan ese hueco: solo dejaría un
+  vacío al final.
+
+Los rectángulos se comparan enteros, no los de sus textos: una primera versión
+de la prueba comparaba el texto del botón, que es más pequeño, y daba por bueno
+un solape real de 31 px.

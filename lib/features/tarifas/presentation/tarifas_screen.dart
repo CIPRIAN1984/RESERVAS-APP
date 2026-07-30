@@ -4,6 +4,7 @@ import 'package:flutter_stripe/flutter_stripe.dart' hide Card;
 
 import '../../../../app/app_mode.dart';
 import '../../../app/theme/color_tokens.dart';
+import '../../../shared/widgets/pantalla.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/utils/error_messages.dart';
 import '../application/tarifas_providers.dart';
@@ -232,30 +233,62 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                 ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
               );
             }
+            // El botón iba en el hueco lateral del ListTile y se comía todo
+            // el ancho: el nombre de la tarifa salía en vertical, una letra
+            // por línea. Va debajo y a ancho completo, como el resto de
+            // acciones principales de la app.
             return Column(
               children: [
                 for (final tarifa in tarifas)
                   Card(
                     margin: const EdgeInsets.only(bottom: 12),
-                    child: ListTile(
-                      title: Text(tarifa.nombre),
-                      subtitle: Text(
-                        '${tarifa.precio.toStringAsFixed(2)} € ${etiquetasPeriodicidad[tarifa.periodicidad] ?? ''}'
-                        '${tarifa.descripcion != null ? '\n${tarifa.descripcion}' : ''}',
-                      ),
-                      isThreeLine: tarifa.descripcion != null,
-                      trailing: tarifa.id == actualId
-                          ? const Chip(label: Text('Actual'))
-                          : _procesandoTarifaId == tarifa.id
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : OutlinedButton(
-                              onPressed: () => _suscribirse(tarifa),
-                              child: const Text('Suscribirse'),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            tarifa.nombre,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${tarifa.precio.toStringAsFixed(2)} € '
+                            '${etiquetasPeriodicidad[tarifa.periodicidad] ?? ''}',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: AppColors.subtle),
+                          ),
+                          if (tarifa.descripcion != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              tarifa.descripcion!,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: AppColors.subtle),
                             ),
+                          ],
+                          const SizedBox(height: 12),
+                          if (tarifa.id == actualId)
+                            const Align(
+                              alignment: Alignment.centerLeft,
+                              child: PastillaEstado.exito('Tu cuota'),
+                            )
+                          else
+                            OutlinedButton(
+                              onPressed: _procesandoTarifaId == tarifa.id
+                                  ? null
+                                  : () => _suscribirse(tarifa),
+                              child: _procesandoTarifaId == tarifa.id
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text('Suscribirse'),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
               ],
@@ -316,7 +349,12 @@ class _TarifasGestionView extends ConsumerWidget {
             );
           }
           return ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              espacioBotonesFlotantes,
+            ),
             itemCount: tarifas.length,
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {

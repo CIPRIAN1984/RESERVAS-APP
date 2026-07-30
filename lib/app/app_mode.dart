@@ -16,10 +16,20 @@ enum AppMode {
     AppMode.gestor => 'Gestor',
   };
 
-  /// Texto del botón que lleva al *otro* modo.
+  /// Texto largo del cambio de modo, para lectores de pantalla y ayudas.
   String get etiquetaCambio => switch (this) {
     AppMode.entrenamiento => 'Cambiar a Gestor',
     AppMode.gestor => 'Cambiar a Entrenamiento',
+  };
+
+  /// Lo que cabe en el botón flotante.
+  ///
+  /// «Cambiar a Entrenamiento» ocupaba media pantalla y se comía el botón de
+  /// «Crear clase», que está en la esquina contraria. A dos palabras entran
+  /// los dos sin pisarse ni en un móvil estrecho.
+  String get etiquetaCortaCambio => switch (this) {
+    AppMode.entrenamiento => 'Gestor',
+    AppMode.gestor => 'Entrenar',
   };
 
   AppMode get contrario => switch (this) {
