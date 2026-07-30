@@ -85,6 +85,9 @@ Las cifras que se comparan en columna llevan `FontFeature.tabularFigures()`.
 **Tarjeta** — fondo `#F4F4F5`, esquinas **20 px**, sin sombra ni borde. La sombra solo en elementos flotantes (modales, botón flotante).
 
 **Botón principal** — fondo negro, texto blanco, esquinas 16 px, ancho completo, alto ~52 px.
+
+> ⚠️ **Los botones son de ancho completo por tema** (`minimumSize: Size.fromHeight(52)`, que deja el ancho en infinito). Nunca pongas un botón al lado de un texto: dentro de un `ListTile` se queda todo el hueco lateral y el título sale en vertical, una letra por línea; dentro de un `Row` revienta con «BoxConstraints forces an infinite width». Si hace falta uno en línea, acótalo con un `SizedBox(width: …)`. Lo normal es ponerlo debajo, a lo ancho — que es lo que hace `TarjetaFila`.
+
 **Botón secundario** — transparente con borde fino `#0A0A0A` al 25 %.
 **Botón destructivo** — rojo sólido `#DC2626`, solo para cancelar suscripción o borrar.
 
@@ -101,6 +104,8 @@ Las cifras que se comparan en columna llevan `FontFeature.tabularFigures()`.
 **Gráfico de barras** — barras negras con esquinas redondeadas, etiquetas mono debajo, escala numérica a la derecha.
 
 **Podio del ranking** — el primero más alto y con corona ámbar; los tres con avatar, nombre, cinturón en mono y número de clases.
+
+**Fila de lista** — usa `TarjetaFila`: título, una línea de detalle, y debajo la pastilla de estado o el botón a ancho completo. **No uses `ListTile` con un botón o una etiqueta larga en `trailing`**, por lo dicho arriba. `ListTile` tampoco admite una pastilla en `subtitle`: no llega ni a medirse.
 
 **Estados vacíos** — icono gris de 48 px, mensaje centrado en gris y, si procede, un botón de acción.
 

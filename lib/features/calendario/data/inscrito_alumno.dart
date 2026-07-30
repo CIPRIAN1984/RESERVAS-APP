@@ -9,11 +9,13 @@ class InscritoAlumno {
     this.fotoUrl,
     this.cinturon,
     required this.asistenciaValidada,
+    this.sinCuota = false,
   });
 
   factory InscritoAlumno.fromInscripcionJson(
     Map<String, dynamic> json, {
     required bool asistenciaValidada,
+    bool sinCuota = false,
   }) {
     final alumno = json['alumno'] as Map<String, dynamic>;
     return InscritoAlumno(
@@ -23,6 +25,7 @@ class InscritoAlumno {
       fotoUrl: alumno['foto_url'] as String?,
       cinturon: alumno['cinturon'] as String?,
       asistenciaValidada: asistenciaValidada,
+      sinCuota: sinCuota,
     );
   }
 
@@ -32,6 +35,10 @@ class InscritoAlumno {
   final String? fotoUrl;
   final String? cinturon;
   final bool asistenciaValidada;
+
+  /// No tiene ninguna cuota activa y cobrada. Puede apuntarse igualmente
+  /// —así lo quiere Cipri— pero sale marcado para poder cobrarle en mano.
+  final bool sinCuota;
 
   String get nombreCompleto =>
       [nombre, apellidos].whereType<String>().join(' ');

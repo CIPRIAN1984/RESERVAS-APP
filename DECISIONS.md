@@ -129,3 +129,50 @@ Reglas que quedan y están cubiertas por pruebas
 Los rectángulos se comparan enteros, no los de sus textos: una primera versión
 de la prueba comparaba el texto del botón, que es más pequeño, y daba por bueno
 un solape real de 31 px.
+
+## 2026-07-30 — Apuntarse a clase sin tener la cuota pagada
+
+`reservar_clase` rechazaba a cualquier Alumno sin suscripción activa y
+cobrada. Pasa a ser un ajuste por academia, `exigir_cuota_para_reservar`, y
+**por defecto no se exige**.
+
+Motivo, en palabras de Cipri: prefiere que la gente se pueda apuntar aunque
+no haya pagado y verlo marcado en la lista de la clase, para cobrarles en
+mano cuando aparezcan por el gimnasio. Es como funciona hoy el negocio: la
+gente entrena y paga cuando pasa por recepción.
+
+Se hace con un interruptor y no quitando la comprobación, para poder volver
+atrás desde la propia app sin tocar la base de datos. El ajuste vive en
+Academia → Ajustes de reservas y solo lo cambia el Dueño.
+
+Lo que **no** cambia: sigue haciendo falta cuenta activa, pertenecer a la
+academia, que la clase sea futura, el aforo y la lista de espera.
+
+En la lista de la clase, quien no tiene la cuota al día sale con una pastilla
+roja «Sin cuota», hay un recuento arriba, y tocar su fila abre directamente
+el cobro en efectivo. Las condiciones que decide esa marca son **las mismas**
+que comprueba el servidor (activa, cobrada y dentro de fechas): si aquí se
+relajaran, la app diría «al corriente» de alguien a quien el servidor
+considera moroso.
+
+Cubierto por `supabase/tests/reservar_sin_cuota_test.sql` (12 comprobaciones).
+Lo que se protege ahí es que abrir esta puerta no abra ninguna otra: un
+alumno no puede tocar el ajuste, ni quitarlo en la academia de al lado, ni
+colarse en una clase que no es suya, y el Dueño sigue sin poder cambiar el
+estado de su academia por la misma vía.
+
+## 2026-07-30 — Los botones de la app son de ancho completo, y eso se nota
+
+Causa raíz de tres fallos que Cipri fue encontrando por separado: el nombre
+de la tarifa en vertical en «Mi cuota», lo mismo en Préstamos, y el nombre
+del alumno estrujado en la lista de una clase.
+
+El tema fija `minimumSize: Size.fromHeight(52)` en los botones, y
+`Size.fromHeight` deja el **ancho en infinito**. Un botón así, puesto en el
+hueco lateral de un `ListTile`, se queda todo el ancho disponible y al título
+le deja una columna de un carácter. Dentro de un `Row` directamente revienta
+con «BoxConstraints forces an infinite width».
+
+Norma: la acción va **debajo del texto, a lo ancho** (`TarjetaFila`), y si de
+verdad hace falta en línea, se acota con un `SizedBox`. `ListTile` tampoco
+admite una pastilla de estado en `subtitle`: no llega ni a medirse.

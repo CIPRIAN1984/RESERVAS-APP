@@ -77,7 +77,7 @@ export PATH=/opt/flutter/bin:$PATH
 
 - **Aislamiento por academia**: todo filtra por `current_academia_id()`. Un dueño nunca ve otra academia.
 - **`profiles` y `academias` tienen columnas revocadas**: el cliente no puede cambiarse el `rol`, el `estado` ni las columnas de Stripe. Se hizo con `revoke update` de tabla + `grant update (columnas)`. **Un `revoke` de columna suelto no sirve si ya existe un GRANT de tabla completa** — lección aprendida en la migración 0013.
-- **Reservar exige cuota activa y cobrada**: pasa por la RPC `reservar_clase`, que bloquea la fila de la clase (no se puede superar el aforo con reservas simultáneas).
+- **Reservar pasa siempre por la RPC `reservar_clase`**, que bloquea la fila de la clase (no se puede superar el aforo con reservas simultáneas). Exigir cuota activa y cobrada es **opcional por academia** (`academias.exigir_cuota_para_reservar`, por defecto `false`): decisión de Cipri de julio de 2026, prefiere que la gente se apunte igual y verlos marcados «sin cuota» en la lista de la clase para cobrarles en mano.
 - **El alta de usuario es atómica**: el trigger `handle_new_user` crea perfil y academia en la misma transacción del registro. El rol lo impone el servidor.
 - **Las suscripciones solo las activa el webhook de Stripe** con `service_role`. El alumno no puede auto-activarse.
 
