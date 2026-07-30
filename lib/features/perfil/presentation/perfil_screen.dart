@@ -127,6 +127,30 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
     }
   }
 
+  Future<void> _cerrarSesion() async {
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cerrar sesión'),
+        content: const Text(
+          'Tendrás que volver a escribir tu correo y contraseña para entrar.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cerrar sesión'),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true) return;
+    await ref.read(authRepositoryProvider).signOut();
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(currentProfileProvider);
@@ -377,6 +401,22 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                     onPressed: () => context.push(Routes.privacidad),
                     icon: const Icon(Icons.privacy_tip_outlined),
                     label: const Text('Privacidad y protección de datos'),
+                  ),
+
+                  // Cerrar sesión vive aquí, en la única pantalla que tienen
+                  // TODOS los roles. Estaba solo en Academia, que un alumno no
+                  // ve nunca y un Administrador de plataforma tampoco: se
+                  // quedaban sin poder salir ni cambiar de usuario.
+                  const SizedBox(height: 8),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: _cerrarSesion,
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.destructive,
+                    ),
+                    icon: const Icon(Icons.logout),
+                    label: const Text('Cerrar sesión'),
                   ),
                 ],
               ),

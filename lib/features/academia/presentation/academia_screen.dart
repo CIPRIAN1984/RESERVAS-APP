@@ -136,16 +136,10 @@ class AcademiaScreen extends ConsumerWidget {
           onTap: () => context.push(Routes.privacidad),
         ),
 
-        const SizedBox(height: 20),
-        const Divider(indent: 20, endIndent: 20),
-        const SizedBox(height: 4),
-
-        _Fila(
-          icono: Icons.logout,
-          texto: 'Cerrar sesión',
-          destructiva: true,
-          onTap: () => ref.read(authRepositoryProvider).signOut(),
-        ),
+        // Cerrar sesión ya no vive aquí: se movió a Perfil, la única
+        // pantalla que tienen todos los roles. Aquí solo la veía un dueño en
+        // modo Gestor, así que ni los alumnos ni el Administrador de
+        // plataforma tenían forma de salir de la app.
       ],
     );
   }
@@ -200,32 +194,26 @@ class _Bloque extends StatelessWidget {
 }
 
 class _Fila extends StatelessWidget {
-  const _Fila({
-    required this.icono,
-    required this.texto,
-    required this.onTap,
-    this.destructiva = false,
-  });
+  const _Fila({required this.icono, required this.texto, required this.onTap});
 
   final IconData icono;
   final String texto;
   final VoidCallback onTap;
-  final bool destructiva;
 
   @override
   Widget build(BuildContext context) {
-    final color = destructiva ? AppColors.destructive : AppColors.ink;
     return ListTile(
       onTap: onTap,
-      leading: Icon(icono, color: color, size: 22),
-      title: Text(texto, style: TextStyle(fontSize: 16, color: color)),
-      trailing: destructiva
-          ? null
-          : const Icon(
-              Icons.chevron_right,
-              color: AppColors.disabled,
-              size: 22,
-            ),
+      leading: Icon(icono, color: AppColors.ink, size: 22),
+      title: Text(
+        texto,
+        style: const TextStyle(fontSize: 16, color: AppColors.ink),
+      ),
+      trailing: const Icon(
+        Icons.chevron_right,
+        color: AppColors.disabled,
+        size: 22,
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20),
     );
   }
