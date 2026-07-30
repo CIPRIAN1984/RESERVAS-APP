@@ -67,4 +67,31 @@ void main() {
       expect(find.text('Tienda y material'), findsNothing);
     },
   );
+
+  // Estar dentro de la app sin poder salir es una trampa: el botón vivía
+  // solo en Academia, que un alumno no ve nunca y el Administrador de
+  // plataforma tampoco. Perfil es la única pantalla que tienen todos.
+  for (final rol in ['alumno', 'profesor', 'dueño', 'administrador']) {
+    testWidgets('un $rol puede cerrar sesión desde Perfil', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(412, 1600));
+      await tester.pumpWidget(_app(_perfil(rol: rol)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cerrar sesión'), findsOneWidget);
+    });
+  }
+
+  testWidgets('cerrar sesión pide confirmación antes de sacarte', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 1600));
+    await tester.pumpWidget(_app(_perfil(rol: 'alumno')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Cerrar sesión'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cancelar'), findsOneWidget);
+    expect(find.textContaining('volver a escribir tu correo'), findsOneWidget);
+  });
 }

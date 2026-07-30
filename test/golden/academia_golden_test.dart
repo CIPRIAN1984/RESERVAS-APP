@@ -77,7 +77,8 @@ void main() {
     expect(find.text('Equipo'), findsOneWidget);
     expect(find.text('Cobros'), findsOneWidget);
     expect(find.text('Ajustes de reservas'), findsOneWidget);
-    expect(find.text('Cerrar sesión'), findsOneWidget);
+    // Cerrar sesión vive en Perfil, que lo tienen todos los roles.
+    expect(find.text('Cerrar sesión'), findsNothing);
 
     await comparaCon(find.byType(MaterialApp), 'goldens/academia_dueno.png');
   });
@@ -92,7 +93,7 @@ void main() {
     expect(find.text('ITACA JIU JITSU'), findsOneWidget);
     expect(find.text('Ajustes de reservas'), findsNothing);
     expect(find.text('Cobros'), findsNothing);
-    // Cerrar sesión y privacidad sí, que son de cualquiera.
-    expect(find.text('Cerrar sesión'), findsOneWidget);
+    // Privacidad sí, que es de cualquiera.
+    expect(find.text('Privacidad y protección de datos'), findsOneWidget);
   });
 }
