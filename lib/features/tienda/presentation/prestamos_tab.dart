@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../app/theme/color_tokens.dart';
+import '../../../shared/widgets/pantalla.dart';
 import '../application/tienda_providers.dart';
 import 'crear_prestamo_screen.dart';
 
@@ -75,7 +76,13 @@ class PrestamosTab extends ConsumerWidget {
             );
           }
           return ListView.separated(
-            padding: const EdgeInsets.all(16),
+            // Debajo del botón flotante de registrar préstamo.
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              espacioBotonesFlotantes,
+            ),
             itemCount: prestamos.length,
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {

@@ -112,6 +112,10 @@ Las cifras que se comparan en columna llevan `FontFeature.tabularFigures()`.
 
 Cuando un destino no aplica al rol (p. ej. Herramientas para un alumno), **no se muestra** — nunca se enseña deshabilitado.
 
+**Como mucho un botón flotante por pantalla, y el de la acción principal.** En un móvil de 412 px dos botones flotantes no caben uno al lado del otro: se pisan entre ellos y tapan lo que haya debajo. El cambio de modo estuvo flotando y se llevó por delante «Reservar plaza», el final de Perfil y el propio «Crear clase»; ahora es el último sitio de la barra inferior. Lo que sea global va a la barra, no al aire.
+
+Toda lista de una pantalla **con** botón flotante lleva `espacioBotonesFlotantes` de hueco al final. Sin él, el último elemento queda debajo del botón y no se puede pulsar ninguno de los dos. En las pantallas sin botón flotante no se pone: solo dejaría un vacío.
+
 ---
 
 ## 6. Escritura de textos

@@ -135,18 +135,6 @@ class MainShell extends ConsumerWidget {
           ),
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: cambiaModo
-          ? _BotonCambioModo(
-              modo: modo,
-              onPressed: () {
-                final nuevo = ref.read(appModeProvider.notifier).alternar();
-                // Lleva al primer destino del modo nuevo para no quedarse en
-                // una pantalla que ya no está en la barra.
-                context.go(_destinosPara(profile, nuevo).first.ruta);
-              },
-            )
-          : null,
       bottomNavigationBar: DecoratedBox(
         decoration: const BoxDecoration(
           border: Border(top: BorderSide(color: AppColors.line)),
@@ -154,6 +142,13 @@ class MainShell extends ConsumerWidget {
         child: NavigationBar(
           selectedIndex: indiceActual < 0 ? 0 : indiceActual,
           onDestinationSelected: (i) {
+            // El último sitio, cuando lo hay, no es una pantalla: cambia de
+            // modo y lleva al principio del otro juego de destinos.
+            if (cambiaModo && i == destinos.length) {
+              final nuevo = ref.read(appModeProvider.notifier).alternar();
+              context.go(_destinosPara(profile, nuevo).first.ruta);
+              return;
+            }
             final destino = destinos[i];
             if (destino.ruta != location) context.go(destino.ruta);
           },
@@ -165,35 +160,18 @@ class MainShell extends ConsumerWidget {
                 label: d.etiqueta,
                 tooltip: d.etiqueta,
               ),
+            // El cambio de modo iba en un botón flotante en el centro de la
+            // pantalla, y tapaba lo que tuviera debajo: «Reservar plaza», la
+            // última fila de Perfil y el propio botón «Crear clase». En un
+            // móvil de 412 px los dos botones no caben uno al lado del otro,
+            // así que el de modo baja a la barra, donde no puede tapar nada.
+            if (cambiaModo)
+              NavigationDestination(
+                icon: const Icon(Icons.swap_horiz_outlined),
+                label: modo.etiquetaCortaCambio,
+                tooltip: modo.etiquetaCambio,
+              ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Píldora flotante para saltar de un modo al otro.
-class _BotonCambioModo extends StatelessWidget {
-  const _BotonCambioModo({required this.modo, required this.onPressed});
-
-  final AppMode modo;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      // Se despega de la barra inferior para no taparla.
-      padding: const EdgeInsets.only(bottom: 4),
-      child: FloatingActionButton.extended(
-        onPressed: onPressed,
-        elevation: 3,
-        shape: const StadiumBorder(),
-        backgroundColor: AppColors.ink,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.swap_vert, size: 20),
-        label: Text(
-          modo.etiquetaCambio,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
     );

@@ -5,6 +5,16 @@ import '../../app/theme/color_tokens.dart';
 /// Componentes de estructura del sistema de diseño I+.
 /// Ver la skill `diseno-i-plus` antes de cambiar cualquiera de estos estilos.
 
+/// Hueco que hay que dejar al final de todo lo que se desplaza.
+///
+/// Hueco que hay que dejar al final de una lista **cuando la pantalla tiene
+/// botón flotante** («Crear clase», «Tarifa», «Publicar»…). Sin él, el botón
+/// se queda encima del último elemento y no se puede pulsar ninguno de los
+/// dos. Pasó con la última clase del día, que quedaba debajo de «Crear clase».
+///
+/// En las pantallas sin botón flotante no se pone: solo dejaría un vacío.
+const double espacioBotonesFlotantes = 96;
+
 /// Cabecera estándar de pantalla: título muy marcado y, opcionalmente, una
 /// acción a la derecha y un antetítulo en monoespaciada.
 class TituloPantalla extends StatelessWidget {

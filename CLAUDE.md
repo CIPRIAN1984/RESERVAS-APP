@@ -118,7 +118,7 @@ La app adopta el diseño **I+**: claro, monocromo, con amarillo eléctrico como 
 - **Gestor** (dueño y profesor): Hoy · Herramientas · Novedades · Academia — con hueco reservado para *Miembros*
 - El **Administrador de plataforma** no tiene modos: Academias · Cambios · Perfil
 
-Un botón flotante alterna de modo, visible solo para dueño y profesor. El router bloquea las rutas de gestor a los alumnos, no solo las oculta.
+El cambio de modo es **el último sitio de la barra inferior**, visible solo para dueño y profesor (a ellos la barra les sale con cinco sitios). Estuvo en un botón flotante y hubo que quitarlo: tapaba «Reservar plaza», el final de Perfil y hasta el botón «Crear clase» de la propia pantalla — en un móvil de 412 px dos botones flotantes no caben uno al lado del otro. El router bloquea las rutas de gestor a los alumnos, no solo las oculta.
 
 Las cabeceras las pone el router con `PantallaConTitulo`, en un único sitio.
 

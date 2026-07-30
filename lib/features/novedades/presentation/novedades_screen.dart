@@ -6,6 +6,7 @@ import '../../../../app/app_mode.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/async_value_view.dart';
+import '../../../shared/widgets/pantalla.dart';
 import '../application/novedades_providers.dart';
 import '../data/novedad.dart';
 import 'crear_novedad_screen.dart';
@@ -78,6 +79,14 @@ class NovedadesScreen extends ConsumerWidget {
             )
           : null,
       body: AsyncListView<Novedad>(
+        // Quien publica tiene el botón «Publicar» flotando encima: hay que
+        // dejarle sitio para que no tape la última novedad.
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          puedePublicar ? espacioBotonesFlotantes : 16,
+        ),
         asyncValue: novedadesAsync,
         onRefresh: () async => ref.invalidate(novedadesProvider),
         emptyIcon: Icons.campaign_outlined,
