@@ -87,21 +87,21 @@ class PrestamosTab extends ConsumerWidget {
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final prestamo = prestamos[index];
-              return Card(
-                child: ListTile(
-                  title: Text(prestamo.itemDescripcion),
-                  subtitle: Text(
+              return TarjetaFila(
+                titulo: prestamo.itemDescripcion,
+                detalle:
                     '${prestamo.alumnoNombre ?? 'Alumno'} · Prestado el '
                     '${DateFormat('d MMM', 'es_ES').format(prestamo.fechaPrestamo.toLocal())}',
-                  ),
-                  trailing: prestamo.devuelto
-                      ? const Chip(label: Text('Devuelto'))
-                      : OutlinedButton(
-                          onPressed: () =>
-                              _marcarDevuelto(ref, context, prestamo.id),
-                          child: const Text('Marcar devuelto'),
-                        ),
-                ),
+                estado: prestamo.devuelto
+                    ? const PastillaEstado.exito('Devuelto')
+                    : null,
+                accion: prestamo.devuelto
+                    ? null
+                    : OutlinedButton(
+                        onPressed: () =>
+                            _marcarDevuelto(ref, context, prestamo.id),
+                        child: const Text('Marcar devuelto'),
+                      ),
               );
             },
           );

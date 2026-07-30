@@ -5,8 +5,6 @@ import '../../app/theme/color_tokens.dart';
 /// Componentes de estructura del sistema de diseño I+.
 /// Ver la skill `diseno-i-plus` antes de cambiar cualquiera de estos estilos.
 
-/// Hueco que hay que dejar al final de todo lo que se desplaza.
-///
 /// Hueco que hay que dejar al final de una lista **cuando la pantalla tiene
 /// botón flotante** («Crear clase», «Tarifa», «Publicar»…). Sin él, el botón
 /// se queda encima del último elemento y no se puede pulsar ninguno de los
@@ -264,6 +262,74 @@ class PuntoCinturon extends StatelessWidget {
               : null,
         ),
       ),
+    );
+  }
+}
+
+/// Fila de lista con título, una línea de detalle y, si procede, una acción o
+/// un estado.
+///
+/// Existe para no volver a usar `ListTile` con un botón en `trailing`. El
+/// hueco lateral del ListTile se lo queda entero el botón y al título le deja
+/// una columna de un carácter: el nombre sale en vertical, una letra por
+/// línea. Pasó en «Mi cuota» y en Préstamos. Aquí el texto ocupa siempre la
+/// fila completa y la acción va debajo, a ancho completo.
+class TarjetaFila extends StatelessWidget {
+  const TarjetaFila({
+    required this.titulo,
+    this.detalle,
+    this.estado,
+    this.accion,
+    this.onTap,
+    super.key,
+  });
+
+  final String titulo;
+  final String? detalle;
+
+  /// Pastilla de estado, cuando la fila solo informa (Devuelto, Reservado…).
+  final Widget? estado;
+
+  /// Botón de ancho completo debajo del texto.
+  final Widget? accion;
+
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final contenido = Padding(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(titulo, style: t.titleMedium),
+          if (detalle != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              detalle!,
+              style: t.bodyMedium?.copyWith(color: AppColors.subtle),
+            ),
+          ],
+          if (estado != null) ...[
+            const SizedBox(height: 12),
+            // Alineada a la izquierda: la pastilla mide lo que dice, no todo
+            // el ancho.
+            Align(alignment: Alignment.centerLeft, child: estado!),
+          ],
+          if (accion != null) ...[const SizedBox(height: 14), accion!],
+        ],
+      ),
+    );
+
+    return Card(
+      child: onTap == null
+          ? contenido
+          : InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: onTap,
+              child: contenido,
+            ),
     );
   }
 }
