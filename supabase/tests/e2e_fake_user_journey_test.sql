@@ -307,6 +307,21 @@ select is(
   'El Alumno ve la clase de su academia en el calendario'
 );
 
+-- Desde julio de 2026 exigir la cuota por delante es un ajuste de cada
+-- academia, apagado por defecto. Esta lo enciende, que es lo que da sentido
+-- al paso siguiente y a la promoción desde la lista de espera de más abajo.
+select pg_temp.actuar_como(
+  '00000000-0000-0000-0000-00000000ef02'
+);
+
+update public.academias
+   set exigir_cuota_para_reservar = true
+ where id = public.current_academia_id();
+
+select pg_temp.actuar_como(
+  '00000000-0000-0000-0000-00000000ef04'
+);
+
 select throws_ok(
   $$ select public.reservar_clase(
        '00000000-0000-0000-0000-00000000efc1'

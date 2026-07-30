@@ -8,8 +8,14 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-000000000c03', 'paid-two@test.dev'),
   ('00000000-0000-0000-0000-000000000c04', 'unpaid@test.dev');
 
-insert into public.academias (id, nombre, estado) values
-  ('00000000-0000-0000-0000-0000000000CC', 'Academia Hardening', 'approved');
+-- Esta suite comprueba la regla estricta: sin cuota no se reserva. Desde
+-- julio de 2026 eso es un ajuste de cada academia y viene apagado por
+-- defecto, así que aquí se enciende a propósito. El comportamiento por
+-- defecto lo cubre `reservar_sin_cuota_test.sql`.
+insert into public.academias
+  (id, nombre, estado, exigir_cuota_para_reservar) values
+  ('00000000-0000-0000-0000-0000000000CC', 'Academia Hardening', 'approved',
+   true);
 
 insert into public.profiles (id, academia_id, rol, nombre, estado) values
   ('00000000-0000-0000-0000-000000000c01', '00000000-0000-0000-0000-0000000000CC', 'dueño', 'Dueño', 'activo'),

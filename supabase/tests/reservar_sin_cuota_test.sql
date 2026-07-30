@@ -136,25 +136,22 @@ select throws_ok(
 
 reset role;
 
-with nueva_tarifa as (
-  insert into public.tarifas
-    (academia_id, nombre, precio, periodicidad, activo)
-  values ('00000000-0000-0000-0000-0000000ac0bb', 'Mensual B', 50, 'mensual',
-          true)
-  returning id
-)
-insert into public.suscripciones
-  (alumno_id, academia_id, tarifa_id, proveedor_pago, referencia_externa)
-select '00000000-0000-0000-0000-0000000ac202',
-       '00000000-0000-0000-0000-0000000ac0bb',
-       id, 'efectivo', null
-  from nueva_tarifa;
+insert into public.tarifas
+  (id, academia_id, nombre, precio, periodicidad, activo)
+values ('00000000-0000-0000-0000-0000000ac0f1'::uuid,
+        '00000000-0000-0000-0000-0000000ac0bb', 'Mensual B', 50, 'mensual',
+        true);
 
--- El disparador de altas deja toda suscripción nueva en pendiente_pago: se
--- activa después, igual que hace `activar_cuota_efectivo`.
-update public.suscripciones
-   set estado = 'activa', payment_status = 'active'
- where alumno_id = '00000000-0000-0000-0000-0000000ac202';
+-- La cuota se da por la vía real, la del Dueño cobrando en mano. A pelo no
+-- se puede: el disparador `check_suscripcion_estado_transicion` impide que
+-- nadie active una suscripción por su cuenta, que es justo lo que evita que
+-- un alumno se dé cuota a sí mismo.
+select pg_temp.actuar_como('00000000-0000-0000-0000-0000000ac201');
+select public.activar_cuota_efectivo(
+  '00000000-0000-0000-0000-0000000ac202',
+  '00000000-0000-0000-0000-0000000ac0f1',
+  now() + interval '30 days'
+);
 
 select pg_temp.actuar_como('00000000-0000-0000-0000-0000000ac202');
 
