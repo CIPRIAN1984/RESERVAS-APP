@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../app/theme/color_tokens.dart';
+import '../../../shared/widgets/pantalla.dart';
 import '../application/tienda_providers.dart';
 
 class MisPedidosTab extends ConsumerWidget {
@@ -41,15 +42,12 @@ class MisPedidosTab extends ConsumerWidget {
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final pedido = pedidos[index];
-              return Card(
-                child: ListTile(
-                  title: Text(pedido.productoNombre ?? 'Producto'),
-                  subtitle: Text(
+              return TarjetaFila(
+                titulo: pedido.productoNombre ?? 'Producto',
+                detalle:
                     'x${pedido.cantidad} · ${pedido.precioSnapshot.toStringAsFixed(2)} € · '
                     '${DateFormat('d MMM', 'es_ES').format(pedido.createdAt.toLocal())}',
-                  ),
-                  trailing: Chip(label: Text(_etiquetaEstado(pedido.estado))),
-                ),
+                estado: _pastilla(pedido.estado),
               );
             },
           ),
@@ -58,12 +56,14 @@ class MisPedidosTab extends ConsumerWidget {
     );
   }
 
-  String _etiquetaEstado(String estado) => switch (estado) {
-    'pendiente_pago' => 'Pago en proceso',
-    'reservado' => 'Reservado',
-    'confirmado' => 'Confirmado',
-    'entregado' => 'Entregado',
-    'cancelado' => 'Cancelado',
-    _ => estado,
+  /// El color aquí significa algo: entregado y confirmado en verde, cancelado
+  /// en rojo, el pago a medias en ámbar.
+  Widget _pastilla(String estado) => switch (estado) {
+    'pendiente_pago' => const PastillaEstado.aviso('Pago en proceso'),
+    'reservado' => const PastillaEstado.info('Reservado'),
+    'confirmado' => const PastillaEstado.exito('Confirmado'),
+    'entregado' => const PastillaEstado.exito('Entregado'),
+    'cancelado' => const PastillaEstado.error('Cancelado'),
+    _ => PastillaEstado(estado),
   };
 }

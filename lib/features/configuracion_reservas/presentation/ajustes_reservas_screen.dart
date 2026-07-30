@@ -56,6 +56,7 @@ class _ConfiguracionForm extends ConsumerStatefulWidget {
 
 class _ConfiguracionFormState extends ConsumerState<_ConfiguracionForm> {
   late bool _listaEsperaActiva;
+  late bool _exigirCuota;
   late String _zonaHoraria;
   late final TextEditingController _horasController;
   bool _guardando = false;
@@ -64,6 +65,7 @@ class _ConfiguracionFormState extends ConsumerState<_ConfiguracionForm> {
   void initState() {
     super.initState();
     _listaEsperaActiva = widget.configuracion.listaEsperaActiva;
+    _exigirCuota = widget.configuracion.exigirCuotaParaReservar;
     _zonaHoraria = widget.configuracion.zonaHoraria;
     _horasController = TextEditingController(
       text: widget.configuracion.cancelacionLimiteHoras.toString(),
@@ -96,6 +98,7 @@ class _ConfiguracionFormState extends ConsumerState<_ConfiguracionForm> {
             listaEsperaActiva: _listaEsperaActiva,
             cancelacionLimiteMinutos: horas * 60,
             zonaHoraria: _zonaHoraria,
+            exigirCuotaParaReservar: _exigirCuota,
           );
       ref.invalidate(configuracionReservasProvider(widget.academiaId));
       if (mounted) {
@@ -145,6 +148,24 @@ class _ConfiguracionFormState extends ConsumerState<_ConfiguracionForm> {
             subtitle: const Text(
               'Si una clase está llena, la siguiente persona entra en cola y '
               'recibe la plaza automáticamente cuando alguien cancela.',
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          child: SwitchListTile(
+            value: _exigirCuota,
+            onChanged: _guardando
+                ? null
+                : (value) {
+                    setState(() => _exigirCuota = value);
+                  },
+            title: const Text('Exigir cuota para reservar'),
+            subtitle: const Text(
+              'Apagado, cualquiera puede apuntarse a clase aunque no haya '
+              'pagado, y lo verás marcado en rojo en la lista de la clase '
+              'para cobrarle en mano. Encendido, solo reserva quien está al '
+              'corriente.',
             ),
           ),
         ),

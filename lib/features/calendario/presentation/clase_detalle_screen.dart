@@ -5,6 +5,9 @@ import 'package:intl/intl.dart';
 
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
+import '../../../core/models/profile.dart';
+import '../../../shared/widgets/pantalla.dart';
+import '../../equipo/presentation/dar_cuota_sheet.dart';
 import '../application/clases_providers.dart';
 import '../data/clase_resumen.dart';
 import '../data/clases_repository.dart';
@@ -68,41 +71,109 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
     }
   }
 
+  /// Cobrar en mano sin salir de la lista de la clase: es el recorrido que
+  /// pidió Cipri —ve quién no ha pagado y le cobra ahí mismo—, en vez de
+  /// tener que memorizar el nombre e ir a buscarlo a Equipo.
+  Future<void> _cobrarEnMano(InscritoAlumno alumno) async {
+    // Con `.value` esto se quedaba en null cuando el perfil aún no estaba
+    // resuelto y el cobro no llegaba a abrirse: hay que esperarlo. La
+    // academia la vuelve a comprobar el servidor de todos modos.
+    final academiaId = (await ref.read(
+      currentProfileProvider.future,
+    ))?.academiaId;
+    if (!mounted) return;
+
+    final cobrado = await mostrarDarCuota(
+      context,
+      Profile(
+        id: alumno.alumnoId,
+        academiaId: academiaId,
+        rol: 'alumno',
+        nombre: alumno.nombre,
+        apellidos: alumno.apellidos,
+        estado: 'activo',
+      ),
+    );
+    if (cobrado) _recargar();
+  }
+
   Widget _buildInscrito(
     BuildContext context,
     InscritoAlumno alumno,
     String? userId,
   ) {
     final marcando = _marcando.contains(alumno.alumnoId);
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: AppColors.surface,
-        backgroundImage: alumno.fotoUrl != null
-            ? CachedNetworkImageProvider(alumno.fotoUrl!)
-            : null,
-        child: alumno.fotoUrl == null
-            ? const Icon(Icons.person, color: AppColors.subtle)
-            : null,
-      ),
-      title: Text(alumno.nombreCompleto),
-      subtitle: alumno.cinturon != null
-          ? Text('Cinturón ${alumno.cinturon}')
-          : null,
-      trailing: alumno.asistenciaValidada
-          ? const Icon(Icons.check_circle, color: AppColors.successFg)
-          : marcando
-          ? const SizedBox(
+
+    // Fila a mano en vez de ListTile: el hueco lateral del ListTile no admite
+    // más que texto corto —con la pastilla de impago dentro ni siquiera
+    // llegaba a medirse— y el botón «Validar» le comía el ancho al nombre.
+    final fila = Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: AppColors.surface,
+            backgroundImage: alumno.fotoUrl != null
+                ? CachedNetworkImageProvider(alumno.fotoUrl!)
+                : null,
+            child: alumno.fotoUrl == null
+                ? const Icon(Icons.person, color: AppColors.subtle)
+                : null,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  alumno.nombreCompleto,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                // La marca de impago manda sobre el cinturón: es lo que hay
+                // que hacer algo al respecto.
+                if (alumno.sinCuota)
+                  const PastillaEstado.error('Sin cuota')
+                else if (alumno.cinturon != null)
+                  Text(
+                    'Cinturón ${alumno.cinturon}',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          if (alumno.asistenciaValidada)
+            const Icon(Icons.check_circle, color: AppColors.successFg)
+          else if (marcando)
+            const SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : OutlinedButton(
-              onPressed: userId == null
-                  ? null
-                  : () => _marcarAsistencia(alumno, userId),
-              child: const Text('Validar'),
+          else
+            // Acotado a propósito: por tema, los botones de la app son de
+            // ancho completo (`minimumSize: Size.fromHeight`, y eso deja el
+            // ancho en infinito). Suelto dentro de una fila, se lo queda
+            // todo y deja el nombre en una columna de una letra.
+            SizedBox(
+              width: 110,
+              child: OutlinedButton(
+                onPressed: userId == null
+                    ? null
+                    : () => _marcarAsistencia(alumno, userId),
+                child: const Text('Validar'),
+              ),
             ),
+        ],
+      ),
     );
+
+    // Tocar a quien no ha pagado abre el cobro en efectivo.
+    if (!alumno.sinCuota) return fila;
+    return InkWell(onTap: () => _cobrarEnMano(alumno), child: fila);
   }
 
   Widget _buildEspera(InscritoAlumno alumno, int posicion) {
@@ -149,6 +220,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
               const ParticipantesClase(inscritos: [], listaEspera: []);
           final inscritos = participantes.inscritos;
           final listaEspera = participantes.listaEspera;
+          final sinCuota = inscritos.where((a) => a.sinCuota).length;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,6 +241,16 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                         context,
                       ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
                     ),
+                    // Cuántos hay que cobrar, sin tener que repasar la lista.
+                    if (sinCuota > 0) ...[
+                      const SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: PastillaEstado.error(
+                          sinCuota == 1 ? '1 sin cuota' : '$sinCuota sin cuota',
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

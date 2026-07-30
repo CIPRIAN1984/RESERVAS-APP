@@ -129,6 +129,14 @@ class ClasesRepository {
                 .eq('clase_id', claseId)
             as List;
     final validados = asistencias.map((a) => a['alumno_id'] as String).toSet();
+
+    final alConteAlDia = await _alumnosConCuotaAlDia(
+      inscripciones
+          .cast<Map<String, dynamic>>()
+          .map((row) => row['alumno_id'] as String)
+          .toList(),
+    );
+
     final inscritos = <InscritoAlumno>[];
     final listaEspera = <InscritoAlumno>[];
 
@@ -138,6 +146,7 @@ class ClasesRepository {
       final alumno = InscritoAlumno.fromInscripcionJson(
         row,
         asistenciaValidada: !enEspera && validados.contains(row['alumno_id']),
+        sinCuota: !alConteAlDia.contains(row['alumno_id']),
       );
       if (enEspera) {
         listaEspera.add(alumno);
@@ -147,6 +156,31 @@ class ClasesRepository {
     }
 
     return ParticipantesClase(inscritos: inscritos, listaEspera: listaEspera);
+  }
+
+  /// Quién de estos alumnos tiene la cuota al día.
+  ///
+  /// Las condiciones son **las mismas** que comprueba `reservar_clase` en el
+  /// servidor: activa, cobrada y dentro de fechas. Si aquí se relajaran, la
+  /// lista de la clase diría «al corriente» de alguien a quien el servidor
+  /// considera moroso.
+  Future<Set<String>> _alumnosConCuotaAlDia(List<String> alumnoIds) async {
+    if (alumnoIds.isEmpty) return const {};
+    final ahora = DateTime.now().toUtc().toIso8601String();
+    final rows =
+        await _client
+                .from('suscripciones')
+                .select('alumno_id')
+                .inFilter('alumno_id', alumnoIds)
+                .eq('estado', 'activa')
+                .eq('payment_status', 'active')
+                .lte('fecha_inicio', ahora)
+                .or('fecha_fin.is.null,fecha_fin.gt.$ahora')
+            as List;
+    return rows
+        .cast<Map<String, dynamic>>()
+        .map((row) => row['alumno_id'] as String)
+        .toSet();
   }
 
   Future<List<InscritoAlumno>> listarInscritos(String claseId) async {

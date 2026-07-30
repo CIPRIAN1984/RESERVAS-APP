@@ -10,7 +10,10 @@ class ConfiguracionReservasRepository {
   Future<ConfiguracionReservas> obtener(String academiaId) async {
     final row = await _client
         .from('academias')
-        .select('lista_espera_activa, cancelacion_limite_minutos, zona_horaria')
+        .select(
+          'lista_espera_activa, cancelacion_limite_minutos, zona_horaria, '
+          'exigir_cuota_para_reservar',
+        )
         .eq('id', academiaId)
         .single();
     return ConfiguracionReservas.fromJson(row);
@@ -21,6 +24,7 @@ class ConfiguracionReservasRepository {
     required bool listaEsperaActiva,
     required int cancelacionLimiteMinutos,
     required String zonaHoraria,
+    required bool exigirCuotaParaReservar,
   }) async {
     await _client
         .from('academias')
@@ -28,6 +32,7 @@ class ConfiguracionReservasRepository {
           'lista_espera_activa': listaEsperaActiva,
           'cancelacion_limite_minutos': cancelacionLimiteMinutos,
           'zona_horaria': zonaHoraria,
+          'exigir_cuota_para_reservar': exigirCuotaParaReservar,
         })
         .eq('id', academiaId);
   }
