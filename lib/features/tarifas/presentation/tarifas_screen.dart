@@ -373,6 +373,20 @@ class _TarifasGestionView extends ConsumerWidget {
                     '${etiquetasPeriodicidad[tarifa.periodicidad] ?? ''}'
                     ' · ${etiquetaClasesIncluidas(tarifa.clasesIncluidas)}',
                   ),
+                  // Tocar la fila abre la tarifa para cambiarla. El
+                  // interruptor solo la retira, que es otra cosa.
+                  onTap: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => CrearTarifaScreen(
+                          academiaId: academiaId,
+                          tarifa: tarifa,
+                        ),
+                      ),
+                    );
+                    ref.invalidate(tarifasProvider(false));
+                    ref.invalidate(tarifasProvider(true));
+                  },
                   trailing: Switch(
                     value: tarifa.activo,
                     onChanged: (_) => _alternarActivo(ref, tarifa),

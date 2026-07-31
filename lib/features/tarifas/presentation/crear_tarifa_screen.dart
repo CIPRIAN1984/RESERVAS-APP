@@ -2,11 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/tarifas_providers.dart';
+import '../data/tarifa.dart';
 
+/// Crear una tarifa, o **editar una que ya existe**.
+///
+/// Es la misma pantalla porque los campos son los mismos. Sin la parte de
+/// editar, las tarifas que ya estaban creadas se quedarían para siempre sin
+/// número de clases: solo se podían encender y apagar.
 class CrearTarifaScreen extends ConsumerStatefulWidget {
-  const CrearTarifaScreen({required this.academiaId, super.key});
+  const CrearTarifaScreen({required this.academiaId, this.tarifa, super.key});
 
   final String academiaId;
+
+  /// Si viene, se edita esa; si no, se crea una nueva.
+  final Tarifa? tarifa;
 
   @override
   ConsumerState<CrearTarifaScreen> createState() => _CrearTarifaScreenState();
@@ -18,10 +27,26 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
   final _descripcionController = TextEditingController();
   final _precioController = TextEditingController();
   final _clasesController = TextEditingController();
-  String _periodicidad = 'mensual';
-  bool _ilimitada = false;
+  late String _periodicidad;
+  late bool _ilimitada;
   bool _guardando = false;
   String? _error;
+
+  bool get _editando => widget.tarifa != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final t = widget.tarifa;
+    _periodicidad = t?.periodicidad ?? 'mensual';
+    _ilimitada = t != null && t.clasesIncluidas == null;
+    if (t != null) {
+      _nombreController.text = t.nombre;
+      _descripcionController.text = t.descripcion ?? '';
+      _precioController.text = t.precio.toString();
+      _clasesController.text = t.clasesIncluidas?.toString() ?? '';
+    }
+  }
 
   @override
   void dispose() {
@@ -38,22 +63,38 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
       _guardando = true;
       _error = null;
     });
+    final descripcion = _descripcionController.text.trim();
+    final clases = _ilimitada
+        ? null
+        : int.tryParse(_clasesController.text.trim());
     try {
-      await ref
-          .read(tarifasRepositoryProvider)
-          .crearTarifa(
-            academiaId: widget.academiaId,
-            nombre: _nombreController.text.trim(),
-            descripcion: _descripcionController.text.trim(),
-            precio: num.parse(_precioController.text.trim()),
-            periodicidad: _periodicidad,
-            clasesIncluidas: _ilimitada
-                ? null
-                : int.tryParse(_clasesController.text.trim()),
-          );
+      final repo = ref.read(tarifasRepositoryProvider);
+      if (_editando) {
+        await repo.actualizarTarifa(
+          tarifaId: widget.tarifa!.id,
+          nombre: _nombreController.text.trim(),
+          descripcion: descripcion.isEmpty ? null : descripcion,
+          precio: num.parse(_precioController.text.trim()),
+          periodicidad: _periodicidad,
+          clasesIncluidas: clases,
+        );
+      } else {
+        await repo.crearTarifa(
+          academiaId: widget.academiaId,
+          nombre: _nombreController.text.trim(),
+          descripcion: descripcion,
+          precio: num.parse(_precioController.text.trim()),
+          periodicidad: _periodicidad,
+          clasesIncluidas: clases,
+        );
+      }
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      setState(() => _error = 'No se ha podido crear la tarifa.');
+      setState(
+        () => _error = _editando
+            ? 'No se ha podido guardar la tarifa.'
+            : 'No se ha podido crear la tarifa.',
+      );
     } finally {
       if (mounted) setState(() => _guardando = false);
     }
@@ -62,7 +103,7 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nueva tarifa')),
+      appBar: AppBar(title: Text(_editando ? 'Editar tarifa' : 'Nueva tarifa')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -97,6 +138,10 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   initialValue: _periodicidad,
+                  // Sin esto el desplegable se ajusta al texto más largo y se
+                  // sale por la derecha: «Suelta (pago único)» desbordaba
+                  // 15 px en un móvil de 412.
+                  isExpanded: true,
                   decoration: const InputDecoration(labelText: 'Periodicidad'),
                   items: const [
                     DropdownMenuItem(value: 'mensual', child: Text('Mensual')),
@@ -161,7 +206,7 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Crear tarifa'),
+                      : Text(_editando ? 'Guardar cambios' : 'Crear tarifa'),
                 ),
               ],
             ),
