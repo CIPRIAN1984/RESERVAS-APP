@@ -129,7 +129,7 @@ Las cabeceras las pone el router con `PantallaConTitulo`, en un único sitio.
 ## 7. Verificación
 
 - `flutter analyze` sin ningún aviso y `flutter test` en verde son el mínimo.
-- Las pruebas de base de datos son **pgTAP** en `supabase/tests/` (9 suites). Se ejecutan en CI con `supabase test db`.
+- Las pruebas de base de datos son **pgTAP** en `supabase/tests/` (11 suites). Se ejecutan en CI con `supabase test db`.
 - **Para cambios visuales no basta con que compile**: hay que mirarlo renderizado. Hay un banco de pruebas visual en `test/golden/` que dibuja pantallas con las tipografías reales y guarda la imagen (`flutter test --update-goldens test/golden`). Invoca la skill `verificar-app`.
 - CI (GitHub Actions): formato, análisis, deriva de codegen, tests, build web, pgTAP y escaneo de secretos.
 
@@ -146,3 +146,70 @@ Las cabeceras las pone el router con `PantallaConTitulo`, en un único sitio.
 | `MOBILE_RELEASE.md` | Publicación en Android/iOS |
 
 Manténlos al día cuando cambien las cosas que describen.
+
+---
+
+## 9. Protocolo de trabajo (grafo, bucle y arnés)
+
+Adaptado de la plantilla que trajo Cipri el 30/07/2026. **Los papeles están al
+revés en la plantilla original**: allí el usuario ejecuta y la IA aconseja.
+Aquí es al contrario — Claude tiene el repositorio, la terminal, Supabase,
+GitHub y Vercel; Cipri decide producto y prueba en el móvil. Lo que sigue es
+la versión que sí encaja con este montaje.
+
+### 9.1 Memoria (amnesia cero)
+
+- Cada sesión empieza **sin recordar nada**. El único mapa son `CLAUDE.md` y
+  `DECISIONS.md`. Si algo no está escrito ahí, en la próxima sesión no existe.
+- **Escribe la decisión antes de escribir el código**, no después. Si a mitad
+  de una tanda se decide una regla de negocio, va a `DECISIONS.md` en ese
+  momento. Perder la decisión cuesta mucho más que perder el código.
+- Lee del repositorio lo que necesites — es gratis y es la fuente de verdad.
+  A Cipri se le pide **solo lo que únicamente él puede dar**: qué debe hacer
+  el producto y qué ve en su móvil.
+
+### 9.2 Aristas falsas (qué depende de qué de verdad)
+
+- Antes de encadenar A → B, pregúntate: **¿B necesita algo que produce A?**
+  Si no, van en paralelo o en cualquier orden.
+- Ejemplos reales de este repositorio:
+  - **Arista de verdad:** la migración va **antes** del merge. Al revés, la
+    web pide una columna que aún no existe.
+  - **Arista falsa:** documentación y pruebas. Se hacían seguidas por
+    costumbre; no dependen entre sí.
+- **Fontanería al código, criterio a la IA.** Formatear, mapear campos o
+  elegir una ruta se resuelve con una línea de Dart o de SQL, no razonando.
+
+### 9.3 Bucle de evidencia
+
+- **No des nada por bueno porque el código se vea bien.** Todo cambio va con
+  dos respuestas:
+  1. ¿Cómo se prueba que funciona? (el comando exacto)
+  2. ¿Cómo se prueba que **fallaría** si estuviera mal?
+- La segunda es la que vale: **deshaz el arreglo a propósito y comprueba que
+  la prueba se pone roja.** Sin eso no sabes si la prueba mira donde debe. En
+  julio de 2026 esto cazó dos pruebas que pasaban por el motivo equivocado.
+- **Freno de dos intentos.** Si un enfoque falla dos veces seguidas, no lo
+  intentes una tercera: declara que ese camino no va y cambia de estrategia.
+  Pasó con el botón de cambio de modo — moverlo de sitio falló dos veces
+  hasta aceptar que sobraba un botón flotante, no que estuviera mal puesto.
+
+### 9.4 Filtros antes de entregar
+
+Antes de dar por cerrado un bloque grande, míralo desde tres ángulos
+independientes:
+
+1. **Integridad:** ¿rompe datos, permisos o el aislamiento entre academias?
+2. **Rendimiento:** ¿mete una consulta por fila, o un redibujado de más?
+3. **Mantenimiento:** ¿respeta la skill `diseno-i-plus` y lo ya decidido?
+
+**Un PR, un tema.** Los cambios de un PR pueden tocar varios ficheros si son
+la misma cosa (modelo + repositorio + pantalla + prueba), pero **no mezcles
+dos temas** en el mismo PR: si uno se cae, se cae el otro.
+
+### 9.5 Comunicación
+
+La plantilla pedía «sin preámbulos, respuestas en diff». **Eso no se aplica
+aquí**: Cipri no lee Dart y un diff no le dice nada. Lo que sí se aplica es
+ser breve y concreto — sin cortesías de relleno, sin repetir lo ya dicho, y
+con la estructura de §0: qué se ha hecho, qué tiene que hacer él, qué queda.
