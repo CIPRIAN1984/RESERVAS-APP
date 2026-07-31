@@ -176,3 +176,45 @@ con «BoxConstraints forces an infinite width».
 Norma: la acción va **debajo del texto, a lo ancho** (`TarjetaFila`), y si de
 verdad hace falta en línea, se acota con un `SizedBox`. `ListTile` tampoco
 admite una pastilla de estado en `subtitle`: no llega ni a medirse.
+
+## 2026-07-31 — Las tarifas pasan a llevar clases por ciclo
+
+Hasta ahora una tarifa era nombre, precio y periodicidad: cuota plana, sin
+límite de clases. **No era como funciona el negocio.** Cipri lo describió así:
+«2 días por semana son 8 al mes, 3 por semana son 12; si la tarifa empieza el
+5 de mayo, hasta el 5 de junio puede gastar las que tiene».
+
+Decisiones tomadas con él el 30 y 31 de julio de 2026:
+
+- **El ciclo es mensual y va de fecha a fecha**, no por mes natural. Del 5 de
+  mayo al 5 de junio. `clases_incluidas` es **por mes**, no por periodo de
+  cobro: una tarifa trimestral no da 24 clases de golpe, da 8 cada mes y se
+  cobra cada tres. La periodicidad es de **facturación**; las clases van por
+  mes.
+- **Lo que sobra se pierde** al renovar. No se acumula.
+- **`clases_incluidas` a NULL significa ilimitada.**
+- **Sin clases no se puede reservar.** La app lo rechaza y le dice que renueve
+  o compre sueltas.
+- **Descuenta el profesor al confirmar la clase**, no el alumno al reservar. Y
+  confirma a todos los apuntados, **vengan o no**: quien reserva y no aparece
+  pierde la clase igual. Puede cancelar hasta 1 hora antes. Es deliberado:
+  sin eso, la gente reservaría toda la semana y vendría cuando quisiera.
+- **Pasar lista no es marcar ausentes**, es comprobar que todo el que está en
+  el tatami está apuntado — o sea, que ha pagado.
+
+**El agujero que esto deja, y cómo se tapa.** Si la clase solo se descuenta al
+confirmar, alguien con 1 clase suelta puede reservar las 8 de la semana: al
+reservar, el contador todavía no ha bajado. Por eso el número que decide si
+puede reservar descuenta **también lo que ya tiene reservado en este ciclo**.
+El descuento de verdad sigue siendo el del profesor; lo reservado solo
+bloquea. Así «te quedan 6» es un número honesto y nadie acapara plazas.
+
+**Se cuenta por la fecha de la clase, no por la de validación.** Si el
+profesor pasa lista dos días tarde, la clase cuenta en el ciclo en el que se
+dio, no en el que se apuntó.
+
+**Cobro recurrente con tarjeta: no todavía.** Cipri quiere que las tarifas se
+cobren solas cada mes hasta que él dé de baja. Eso es Stripe, y Stripe sigue
+sin conectar a cobros reales. Se construye primero todo el mecanismo
+funcionando con **cobro en mano**, que es lo que permite probarlo con gente de
+verdad en paralelo con MAAT.
