@@ -15,7 +15,11 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Tarifa {
 
- String get id;@JsonKey(name: 'academia_id') String get academiaId; String get nombre; String? get descripcion; num get precio; String get periodicidad; bool get activo;
+ String get id;@JsonKey(name: 'academia_id') String get academiaId; String get nombre; String? get descripcion; num get precio; String get periodicidad; bool get activo;/// Clases que da **al mes**. `null` = ilimitada.
+///
+/// Es por mes aunque la tarifa se cobre cada 3 o cada 12: la periodicidad
+/// es de facturación, las clases van por ciclo mensual.
+@JsonKey(name: 'clases_incluidas') int? get clasesIncluidas;
 /// Create a copy of Tarifa
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +32,16 @@ $TarifaCopyWith<Tarifa> get copyWith => _$TarifaCopyWithImpl<Tarifa>(this as Tar
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Tarifa&&(identical(other.id, id) || other.id == id)&&(identical(other.academiaId, academiaId) || other.academiaId == academiaId)&&(identical(other.nombre, nombre) || other.nombre == nombre)&&(identical(other.descripcion, descripcion) || other.descripcion == descripcion)&&(identical(other.precio, precio) || other.precio == precio)&&(identical(other.periodicidad, periodicidad) || other.periodicidad == periodicidad)&&(identical(other.activo, activo) || other.activo == activo));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Tarifa&&(identical(other.id, id) || other.id == id)&&(identical(other.academiaId, academiaId) || other.academiaId == academiaId)&&(identical(other.nombre, nombre) || other.nombre == nombre)&&(identical(other.descripcion, descripcion) || other.descripcion == descripcion)&&(identical(other.precio, precio) || other.precio == precio)&&(identical(other.periodicidad, periodicidad) || other.periodicidad == periodicidad)&&(identical(other.activo, activo) || other.activo == activo)&&(identical(other.clasesIncluidas, clasesIncluidas) || other.clasesIncluidas == clasesIncluidas));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,academiaId,nombre,descripcion,precio,periodicidad,activo);
+int get hashCode => Object.hash(runtimeType,id,academiaId,nombre,descripcion,precio,periodicidad,activo,clasesIncluidas);
 
 @override
 String toString() {
-  return 'Tarifa(id: $id, academiaId: $academiaId, nombre: $nombre, descripcion: $descripcion, precio: $precio, periodicidad: $periodicidad, activo: $activo)';
+  return 'Tarifa(id: $id, academiaId: $academiaId, nombre: $nombre, descripcion: $descripcion, precio: $precio, periodicidad: $periodicidad, activo: $activo, clasesIncluidas: $clasesIncluidas)';
 }
 
 
@@ -48,7 +52,7 @@ abstract mixin class $TarifaCopyWith<$Res>  {
   factory $TarifaCopyWith(Tarifa value, $Res Function(Tarifa) _then) = _$TarifaCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'academia_id') String academiaId, String nombre, String? descripcion, num precio, String periodicidad, bool activo
+ String id,@JsonKey(name: 'academia_id') String academiaId, String nombre, String? descripcion, num precio, String periodicidad, bool activo,@JsonKey(name: 'clases_incluidas') int? clasesIncluidas
 });
 
 
@@ -65,7 +69,7 @@ class _$TarifaCopyWithImpl<$Res>
 
 /// Create a copy of Tarifa
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? academiaId = null,Object? nombre = null,Object? descripcion = freezed,Object? precio = null,Object? periodicidad = null,Object? activo = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? academiaId = null,Object? nombre = null,Object? descripcion = freezed,Object? precio = null,Object? periodicidad = null,Object? activo = null,Object? clasesIncluidas = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,academiaId: null == academiaId ? _self.academiaId : academiaId // ignore: cast_nullable_to_non_nullable
@@ -74,7 +78,8 @@ as String,descripcion: freezed == descripcion ? _self.descripcion : descripcion 
 as String?,precio: null == precio ? _self.precio : precio // ignore: cast_nullable_to_non_nullable
 as num,periodicidad: null == periodicidad ? _self.periodicidad : periodicidad // ignore: cast_nullable_to_non_nullable
 as String,activo: null == activo ? _self.activo : activo // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,clasesIncluidas: freezed == clasesIncluidas ? _self.clasesIncluidas : clasesIncluidas // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 
@@ -159,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'academia_id')  String academiaId,  String nombre,  String? descripcion,  num precio,  String periodicidad,  bool activo)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'academia_id')  String academiaId,  String nombre,  String? descripcion,  num precio,  String periodicidad,  bool activo, @JsonKey(name: 'clases_incluidas')  int? clasesIncluidas)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Tarifa() when $default != null:
-return $default(_that.id,_that.academiaId,_that.nombre,_that.descripcion,_that.precio,_that.periodicidad,_that.activo);case _:
+return $default(_that.id,_that.academiaId,_that.nombre,_that.descripcion,_that.precio,_that.periodicidad,_that.activo,_that.clasesIncluidas);case _:
   return orElse();
 
 }
@@ -180,10 +185,10 @@ return $default(_that.id,_that.academiaId,_that.nombre,_that.descripcion,_that.p
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'academia_id')  String academiaId,  String nombre,  String? descripcion,  num precio,  String periodicidad,  bool activo)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'academia_id')  String academiaId,  String nombre,  String? descripcion,  num precio,  String periodicidad,  bool activo, @JsonKey(name: 'clases_incluidas')  int? clasesIncluidas)  $default,) {final _that = this;
 switch (_that) {
 case _Tarifa():
-return $default(_that.id,_that.academiaId,_that.nombre,_that.descripcion,_that.precio,_that.periodicidad,_that.activo);case _:
+return $default(_that.id,_that.academiaId,_that.nombre,_that.descripcion,_that.precio,_that.periodicidad,_that.activo,_that.clasesIncluidas);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +205,10 @@ return $default(_that.id,_that.academiaId,_that.nombre,_that.descripcion,_that.p
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'academia_id')  String academiaId,  String nombre,  String? descripcion,  num precio,  String periodicidad,  bool activo)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'academia_id')  String academiaId,  String nombre,  String? descripcion,  num precio,  String periodicidad,  bool activo, @JsonKey(name: 'clases_incluidas')  int? clasesIncluidas)?  $default,) {final _that = this;
 switch (_that) {
 case _Tarifa() when $default != null:
-return $default(_that.id,_that.academiaId,_that.nombre,_that.descripcion,_that.precio,_that.periodicidad,_that.activo);case _:
+return $default(_that.id,_that.academiaId,_that.nombre,_that.descripcion,_that.precio,_that.periodicidad,_that.activo,_that.clasesIncluidas);case _:
   return null;
 
 }
@@ -215,7 +220,7 @@ return $default(_that.id,_that.academiaId,_that.nombre,_that.descripcion,_that.p
 @JsonSerializable()
 
 class _Tarifa implements Tarifa {
-  const _Tarifa({required this.id, @JsonKey(name: 'academia_id') required this.academiaId, required this.nombre, this.descripcion, required this.precio, required this.periodicidad, required this.activo});
+  const _Tarifa({required this.id, @JsonKey(name: 'academia_id') required this.academiaId, required this.nombre, this.descripcion, required this.precio, required this.periodicidad, required this.activo, @JsonKey(name: 'clases_incluidas') this.clasesIncluidas});
   factory _Tarifa.fromJson(Map<String, dynamic> json) => _$TarifaFromJson(json);
 
 @override final  String id;
@@ -225,6 +230,11 @@ class _Tarifa implements Tarifa {
 @override final  num precio;
 @override final  String periodicidad;
 @override final  bool activo;
+/// Clases que da **al mes**. `null` = ilimitada.
+///
+/// Es por mes aunque la tarifa se cobre cada 3 o cada 12: la periodicidad
+/// es de facturación, las clases van por ciclo mensual.
+@override@JsonKey(name: 'clases_incluidas') final  int? clasesIncluidas;
 
 /// Create a copy of Tarifa
 /// with the given fields replaced by the non-null parameter values.
@@ -239,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Tarifa&&(identical(other.id, id) || other.id == id)&&(identical(other.academiaId, academiaId) || other.academiaId == academiaId)&&(identical(other.nombre, nombre) || other.nombre == nombre)&&(identical(other.descripcion, descripcion) || other.descripcion == descripcion)&&(identical(other.precio, precio) || other.precio == precio)&&(identical(other.periodicidad, periodicidad) || other.periodicidad == periodicidad)&&(identical(other.activo, activo) || other.activo == activo));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Tarifa&&(identical(other.id, id) || other.id == id)&&(identical(other.academiaId, academiaId) || other.academiaId == academiaId)&&(identical(other.nombre, nombre) || other.nombre == nombre)&&(identical(other.descripcion, descripcion) || other.descripcion == descripcion)&&(identical(other.precio, precio) || other.precio == precio)&&(identical(other.periodicidad, periodicidad) || other.periodicidad == periodicidad)&&(identical(other.activo, activo) || other.activo == activo)&&(identical(other.clasesIncluidas, clasesIncluidas) || other.clasesIncluidas == clasesIncluidas));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,academiaId,nombre,descripcion,precio,periodicidad,activo);
+int get hashCode => Object.hash(runtimeType,id,academiaId,nombre,descripcion,precio,periodicidad,activo,clasesIncluidas);
 
 @override
 String toString() {
-  return 'Tarifa(id: $id, academiaId: $academiaId, nombre: $nombre, descripcion: $descripcion, precio: $precio, periodicidad: $periodicidad, activo: $activo)';
+  return 'Tarifa(id: $id, academiaId: $academiaId, nombre: $nombre, descripcion: $descripcion, precio: $precio, periodicidad: $periodicidad, activo: $activo, clasesIncluidas: $clasesIncluidas)';
 }
 
 
@@ -259,7 +269,7 @@ abstract mixin class _$TarifaCopyWith<$Res> implements $TarifaCopyWith<$Res> {
   factory _$TarifaCopyWith(_Tarifa value, $Res Function(_Tarifa) _then) = __$TarifaCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'academia_id') String academiaId, String nombre, String? descripcion, num precio, String periodicidad, bool activo
+ String id,@JsonKey(name: 'academia_id') String academiaId, String nombre, String? descripcion, num precio, String periodicidad, bool activo,@JsonKey(name: 'clases_incluidas') int? clasesIncluidas
 });
 
 
@@ -276,7 +286,7 @@ class __$TarifaCopyWithImpl<$Res>
 
 /// Create a copy of Tarifa
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? academiaId = null,Object? nombre = null,Object? descripcion = freezed,Object? precio = null,Object? periodicidad = null,Object? activo = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? academiaId = null,Object? nombre = null,Object? descripcion = freezed,Object? precio = null,Object? periodicidad = null,Object? activo = null,Object? clasesIncluidas = freezed,}) {
   return _then(_Tarifa(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,academiaId: null == academiaId ? _self.academiaId : academiaId // ignore: cast_nullable_to_non_nullable
@@ -285,7 +295,8 @@ as String,descripcion: freezed == descripcion ? _self.descripcion : descripcion 
 as String?,precio: null == precio ? _self.precio : precio // ignore: cast_nullable_to_non_nullable
 as num,periodicidad: null == periodicidad ? _self.periodicidad : periodicidad // ignore: cast_nullable_to_non_nullable
 as String,activo: null == activo ? _self.activo : activo // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,clasesIncluidas: freezed == clasesIncluidas ? _self.clasesIncluidas : clasesIncluidas // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

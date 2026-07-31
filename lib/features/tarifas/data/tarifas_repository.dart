@@ -23,6 +23,10 @@ class TarifasRepository {
     String? descripcion,
     required num precio,
     required String periodicidad,
+    // null = ilimitada. Va aparte del precio a propósito: antes esto se
+    // metía en el nombre («white 50 € 2 días por semana») y no había forma
+    // de contar nada con ello.
+    int? clasesIncluidas,
   }) async {
     await _client.from('tarifas').insert({
       'academia_id': academiaId,
@@ -30,7 +34,33 @@ class TarifasRepository {
       'descripcion': descripcion,
       'precio': precio,
       'periodicidad': periodicidad,
+      'clases_incluidas': clasesIncluidas,
     });
+  }
+
+  /// Cambiar una tarifa que ya existe.
+  ///
+  /// No toca `activo`: eso se hace desde el interruptor de la lista, y
+  /// mezclarlo aquí haría que guardar cambios pudiera reactivar sin querer
+  /// una tarifa que se había retirado.
+  Future<void> actualizarTarifa({
+    required String tarifaId,
+    required String nombre,
+    String? descripcion,
+    required num precio,
+    required String periodicidad,
+    int? clasesIncluidas,
+  }) async {
+    await _client
+        .from('tarifas')
+        .update({
+          'nombre': nombre,
+          'descripcion': descripcion,
+          'precio': precio,
+          'periodicidad': periodicidad,
+          'clases_incluidas': clasesIncluidas,
+        })
+        .eq('id', tarifaId);
   }
 
   Future<void> alternarActivo(String tarifaId, bool activo) async {

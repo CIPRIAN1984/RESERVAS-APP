@@ -14,6 +14,7 @@ _Tarifa _$TarifaFromJson(Map<String, dynamic> json) => _Tarifa(
   precio: json['precio'] as num,
   periodicidad: json['periodicidad'] as String,
   activo: json['activo'] as bool,
+  clasesIncluidas: (json['clases_incluidas'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$TarifaToJson(_Tarifa instance) => <String, dynamic>{
@@ -24,4 +25,5 @@ Map<String, dynamic> _$TarifaToJson(_Tarifa instance) => <String, dynamic>{
   'precio': instance.precio,
   'periodicidad': instance.periodicidad,
   'activo': instance.activo,
+  'clases_incluidas': instance.clasesIncluidas,
 };

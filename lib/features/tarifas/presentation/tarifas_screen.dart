@@ -258,6 +258,12 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: AppColors.subtle),
                           ),
+                          const SizedBox(height: 4),
+                          // Lo que de verdad decide entre una tarifa y otra.
+                          Text(
+                            etiquetaClasesIncluidas(tarifa.clasesIncluidas),
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
                           if (tarifa.descripcion != null) ...[
                             const SizedBox(height: 4),
                             Text(
@@ -363,8 +369,24 @@ class _TarifasGestionView extends ConsumerWidget {
                 child: ListTile(
                   title: Text(tarifa.nombre),
                   subtitle: Text(
-                    '${tarifa.precio.toStringAsFixed(2)} € ${etiquetasPeriodicidad[tarifa.periodicidad] ?? ''}',
+                    '${tarifa.precio.toStringAsFixed(2)} € '
+                    '${etiquetasPeriodicidad[tarifa.periodicidad] ?? ''}'
+                    ' · ${etiquetaClasesIncluidas(tarifa.clasesIncluidas)}',
                   ),
+                  // Tocar la fila abre la tarifa para cambiarla. El
+                  // interruptor solo la retira, que es otra cosa.
+                  onTap: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => CrearTarifaScreen(
+                          academiaId: academiaId,
+                          tarifa: tarifa,
+                        ),
+                      ),
+                    );
+                    ref.invalidate(tarifasProvider(false));
+                    ref.invalidate(tarifasProvider(true));
+                  },
                   trailing: Switch(
                     value: tarifa.activo,
                     onChanged: (_) => _alternarActivo(ref, tarifa),
