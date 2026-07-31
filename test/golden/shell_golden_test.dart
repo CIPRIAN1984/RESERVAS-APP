@@ -140,6 +140,16 @@ void main() {
     expect(find.text('Gestor'), findsOneWidget);
     expect(find.byTooltip('Cambiar a Gestor'), findsOneWidget);
 
+    // El sitio de cambio de modo no es un NavigationDestination, así que su
+    // texto y su icono podrían quedar descuadrados respecto a los demás.
+    final perfil = tester.getCenter(find.text('Perfil'));
+    final gestor = tester.getCenter(find.text('Gestor'));
+    expect(
+      (perfil.dy - gestor.dy).abs(),
+      lessThan(2),
+      reason: 'La etiqueta del cambio de modo baila respecto a las demás.',
+    );
+
     // El caso apretado: cinco sitios y «Estadísticas», que es la etiqueta más
     // larga de las dos barras. Hay que mirar la imagen, no solo que compile.
     await comparaCon(
