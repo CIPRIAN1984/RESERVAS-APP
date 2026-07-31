@@ -17,7 +17,9 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
   final _nombreController = TextEditingController();
   final _descripcionController = TextEditingController();
   final _precioController = TextEditingController();
+  final _clasesController = TextEditingController();
   String _periodicidad = 'mensual';
+  bool _ilimitada = false;
   bool _guardando = false;
   String? _error;
 
@@ -26,6 +28,7 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
     _nombreController.dispose();
     _descripcionController.dispose();
     _precioController.dispose();
+    _clasesController.dispose();
     super.dispose();
   }
 
@@ -44,6 +47,9 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
             descripcion: _descripcionController.text.trim(),
             precio: num.parse(_precioController.text.trim()),
             periodicidad: _periodicidad,
+            clasesIncluidas: _ilimitada
+                ? null
+                : int.tryParse(_clasesController.text.trim()),
           );
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
@@ -99,10 +105,44 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
                       child: Text('Trimestral'),
                     ),
                     DropdownMenuItem(value: 'anual', child: Text('Anual')),
+                    DropdownMenuItem(
+                      value: 'suelta',
+                      child: Text('Suelta (pago único)'),
+                    ),
                   ],
                   onChanged: (v) =>
                       setState(() => _periodicidad = v ?? _periodicidad),
                 ),
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  value: _ilimitada,
+                  contentPadding: EdgeInsets.zero,
+                  onChanged: (v) => setState(() => _ilimitada = v),
+                  title: const Text('Clases ilimitadas'),
+                  subtitle: const Text(
+                    'Puede venir todos los días que quiera.',
+                  ),
+                ),
+                if (!_ilimitada)
+                  TextFormField(
+                    controller: _clasesController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Clases al mes',
+                      helperText:
+                          '2 días por semana son 8; 3 por semana, 12. Se '
+                          'cuentan por mes aunque la tarifa se cobre cada '
+                          'trimestre o cada año.',
+                    ),
+                    validator: (v) {
+                      if (_ilimitada) return null;
+                      final n = int.tryParse((v ?? '').trim());
+                      if (n == null || n < 1) {
+                        return 'Escribe cuántas clases al mes, o marca «ilimitadas»';
+                      }
+                      return null;
+                    },
+                  ),
                 if (_error != null) ...[
                   const SizedBox(height: 12),
                   Text(

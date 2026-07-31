@@ -23,6 +23,10 @@ class TarifasRepository {
     String? descripcion,
     required num precio,
     required String periodicidad,
+    // null = ilimitada. Va aparte del precio a propósito: antes esto se
+    // metía en el nombre («white 50 € 2 días por semana») y no había forma
+    // de contar nada con ello.
+    int? clasesIncluidas,
   }) async {
     await _client.from('tarifas').insert({
       'academia_id': academiaId,
@@ -30,6 +34,7 @@ class TarifasRepository {
       'descripcion': descripcion,
       'precio': precio,
       'periodicidad': periodicidad,
+      'clases_incluidas': clasesIncluidas,
     });
   }
 
