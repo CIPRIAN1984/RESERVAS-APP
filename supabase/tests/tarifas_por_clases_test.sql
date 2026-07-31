@@ -196,22 +196,26 @@ select is(
   'Quedan 6: lo reservado también descuenta'
 );
 
-select is(
-  (public.clases_restantes('00000000-0000-0000-0000-0000000cc103')
-    ->> 'ilimitada')::boolean,
-  true,
-  'La tarifa sin número sale como ilimitada'
-);
-
 -- ------------------------------------------------------------
 -- Quién puede mirar el saldo de quién
 -- ------------------------------------------------------------
 
+-- Sigue actuando el Alumno 8, así que preguntar por su compañero se rechaza.
 select throws_ok(
   $$ select public.clases_restantes(
        '00000000-0000-0000-0000-0000000cc103') $$,
   null,
   'Un alumno no puede ver el saldo de su compañero'
+);
+
+-- Y el suyo sí lo ve él mismo.
+select pg_temp.actuar_como('00000000-0000-0000-0000-0000000cc103');
+
+select is(
+  (public.clases_restantes('00000000-0000-0000-0000-0000000cc103')
+    ->> 'ilimitada')::boolean,
+  true,
+  'La tarifa sin número sale como ilimitada'
 );
 
 select pg_temp.actuar_como('00000000-0000-0000-0000-0000000cc101');

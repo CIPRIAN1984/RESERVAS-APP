@@ -75,6 +75,15 @@ as $function$
   ) c;
 $function$;
 
+-- Toda función de `public` queda expuesta como endpoint por PostgREST. Esta
+-- es una ayuda interna y no tiene por qué llamarla nadie desde fuera. Hay una
+-- prueba (`function_permissions_test`) que falla si alguna se queda abierta a
+-- `anon`, y es la que cazó este olvido.
+revoke all on function
+  public.ciclo_vigente(timestamptz, timestamptz, text) from public, anon;
+grant execute on function
+  public.ciclo_vigente(timestamptz, timestamptz, text) to authenticated;
+
 -- ------------------------------------------------------------
 -- 3. Cuántas clases le quedan a un alumno
 -- ------------------------------------------------------------
