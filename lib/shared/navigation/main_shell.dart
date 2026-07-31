@@ -136,42 +136,101 @@ class MainShell extends ConsumerWidget {
         ),
       ),
       bottomNavigationBar: DecoratedBox(
+        // Por delante: la barra pinta su propio fondo encima y, si el borde
+        // fuera por detrás, la línea solo se vería en el trozo del botón de
+        // modo. Quedaba una rayita suelta a la derecha.
+        position: DecorationPosition.foreground,
         decoration: const BoxDecoration(
           border: Border(top: BorderSide(color: AppColors.line)),
         ),
-        child: NavigationBar(
-          selectedIndex: indiceActual < 0 ? 0 : indiceActual,
-          onDestinationSelected: (i) {
-            // El último sitio, cuando lo hay, no es una pantalla: cambia de
-            // modo y lleva al principio del otro juego de destinos.
-            if (cambiaModo && i == destinos.length) {
-              final nuevo = ref.read(appModeProvider.notifier).alternar();
-              context.go(_destinosPara(profile, nuevo).first.ruta);
-              return;
-            }
-            final destino = destinos[i];
-            if (destino.ruta != location) context.go(destino.ruta);
-          },
-          destinations: [
-            for (final d in destinos)
-              NavigationDestination(
-                icon: Icon(d.icono),
-                selectedIcon: Icon(d.iconoActivo),
-                label: d.etiqueta,
-                tooltip: d.etiqueta,
+        child: Row(
+          children: [
+            Expanded(
+              child: NavigationBar(
+                selectedIndex: indiceActual < 0 ? 0 : indiceActual,
+                onDestinationSelected: (i) {
+                  final destino = destinos[i];
+                  if (destino.ruta != location) context.go(destino.ruta);
+                },
+                destinations: [
+                  for (final d in destinos)
+                    NavigationDestination(
+                      icon: Icon(d.icono),
+                      selectedIcon: Icon(d.iconoActivo),
+                      label: d.etiqueta,
+                      tooltip: d.etiqueta,
+                    ),
+                ],
               ),
-            // El cambio de modo iba en un botón flotante en el centro de la
-            // pantalla, y tapaba lo que tuviera debajo: «Reservar plaza», la
-            // última fila de Perfil y el propio botón «Crear clase». En un
-            // móvil de 412 px los dos botones no caben uno al lado del otro,
-            // así que el de modo baja a la barra, donde no puede tapar nada.
+            ),
+            // El cambio de modo va en la barra —flotando tapaba «Reservar
+            // plaza», el final de Perfil y el propio «Crear clase»— pero
+            // **no es un destino**: no es un sitio donde estás, es una
+            // acción. Metido como destino más, la barra lo pintaba siempre
+            // con el gris de «no estás aquí» y parecía deshabilitado. Va
+            // aparte, en tinta, para que se vea que se puede pulsar.
             if (cambiaModo)
-              NavigationDestination(
-                icon: const Icon(Icons.swap_horiz_outlined),
-                label: modo.etiquetaCortaCambio,
-                tooltip: modo.etiquetaCambio,
+              _BotonModo(
+                modo: modo,
+                onTap: () {
+                  final nuevo = ref.read(appModeProvider.notifier).alternar();
+                  context.go(_destinosPara(profile, nuevo).first.ruta);
+                },
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// El sitio de la barra que cambia de modo.
+///
+/// No usa `NavigationDestination` a propósito: aquello lo pintaba con el gris
+/// de destino inactivo y parecía apagado. Aquí va en tinta, como lo que es —
+/// algo que se puede pulsar siempre.
+class _BotonModo extends StatelessWidget {
+  const _BotonModo({required this.modo, required this.onTap});
+
+  final AppMode modo;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: modo.etiquetaCambio,
+      child: Tooltip(
+        message: modo.etiquetaCambio,
+        child: InkWell(
+          onTap: onTap,
+          child: SizedBox(
+            // Mismo alto que la barra, y un ancho parecido al de un destino
+            // para que no rompa el ritmo de la fila.
+            width: 76,
+            height: 68,
+            child: Padding(
+              // La barra no centra su contenido igual que un Column normal:
+              // sin este hueco, el icono y el texto quedaban 5 px más altos
+              // que los de al lado y se notaba. Hay una prueba que lo mide.
+              padding: const EdgeInsets.only(top: 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.swap_horiz, size: 22, color: AppColors.ink),
+                  const SizedBox(height: 4),
+                  Text(
+                    modo.etiquetaCortaCambio,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
