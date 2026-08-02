@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 import '../core/auth/auth_state.dart';
 import '../core/models/profile.dart';
 import '../features/academia/presentation/academia_screen.dart';
+import '../features/academia/presentation/invitar_screen.dart';
 import '../features/admin/presentation/admin_academias_screen.dart';
 import '../features/herramientas/presentation/herramientas_screen.dart';
 import '../features/calendario/presentation/calendario_screen.dart';
@@ -135,6 +136,10 @@ String? _redirect(Ref ref, GoRouterState state) {
     return _inicioPara(profile);
   }
 
+  if (loc == Routes.invitar && !profile.isDueno) {
+    return _inicioPara(profile);
+  }
+
   // Administrador isn't scoped to any single academia, so the member-facing
   // modules (calendario, tienda, etc.) don't apply to it.
   if (_rutasAcademia.contains(loc) && profile.isAdministrador) {
@@ -183,7 +188,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: Routes.registro,
-        builder: (context, state) => const RegistroScreen(),
+        builder: (context, state) => RegistroScreen(
+          academiaId: state.uri.queryParameters['academia'],
+        ),
       ),
       GoRoute(
         path: Routes.registroAcademia,
@@ -285,6 +292,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               titulo: 'Equipo',
               onVolver: () => context.go(Routes.academia),
               child: const EquipoScreen(),
+            ),
+          ),
+          GoRoute(
+            path: Routes.invitar,
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Invitar',
+              onVolver: () => context.go(Routes.academia),
+              child: const InvitarScreen(),
             ),
           ),
         ],

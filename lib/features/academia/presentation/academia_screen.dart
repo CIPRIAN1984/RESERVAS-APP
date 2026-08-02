@@ -108,6 +108,14 @@ class AcademiaScreen extends ConsumerWidget {
                     onTap: () => context.go(Routes.cobros),
                   ),
                 ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _Bloque(
+                    icono: Icons.qr_code_2_outlined,
+                    titulo: 'Invitar',
+                    onTap: () => context.go(Routes.invitar),
+                  ),
+                ),
               ],
             ),
           ),

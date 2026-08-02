@@ -1,9 +1,11 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../../../app/routes.dart';
+import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/models/academia.dart';
 import '../../../core/utils/error_messages.dart';
@@ -12,13 +14,18 @@ import '../../../l10n/app_localizations.dart';
 /// Self-registration for a student joining an academia that already exists
 /// and is approved. Registering as Profesor is not self-service — a Dueño
 /// promotes a member to Profesor later (out of scope for this phase).
-final _academiasAprobadasProvider =
+final academiasAprobadasProvider =
     FutureProvider.autoDispose<List<AcademiaOption>>((ref) {
       return ref.watch(authRepositoryProvider).listAcademiasAprobadas();
     });
 
 class RegistroScreen extends ConsumerStatefulWidget {
-  const RegistroScreen({super.key});
+  const RegistroScreen({this.academiaId, super.key});
+
+  /// Viene del enlace de invitación (`/registro?academia=<id>`) que un dueño
+  /// comparte desde `InvitarScreen`. Con esto puesto, quien se registra no
+  /// elige de la lista abierta de academias: ya trae la suya fijada.
+  final String? academiaId;
 
   @override
   ConsumerState<RegistroScreen> createState() => _RegistroScreenState();
@@ -33,6 +40,12 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
   String? _academiaId;
   bool _loading = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _academiaId = widget.academiaId;
+  }
 
   @override
   void dispose() {
@@ -81,7 +94,7 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final academiasAsync = ref.watch(_academiasAprobadasProvider);
+    final academiasAsync = ref.watch(academiasAprobadasProvider);
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
@@ -131,20 +144,41 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
                     ),
                     const SizedBox(height: 16),
                     academiasAsync.when(
-                      data: (academias) => DropdownButtonFormField<String>(
-                        initialValue: _academiaId,
-                        decoration: InputDecoration(
-                          labelText: l10n.registerYourAcademy,
-                        ),
-                        items: [
-                          for (final a in academias)
-                            DropdownMenuItem(
-                              value: a.id,
-                              child: Text(a.nombre),
-                            ),
-                        ],
-                        onChanged: (v) => setState(() => _academiaId = v),
-                      ),
+                      data: (academias) {
+                        if (widget.academiaId != null) {
+                          final fija = academias
+                              .where((a) => a.id == widget.academiaId)
+                              .firstOrNull;
+                          // El enlace apunta a una academia que ya no está
+                          // aprobada (o nunca lo estuvo): se avisa en vez de
+                          // dejar seguir con un id que el servidor va a
+                          // rechazar igualmente.
+                          if (fija == null) {
+                            return Text(
+                              'Este enlace de invitación ya no es válido. '
+                              'Pide uno nuevo a tu academia.',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                            );
+                          }
+                          return _AcademiaFija(nombre: fija.nombre);
+                        }
+                        return DropdownButtonFormField<String>(
+                          initialValue: _academiaId,
+                          decoration: InputDecoration(
+                            labelText: l10n.registerYourAcademy,
+                          ),
+                          items: [
+                            for (final a in academias)
+                              DropdownMenuItem(
+                                value: a.id,
+                                child: Text(a.nombre),
+                              ),
+                          ],
+                          onChanged: (v) => setState(() => _academiaId = v),
+                        );
+                      },
                       loading: () => const LinearProgressIndicator(),
                       error: (e, st) => Text(
                         l10n.registerAcademiesLoadError,
@@ -186,6 +220,39 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Academia ya fijada por el enlace de invitación: se enseña, no se elige.
+class _AcademiaFija extends StatelessWidget {
+  const _AcademiaFija({required this.nombre});
+
+  final String nombre;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.line),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, color: AppColors.ink, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              nombre,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
       ),
     );
   }
