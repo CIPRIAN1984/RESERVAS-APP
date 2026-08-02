@@ -80,9 +80,9 @@ class InvitarScreen extends ConsumerWidget {
           onPressed: () async {
             await Clipboard.setData(ClipboardData(text: enlace));
             if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Enlace copiado.')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Enlace copiado.')));
             }
           },
           icon: const Icon(Icons.copy_outlined),

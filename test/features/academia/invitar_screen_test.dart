@@ -8,7 +8,11 @@ import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/academia.dart';
 import 'package:itaca/features/academia/presentation/invitar_screen.dart';
 
-const _academia = Academia(id: 'a1', nombre: 'Itaca Jiu Jitsu', estado: 'approved');
+const _academia = Academia(
+  id: 'a1',
+  nombre: 'Itaca Jiu Jitsu',
+  estado: 'approved',
+);
 
 void main() {
   testWidgets('enseña el enlace de invitación y lo copia al portapapeles', (

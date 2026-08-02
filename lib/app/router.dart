@@ -188,9 +188,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: Routes.registro,
-        builder: (context, state) => RegistroScreen(
-          academiaId: state.uri.queryParameters['academia'],
-        ),
+        builder: (context, state) =>
+            RegistroScreen(academiaId: state.uri.queryParameters['academia']),
       ),
       GoRoute(
         path: Routes.registroAcademia,
