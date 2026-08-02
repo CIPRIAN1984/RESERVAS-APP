@@ -218,3 +218,34 @@ cobren solas cada mes hasta que él dé de baja. Eso es Stripe, y Stripe sigue
 sin conectar a cobros reales. Se construye primero todo el mecanismo
 funcionando con **cobro en mano**, que es lo que permite probarlo con gente de
 verdad en paralelo con MAAT.
+
+## 2026-07-31 — El calendario pasa a semana, sin puntos de aviso
+
+`CalendarioScreen` usaba `table_calendar` en formato mes: una rejilla de
+semanas con un punto negro bajo el día si había clase. Cipri pidió quitar los
+puntos («molestan visualmente») y ver **solo la semana entera, lunes a
+domingo**.
+
+Al mirarlo, el mes-rejilla ya incumplía la skill `diseno-i-plus`, que desde
+julio especifica: *«Calendario semanal — siete pastillas. El día seleccionado
+en amarillo eléctrico con texto negro»*. La rejilla de meses y el día
+seleccionado en negro (`AppColors.ink`) eran una desviación de esa norma que
+nadie había corregido. Se reconstruye conforme a la guía en vez de parchear
+la rejilla existente.
+
+- Nuevo `_SemanaPildoras`: siete pastillas lunes-domingo. Seleccionado en
+  `AppColors.acid`; hoy (si no está seleccionado) con un anillo fino de
+  tinta; el resto, sin decoración. Sin puntos de ningún tipo.
+- Se quita la dependencia `table_calendar`: solo la usaba esta pantalla.
+- Los proveedores pasan de mes a semana: `visibleMonthProvider` →
+  `visibleWeekProvider`, `clasesMesProvider` → `clasesSemanaProvider`. Encaja
+  además con lo que ya hacía el servidor — la RPC se llama
+  `listar_clases_semana` y antes se le pedía un mes entero para enseñar solo
+  siete pastillas, que era pedir de más.
+- Encontrado mirando la captura, no por ninguna prueba de comportamiento: la
+  etiqueta del día (LUN, MAR…) en gris `subtle` sobre el amarillo de acento
+  casi no se leía. En el día seleccionado pasa a tinta. Cubierto por una
+  prueba que comprueba el color exacto del texto.
+
+Pendiente: Cipri va a mandar capturas de MAAT para comparar y decidir si hay
+algo más que mejorar en esta pantalla.

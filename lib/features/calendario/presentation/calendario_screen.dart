@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
 
 import '../../../app/app_mode.dart';
+import '../../../app/theme/app_theme.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/pantalla.dart';
@@ -28,7 +29,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
       final estado = await ref
           .read(clasesRepositoryProvider)
           .unirse(claseId: clase.id);
-      ref.invalidate(clasesMesProvider);
+      ref.invalidate(clasesSemanaProvider);
       if (mounted && estado == 'espera') {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -53,7 +54,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
       final tardia = await ref
           .read(clasesRepositoryProvider)
           .borrarse(claseId: clase.id);
-      ref.invalidate(clasesMesProvider);
+      ref.invalidate(clasesSemanaProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -104,15 +105,8 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     final gestionando = ref.watch(enModoGestionProvider);
 
     final selectedDay = ref.watch(selectedDayProvider);
-    final visibleMonth = ref.watch(visibleMonthProvider);
-    final clasesAsync = ref.watch(clasesMesProvider);
-
-    final clasesPorDia = <DateTime, List<ClaseResumen>>{};
-    for (final c in clasesAsync.value ?? const <ClaseResumen>[]) {
-      final dia = c.fechaHoraInicio.toLocal();
-      final key = DateTime(dia.year, dia.month, dia.day);
-      clasesPorDia.putIfAbsent(key, () => []).add(c);
-    }
+    final visibleWeek = ref.watch(visibleWeekProvider);
+    final clasesAsync = ref.watch(clasesSemanaProvider);
 
     return Scaffold(
       floatingActionButton: (gestionando && academiaId != null)
@@ -126,7 +120,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                     ),
                   ),
                 );
-                ref.invalidate(clasesMesProvider);
+                ref.invalidate(clasesSemanaProvider);
               },
               icon: const Icon(Icons.add),
               label: const Text('Crear clase'),
@@ -140,51 +134,18 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
             const TituloPantalla('Hoy')
           else
             const _CabeceraInicio(),
-          TableCalendar<ClaseResumen>(
-            firstDay: DateTime.now().subtract(const Duration(days: 365)),
-            lastDay: DateTime.now().add(const Duration(days: 365)),
-            focusedDay:
-                visibleMonth.month == selectedDay.month &&
-                    visibleMonth.year == selectedDay.year
-                ? selectedDay
-                : visibleMonth,
-            calendarFormat: CalendarFormat.month,
-            availableCalendarFormats: const {CalendarFormat.month: 'Mes'},
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            headerStyle: const HeaderStyle(
-              formatButtonVisible: false,
-              titleCentered: true,
-            ),
-            calendarStyle: const CalendarStyle(
-              markerDecoration: BoxDecoration(
-                color: AppColors.ink,
-                shape: BoxShape.circle,
-              ),
-              todayDecoration: BoxDecoration(
-                color: AppColors.surfaceStrong,
-                shape: BoxShape.circle,
-              ),
-              selectedDecoration: BoxDecoration(
-                color: AppColors.ink,
-                shape: BoxShape.circle,
-              ),
-            ),
-            selectedDayPredicate: (day) => isSameDay(day, selectedDay),
-            eventLoader: (day) =>
-                clasesPorDia[DateTime(day.year, day.month, day.day)] ??
-                const [],
-            onDaySelected: (selected, focused) {
-              ref.read(selectedDayProvider.notifier).state = DateTime(
-                selected.year,
-                selected.month,
-                selected.day,
-              );
-            },
-            onPageChanged: (focused) {
-              ref.read(visibleMonthProvider.notifier).state = firstOfMonth(
-                focused,
-              );
-            },
+          _SemanaPildoras(
+            semana: visibleWeek,
+            selectedDay: selectedDay,
+            onSemanaAnterior: () =>
+                ref.read(visibleWeekProvider.notifier).state = visibleWeek
+                    .subtract(const Duration(days: 7)),
+            onSemanaSiguiente: () =>
+                ref.read(visibleWeekProvider.notifier).state = nextMonday(
+                  visibleWeek,
+                ),
+            onDiaSeleccionado: (dia) =>
+                ref.read(selectedDayProvider.notifier).state = dia,
           ),
           const Divider(height: 1, color: AppColors.line),
           Expanded(
@@ -200,7 +161,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                 final delDia = clases
                     .where(
                       (c) =>
-                          isSameDay(c.fechaHoraInicio.toLocal(), selectedDay),
+                          _mismoDia(c.fechaHoraInicio.toLocal(), selectedDay),
                     )
                     .toList();
                 if (delDia.isEmpty) {
@@ -251,6 +212,169 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+bool _mismoDia(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
+
+/// El calendario semanal del sistema I+: siete pastillas, lunes a domingo.
+/// El día seleccionado va en amarillo eléctrico — es el único sitio, junto a
+/// los avisos críticos, donde aparece ese color. Sin puntos de aviso bajo los
+/// días: con clases casi todos los días, los puntos no distinguían nada y
+/// solo ensuciaban la vista.
+class _SemanaPildoras extends StatelessWidget {
+  const _SemanaPildoras({
+    required this.semana,
+    required this.selectedDay,
+    required this.onSemanaAnterior,
+    required this.onSemanaSiguiente,
+    required this.onDiaSeleccionado,
+  });
+
+  /// El lunes de la semana visible.
+  final DateTime semana;
+  final DateTime selectedDay;
+  final VoidCallback onSemanaAnterior;
+  final VoidCallback onSemanaSiguiente;
+  final ValueChanged<DateTime> onDiaSeleccionado;
+
+  static const _diasCorta = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
+
+  @override
+  Widget build(BuildContext context) {
+    final domingo = semana.add(const Duration(days: 6));
+    final hoy = DateTime.now();
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: onSemanaAnterior,
+                icon: const Icon(Icons.chevron_left),
+                tooltip: 'Semana anterior',
+              ),
+              Expanded(
+                child: Text(
+                  _tituloSemana(semana, domingo),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              IconButton(
+                onPressed: onSemanaSiguiente,
+                icon: const Icon(Icons.chevron_right),
+                tooltip: 'Semana siguiente',
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: Row(
+            children: [
+              for (var i = 0; i < 7; i++) ...[
+                if (i > 0) const SizedBox(width: 6),
+                Expanded(
+                  child: _PildoraDia(
+                    etiqueta: _diasCorta[i],
+                    dia: semana.add(Duration(days: i)),
+                    seleccionado: _mismoDia(
+                      semana.add(Duration(days: i)),
+                      selectedDay,
+                    ),
+                    hoy: _mismoDia(semana.add(Duration(days: i)), hoy),
+                    onTap: () =>
+                        onDiaSeleccionado(semana.add(Duration(days: i))),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// «agosto de 2026», o «jul-ago 2026» cuando la semana cruza de mes.
+  String _tituloSemana(DateTime lunes, DateTime domingo) {
+    if (lunes.month == domingo.month) {
+      return DateFormat("MMMM 'de' y", 'es_ES').format(lunes);
+    }
+    final mesInicio = DateFormat('MMM', 'es_ES').format(lunes);
+    final mesFin = DateFormat("MMM 'de' y", 'es_ES').format(domingo);
+    return '$mesInicio-$mesFin';
+  }
+}
+
+class _PildoraDia extends StatelessWidget {
+  const _PildoraDia({
+    required this.etiqueta,
+    required this.dia,
+    required this.seleccionado,
+    required this.hoy,
+    required this.onTap,
+  });
+
+  final String etiqueta;
+  final DateTime dia;
+  final bool seleccionado;
+  final bool hoy;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: seleccionado,
+      label: DateFormat("EEEE d 'de' MMMM", 'es_ES').format(dia),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(100),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          constraints: const BoxConstraints(minHeight: 56),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: seleccionado ? AppColors.acid : Colors.transparent,
+            shape: BoxShape.circle,
+            border: !seleccionado && hoy
+                ? Border.all(color: AppColors.ink, width: 1.5)
+                : null,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                etiqueta,
+                style: TextStyle(
+                  fontFamily: AppTheme.fontMono,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.6,
+                  // El gris subtle sobre el amarillo de acento casi no se
+                  // leía: en el día seleccionado la etiqueta pasa a tinta,
+                  // igual que el número.
+                  color: seleccionado ? AppColors.ink : AppColors.subtle,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${dia.day}',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
