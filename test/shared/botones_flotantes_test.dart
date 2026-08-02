@@ -84,7 +84,7 @@ Widget _app({required AppMode modo, required String rutaInicial}) {
       currentProfileProvider.overrideWith((ref) async => _perfil(rol: 'dueño')),
       currentAcademiaProvider.overrideWith((ref) async => null),
       appModeProvider.overrideWith(() => _ModoFijo(modo)),
-      clasesMesProvider.overrideWith((ref) async => _clases()),
+      clasesSemanaProvider.overrideWith((ref) async => _clases()),
     ],
     child: MaterialApp.router(
       debugShowCheckedModeBanner: false,

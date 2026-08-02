@@ -54,7 +54,7 @@ Widget _app({required String rol, required AppMode modo}) => ProviderScope(
     currentUserIdProvider.overrideWithValue('u1'),
     currentProfileProvider.overrideWith((ref) async => _perfil(rol: rol)),
     appModeProvider.overrideWith(() => _ModoFijo(modo)),
-    clasesMesProvider.overrideWith((ref) async => [_clase()]),
+    clasesSemanaProvider.overrideWith((ref) async => [_clase()]),
   ],
   child: MaterialApp(theme: AppTheme.light, home: const CalendarioScreen()),
 );

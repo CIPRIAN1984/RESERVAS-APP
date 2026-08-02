@@ -56,3 +56,7 @@ app.*.map.json
 
 # Supabase CLI local artifacts
 supabase/.temp/
+
+# Diferencias que deja una prueba visual al fallar (no es un resultado, es
+# el rastro de una comparación fallida en local).
+test/golden/failures/
