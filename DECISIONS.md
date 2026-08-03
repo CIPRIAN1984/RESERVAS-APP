@@ -343,8 +343,18 @@ independiente. Cipri accede a ellos desde su perfil de padre.
 - Función crea perfil + relación atómicamente.
 - Academia ve todos sus perfiles (incluyendo menores).
 
+**Estado actual (2026-08-03):**
+- ✅ Modelos Dart: `Profile.parentId`, `RelacionFamilia` creados y con freezed.
+- ✅ Repositorio: `FamiliaRepository` (crear, listar, actualizar, eliminar hijos).
+- ✅ Edge Function: `crear-hijo` validado y deployado.
+- ✅ Pantalla «Mis hijos» básica: lista con FloatingActionButton para agregar.
+- ✅ Formulario «Agregar hijo»: nombre, apellidos, cinturón en modal.
+- ✅ Integración en Perfil: sección "Mis hijos" con botón solo si hay hijos.
+- ✅ Ruta: `/mis-hijos` en router con navegación desde Perfil.
+- ✅ Tests: widget tests para la integración en PerfilScreen.
+
 **Próximos pasos:**
-- Modelos Dart (Profile.parentId, RelacionFamilia).
-- Pantalla «Mis hijos» en Perfil (lista + botón agregar).
-- Formulario para crear un hijo (nombre, apellidos, cinturón).
-- Detalle de hijo editable (nombre, apellidos, cinturón; no rol ni estado).
+- Pantalla de detalle/edición de hijo (nombre, apellidos, cinturón).
+- Botón de eliminar hijo con confirmación.
+- Edición en línea en MisHijosScreen (no solo lista).
+- E2E: datos reales en Supabase.
