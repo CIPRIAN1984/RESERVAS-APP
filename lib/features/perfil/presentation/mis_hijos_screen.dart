@@ -42,7 +42,7 @@ class MisHijosScreen extends ConsumerWidget {
           return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: hijos.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final hijo = hijos[index];
               return _HijoTile(hijo: hijo);

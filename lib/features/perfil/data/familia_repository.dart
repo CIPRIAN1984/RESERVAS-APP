@@ -91,6 +91,6 @@ class FamiliaRepository {
         .maybeSingle();
 
     if (row == null) return null;
-    return RelacionFamilia.fromJson(row as Map<String, dynamic>);
+    return RelacionFamilia.fromJson(row);
   }
 }

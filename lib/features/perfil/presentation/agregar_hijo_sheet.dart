@@ -103,7 +103,7 @@ class _AgregarHijoSheetState extends ConsumerState<_AgregarHijoSheet> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _cinturon,
+              initialValue: _cinturon,
               onChanged: _guardando ? null : (v) => setState(() => _cinturon = v),
               decoration: const InputDecoration(
                 labelText: 'Cinturón (opcional)',
