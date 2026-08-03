@@ -250,7 +250,13 @@ select is(
 -- verdad se ha gastado su cuota, no a quien nunca tuvo una
 -- ------------------------------------------------------------
 
+-- `reset role` no basta: el JWT que dejó el último `actuar_como` sigue
+-- puesto para el resto de la transacción (set_config con is_local, no se
+-- borra hasta el commit/rollback). Sin limpiarlo, el INSERT de abajo se
+-- sigue haciendo «como» el último alumno suplantado, y el disparador
+-- check_suscripcion_estado_transicion lo rechaza.
 reset role;
+select set_config('request.jwt.claims', '{}', true);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000cc104', 'alumno-agotado-a@test.dev'),
