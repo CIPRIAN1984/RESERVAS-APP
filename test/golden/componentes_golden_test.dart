@@ -48,6 +48,7 @@ Widget _lienzo(List<Widget> hijos) => MaterialApp(
   ),
 );
 
+@Tags(['golden'])
 void main() {
   setUpAll(cargarTipografias);
 

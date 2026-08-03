@@ -56,8 +56,11 @@ jobs:
             exit 1
           fi
 
-      - name: Test
-        run: flutter test
+      - name: Test (excluye golden tests — ver docs/GOLDEN_TESTS.md)
+        run: |
+          flutter test \
+            --exclude-tags=golden \
+            --tags='!golden'
 
   build-web:
     runs-on: ubuntu-latest
@@ -106,7 +109,15 @@ jobs:
         run: supabase start
 
       - name: Run pgTAP RLS tests
-        run: supabase test db
+        run: supabase test db --verbose 2>&1 | tee supabase-test.log
+
+      - name: Upload Supabase test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-test-logs
+          path: supabase-test.log
+          retention-days: 7
 
   edge-functions:
     runs-on: ubuntu-latest

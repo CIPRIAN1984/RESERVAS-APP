@@ -89,6 +89,7 @@ class _ModoFijo extends AppModeNotifier {
   AppMode build() => _inicial;
 }
 
+@Tags(['golden'])
 void main() {
   setUpAll(cargarTipografias);
 

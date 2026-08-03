@@ -53,6 +53,7 @@ Widget _app() => ProviderScope(
   ),
 );
 
+@Tags(['golden'])
 void main() {
   setUpAll(cargarTipografias);
 

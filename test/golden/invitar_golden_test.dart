@@ -10,6 +10,7 @@ import 'package:itaca/shared/widgets/pantalla.dart';
 
 import 'ayuda_golden.dart';
 
+@Tags(['golden'])
 void main() {
   setUpAll(cargarTipografias);
 

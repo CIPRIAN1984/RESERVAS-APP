@@ -77,6 +77,7 @@ Widget _app({
   );
 }
 
+@Tags(['golden'])
 void main() {
   setUpAll(cargarTipografias);
 
