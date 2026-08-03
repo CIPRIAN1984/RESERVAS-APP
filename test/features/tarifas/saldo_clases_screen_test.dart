@@ -57,9 +57,7 @@ Widget _app(SaldoClases saldo) => ProviderScope(
 );
 
 void main() {
-  testWidgets('con clases disponibles, enseña cuántas quedan', (
-    tester,
-  ) async {
+  testWidgets('con clases disponibles, enseña cuántas quedan', (tester) async {
     await tester.pumpWidget(
       _app(
         const SaldoClases(
@@ -93,14 +91,14 @@ void main() {
     await tester.pumpAndSettle();
 
     final aviso = tester.widget<Text>(
-      find.text('Sin clases disponibles este mes. Renueva o compra una suelta.'),
+      find.text(
+        'Sin clases disponibles este mes. Renueva o compra una suelta.',
+      ),
     );
     expect(aviso.style?.color, AppColors.destructive);
   });
 
-  testWidgets('con tarifa ilimitada, no enseña ningún número', (
-    tester,
-  ) async {
+  testWidgets('con tarifa ilimitada, no enseña ningún número', (tester) async {
     await tester.pumpWidget(
       _app(const SaldoClases(tieneCuota: true, ilimitada: true)),
     );
