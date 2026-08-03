@@ -57,10 +57,7 @@ jobs:
           fi
 
       - name: Test (excluye golden tests — ver docs/GOLDEN_TESTS.md)
-        run: |
-          flutter test \
-            --exclude-tags=golden \
-            --tags='!golden'
+        run: flutter test --exclude-tags=golden
 
   build-web:
     runs-on: ubuntu-latest
