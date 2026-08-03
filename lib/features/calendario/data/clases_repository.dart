@@ -204,4 +204,30 @@ class ClasesRepository {
           ignoreDuplicates: true,
         );
   }
+
+  /// Pasar lista de golpe: confirma a todos los que llegan sin validar en un
+  /// único viaje al servidor, en vez de uno por alumno. La política RLS de
+  /// `asistencias` comprueba cada fila igual que en el alta individual, así
+  /// que no hace falta ninguna RPC ni migración nueva para esto.
+  Future<void> marcarAsistenciaEnBloque({
+    required String claseId,
+    required List<String> alumnoIds,
+    required String validadoPor,
+  }) async {
+    if (alumnoIds.isEmpty) return;
+    await _client
+        .from('asistencias')
+        .upsert(
+          [
+            for (final alumnoId in alumnoIds)
+              {
+                'clase_id': claseId,
+                'alumno_id': alumnoId,
+                'validado_por': validadoPor,
+              },
+          ],
+          onConflict: 'clase_id,alumno_id',
+          ignoreDuplicates: true,
+        );
+  }
 }

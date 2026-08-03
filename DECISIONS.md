@@ -290,3 +290,25 @@ pidió un QR/enlace que él pueda mandar directamente a la gente.
   añade acceso nuevo a la tabla `academias` para usuarios anónimos.
 - Se añade la dependencia `qr_flutter` (dibuja el QR en el propio dispositivo,
   sin llamada de red — nada que romper si hay DNS filtrado).
+
+## 2026-08-03 — Pasar lista de golpe
+
+Pasar lista alumno por alumno era media hora perdida en clases de 20-40
+personas. Cipri pidió «un botón para confirmar a todos los apuntados de
+golpe» — sin desmarcar excepciones, sin nada más: marca a todo el mundo
+presente de una vez.
+
+- `ClasesRepository.marcarAsistenciaEnBloque` hace un único `upsert` con
+  todos los alumnos pendientes, en vez de un viaje al servidor por alumno.
+  **Sin RPC ni migración nueva**: la política RLS de `asistencias` ya
+  comprueba cada fila igual que en el alta individual (`validado_por =
+  auth.uid()`, rol profesor/dueño, clase de la propia academia), y esa
+  comprobación se aplica igual fila a fila venga una sola o vengan veinte en
+  el mismo lote.
+- El botón solo aparece si queda alguien sin validar, y pide confirmación
+  antes («Se confirma la asistencia de N alumnos») — es lo único que
+  distingue esto de un clic accidental que le cobra la clase a alguien que
+  no ha venido.
+- No hay forma de desmarcar después, ni aquí ni en la validación individual
+  que ya existía: no se ha tocado porque no es lo que se pidió, pero es una
+  carencia que ya estaba antes de este cambio.
