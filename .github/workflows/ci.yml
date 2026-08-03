@@ -56,8 +56,8 @@ jobs:
             exit 1
           fi
 
-      - name: Test (excluye golden tests — ver docs/GOLDEN_TESTS.md)
-        run: flutter test --exclude-tags=golden
+      - name: Test
+        run: flutter test
 
   build-web:
     runs-on: ubuntu-latest
