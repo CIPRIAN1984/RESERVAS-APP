@@ -156,6 +156,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
     final profileAsync = ref.watch(currentProfileProvider);
     final academiaAsync = ref.watch(currentAcademiaProvider);
     final userId = ref.watch(currentUserIdProvider);
+    final hijosAsync = ref.watch(hijosProvider);
 
     return profileAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -280,6 +281,32 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                       destino: const TiendaScreen(),
                     ),
                   ],
+                  hijosAsync.when(
+                    data: (hijos) {
+                      if (hijos.isEmpty) return const SizedBox.shrink();
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 32),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Mis hijos',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: () => context.push(Routes.misHijos),
+                            icon: const Icon(Icons.child_friendly),
+                            label: Text('Gestionar hijos (${hijos.length})'),
+                          ),
+                        ],
+                      );
+                    },
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, _) => const SizedBox.shrink(),
+                  ),
                   const SizedBox(height: 32),
                   Align(
                     alignment: Alignment.centerLeft,
