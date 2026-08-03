@@ -249,3 +249,19 @@ la rejilla existente.
 
 Pendiente: Cipri va a mandar capturas de MAAT para comparar y decidir si hay
 algo más que mejorar en esta pantalla.
+
+## 2026-08-02 — Cuarta aparición del botón sin acotar en un `Row`
+
+El botón «Reservar»/«Agotado» del catálogo de tienda (`CatalogoTab`) vivía
+suelto dentro de un `Row`, junto al nombre del producto. Por tema, los
+botones son de ancho completo (`minimumSize: Size.fromHeight(52)`, ancho
+infinito), así que se comía toda la fila y el nombre del producto («kimono»)
+se caía en una columna de una letra por línea — capturas de pantalla de
+Cipri.
+
+Ya documentado en la skill `diseno-i-plus` §4 tras las tres apariciones
+anteriores (una de ellas, `clase_detalle_screen.dart`, ya tiene el arreglo de
+referencia: `SizedBox(width: 110)` alrededor del botón). Se aplica el mismo
+arreglo aquí. Se añade `test/features/tienda/catalogo_tab_test.dart`, que
+falla (con `pumpAndSettle` en bucle infinito) si el botón vuelve a quedar sin
+acotar — comprobado revirtiendo el arreglo antes de darlo por bueno.

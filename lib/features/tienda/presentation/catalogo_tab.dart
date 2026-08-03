@@ -195,12 +195,20 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       else
-                        ElevatedButton(
-                          onPressed: producto.stock > 0
-                              ? () => _reservar(producto)
-                              : null,
-                          child: Text(
-                            producto.stock > 0 ? 'Reservar' : 'Agotado',
+                        // Acotado a propósito: por tema, los botones de la
+                        // app son de ancho completo (`minimumSize:
+                        // Size.fromHeight`, ancho infinito). Suelto dentro de
+                        // una fila, se lo queda todo y deja el nombre del
+                        // producto en una columna de una letra.
+                        SizedBox(
+                          width: 110,
+                          child: ElevatedButton(
+                            onPressed: producto.stock > 0
+                                ? () => _reservar(producto)
+                                : null,
+                            child: Text(
+                              producto.stock > 0 ? 'Reservar' : 'Agotado',
+                            ),
                           ),
                         ),
                     ],
