@@ -265,3 +265,28 @@ referencia: `SizedBox(width: 110)` alrededor del botón). Se aplica el mismo
 arreglo aquí. Se añade `test/features/tienda/catalogo_tab_test.dart`, que
 falla (con `pumpAndSettle` en bucle infinito) si el botón vuelve a quedar sin
 acotar — comprobado revirtiendo el arreglo antes de darlo por bueno.
+
+## 2026-08-02 — Enlace y QR de invitación a la academia
+
+Hoy quien se registra como alumno elige su academia de un desplegable con
+**todas las aprobadas de la plataforma**. Para el lanzamiento de una sola
+academia eso es fricción de más (elegir entre una lista de una) y, cuando
+haya más de una academia en la plataforma, expondría a la competencia. Cipri
+pidió un QR/enlace que él pueda mandar directamente a la gente.
+
+- `Routes.registro` acepta ahora un parámetro de consulta `academia` (p. ej.
+  `/registro?academia=<id>`). Si viene relleno, `RegistroScreen` **no
+  enseña el desplegable**: fija esa academia y solo muestra su nombre en
+  modo lectura.
+- Nueva pantalla `InvitarScreen` (ruta `/invitar`, solo dueño, junto a
+  Equipo/Cobros en Academia): enseña el QR y el enlace completo
+  (`https://itc2-reservas.vercel.app/#/registro?academia=<id>`), con un
+  botón para copiarlo al portapapeles.
+- **Sin migración.** La pantalla de invitación no necesita datos nuevos del
+  servidor: el `academia_id` ya lo tiene el dueño en su propio perfil. Y
+  como quien abre el enlace **todavía no está autenticado**, comprobar que
+  esa academia sigue aprobada usa la misma RPC pública que ya existía para
+  el desplegable (`listar_academias_aprobadas`) — no se toca RLS ni se
+  añade acceso nuevo a la tabla `academias` para usuarios anónimos.
+- Se añade la dependencia `qr_flutter` (dibuja el QR en el propio dispositivo,
+  sin llamada de red — nada que romper si hay DNS filtrado).

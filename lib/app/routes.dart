@@ -15,6 +15,7 @@ class Routes {
   static const String cobros = '/cobros';
   static const String ajustesReservas = '/ajustes-reservas';
   static const String equipo = '/equipo';
+  static const String invitar = '/invitar';
 
   static const String inicio = '/inicio';
   static const String herramientas = '/herramientas';
