@@ -57,7 +57,9 @@ jobs:
           fi
 
       - name: Test (excluye golden tests — ver docs/GOLDEN_TESTS.md)
-        run: flutter test --exclude-tags=golden
+        run: |
+          flutter test \
+            $(find test -name '*_test.dart' ! -path 'test/golden/*' -type f | sort)
 
   build-web:
     runs-on: ubuntu-latest
