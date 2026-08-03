@@ -186,6 +186,8 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                         ),
                       ),
                     ] else ...[
+                      const SizedBox(height: 8),
+                      _SaldoClasesTexto(alumnoId: widget.alumnoId),
                       const SizedBox(height: 12),
                       Align(
                         alignment: Alignment.centerLeft,
@@ -302,6 +304,39 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
           },
         ),
       ],
+    );
+  }
+}
+
+/// Cuántas clases le quedan este ciclo. Antes `clases_restantes` existía en
+/// el servidor pero no lo enseñaba nadie: las tarifas «de 8 clases» eran de
+/// boquilla. Si algo falla al cargarlo, no se enseña nada — no es motivo
+/// para romper la tarjeta de la tarifa.
+class _SaldoClasesTexto extends ConsumerWidget {
+  const _SaldoClasesTexto({required this.alumnoId});
+
+  final String alumnoId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final saldoAsync = ref.watch(clasesRestantesProvider(alumnoId));
+    return saldoAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (e, st) => const SizedBox.shrink(),
+      data: (saldo) {
+        if (!saldo.tieneCuota || saldo.ilimitada) {
+          return const SizedBox.shrink();
+        }
+        final disponibles = saldo.disponibles ?? 0;
+        return Text(
+          disponibles > 0
+              ? 'Te quedan $disponibles de ${saldo.incluidas} clases este mes.'
+              : 'Sin clases disponibles este mes. Renueva o compra una suelta.',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: disponibles > 0 ? AppColors.subtle : AppColors.destructive,
+          ),
+        );
+      },
     );
   }
 }

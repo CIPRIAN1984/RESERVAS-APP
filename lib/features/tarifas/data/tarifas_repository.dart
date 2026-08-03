@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
+import 'saldo_clases.dart';
 import 'suscripcion.dart';
 import 'tarifa.dart';
 
@@ -100,5 +101,13 @@ class TarifasRepository {
     );
     final data = res.data as Map<String, dynamic>;
     if (data['error'] != null) throw Exception(data['error'] as String);
+  }
+
+  Future<SaldoClases> clasesRestantes(String alumnoId) async {
+    final data = await _client.rpc(
+      'clases_restantes',
+      params: {'p_alumno_id': alumnoId},
+    );
+    return SaldoClases.fromRpc(data as Map<String, dynamic>);
   }
 }

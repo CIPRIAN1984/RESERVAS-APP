@@ -290,3 +290,35 @@ pidió un QR/enlace que él pueda mandar directamente a la gente.
   añade acceso nuevo a la tabla `academias` para usuarios anónimos.
 - Se añade la dependencia `qr_flutter` (dibuja el QR en el propio dispositivo,
   sin llamada de red — nada que romper si hay DNS filtrado).
+
+## 2026-08-03 — El contador de clases pasa a bloquear de verdad
+
+`clases_restantes()` existía desde el 31/07 pero no lo llamaba nadie: ni
+`reservar_clase` lo comprobaba, ni el alumno lo veía en ningún sitio. Las
+tarifas de «8 clases al mes» eran decorativas — Cipri lo señaló al pedir el
+cierre de los obligatorios antes de meter a las ~300 personas de la
+academia.
+
+**La distinción que importa, y que no se puede perder:** esto NO es lo mismo
+que `exigir_cuota_para_reservar` (30/07/2026). Esa decisión sigue en pie —
+por defecto, quien no tiene NINGUNA cuota se puede apuntar igual y sale
+marcado «sin cuota» para cobrarle en mano. El bloqueo nuevo es otro caso:
+alguien que SÍ tiene una tarifa activa, con número de clases, y ya se las ha
+gastado este ciclo. Ahí la app dice que no y le manda a renovar o comprar
+una suelta. `reservar_clase` distingue los dos casos llamando a
+`clases_restantes()`:
+
+- `tiene_cuota = false` → no se toca nada, sigue el camino de siempre
+  (bloquea solo si la academia exige cuota).
+- `tiene_cuota = true` y `ilimitada = true` → sin límite, como hasta ahora.
+- `tiene_cuota = true`, `ilimitada = false`, `disponibles <= 0` → se
+  rechaza. Es el único caso nuevo.
+
+Se reutiliza `clases_restantes()` en vez de repetir la cuenta: una sola
+fuente de verdad para «cuántas te quedan», tanto si pregunta el servidor al
+decidir como si pregunta la pantalla para enseñarlo.
+
+En Flutter, «Mi cuota» (`TarifasScreen`, vista de alumno) enseña ahora
+`incluidas`, `gastadas` y `disponibles` cuando la tarifa no es ilimitada, y
+el error de reservar sin clases tiene su propio mensaje en vez de caer en
+el genérico «no se ha podido completar la acción».

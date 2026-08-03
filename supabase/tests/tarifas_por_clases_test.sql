@@ -4,7 +4,7 @@
 -- (contarle de más a alguien es cobrarle de más), y que nadie pueda mirar ni
 -- tocar el saldo de otro.
 begin;
-select plan(14);
+select plan(16);
 
 -- ------------------------------------------------------------
 -- Escenario: dos academias
@@ -243,6 +243,88 @@ select is(
     ->> 'tiene_cuota')::boolean,
   false,
   'Quien no tiene cuota sale sin cuota, no revienta'
+);
+
+-- ------------------------------------------------------------
+-- reservar_clase respeta el saldo: bloquea, pero solo a quien de
+-- verdad se ha gastado su cuota, no a quien nunca tuvo una
+-- ------------------------------------------------------------
+
+reset role;
+
+insert into auth.users (id, email) values
+  ('00000000-0000-0000-0000-0000000cc104', 'alumno-agotado-a@test.dev'),
+  ('00000000-0000-0000-0000-0000000cc105', 'alumno-sincuota-a@test.dev');
+
+insert into public.profiles (id, academia_id, rol, nombre, estado) values
+  ('00000000-0000-0000-0000-0000000cc104',
+   '00000000-0000-0000-0000-0000000cc0aa', 'alumno', 'Alumno agotado',
+   'activo'),
+  ('00000000-0000-0000-0000-0000000cc105',
+   '00000000-0000-0000-0000-0000000cc0aa', 'alumno', 'Alumno sin cuota',
+   'activo');
+
+-- Una tarifa de una sola clase, ya gastada este ciclo.
+insert into public.tarifas
+  (id, academia_id, nombre, precio, periodicidad, activo, clases_incluidas)
+values
+  ('00000000-0000-0000-0000-0000000cc0f4',
+   '00000000-0000-0000-0000-0000000cc0aa', 'Suelta única', 15, 'mensual',
+   true, 1);
+
+insert into public.suscripciones
+  (id, alumno_id, tarifa_id, academia_id, proveedor_pago)
+values
+  ('00000000-0000-0000-0000-0000000cc0e3',
+   '00000000-0000-0000-0000-0000000cc104',
+   '00000000-0000-0000-0000-0000000cc0f4',
+   '00000000-0000-0000-0000-0000000cc0aa', 'efectivo');
+
+update public.suscripciones
+   set estado = 'activa', payment_status = 'active',
+       fecha_inicio = now() - interval '3 days',
+       fecha_fin = now() + interval '27 days'
+ where id = '00000000-0000-0000-0000-0000000cc0e3';
+
+insert into public.clases
+  (id, academia_id, profesor_id, titulo, fecha_hora_inicio, fecha_hora_fin,
+   aforo_maximo)
+values
+  ('00000000-0000-0000-0000-0000000cc0c3',
+   '00000000-0000-0000-0000-0000000cc0aa',
+   '00000000-0000-0000-0000-0000000cc101', 'Ya pasada',
+   now() - interval '1 day', now() - interval '23 hours', 20),
+  ('00000000-0000-0000-0000-0000000cc0c4',
+   '00000000-0000-0000-0000-0000000cc0aa',
+   '00000000-0000-0000-0000-0000000cc101', 'Futura',
+   now() + interval '2 days', now() + interval '2 days 1 hour', 20);
+
+insert into public.asistencias
+  (clase_id, alumno_id, academia_id, validado_por)
+values
+  ('00000000-0000-0000-0000-0000000cc0c3',
+   '00000000-0000-0000-0000-0000000cc104',
+   '00000000-0000-0000-0000-0000000cc0aa',
+   '00000000-0000-0000-0000-0000000cc101');
+
+select pg_temp.actuar_como('00000000-0000-0000-0000-0000000cc104');
+
+select throws_ok(
+  $$ select public.reservar_clase(
+       '00000000-0000-0000-0000-0000000cc0c4') $$,
+  null,
+  'Con la única clase de su tarifa ya gastada, no puede reservar otra'
+);
+
+-- Y no es el mismo bloqueo que «sin cuota»: esta academia no exige cuota
+-- (exigir_cuota_para_reservar es false por defecto), así que alguien que
+-- directamente NUNCA tuvo tarifa sí se apunta igual.
+select pg_temp.actuar_como('00000000-0000-0000-0000-0000000cc105');
+
+select is(
+  (select public.reservar_clase('00000000-0000-0000-0000-0000000cc0c4')),
+  'inscrito',
+  'Quien no tiene ninguna cuota se apunta igual: ese bloqueo es otro'
 );
 
 rollback;

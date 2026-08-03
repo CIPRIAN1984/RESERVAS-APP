@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/supabase/supabase_client.dart';
+import '../data/saldo_clases.dart';
 import '../data/suscripcion.dart';
 import '../data/tarifa.dart';
 import '../data/tarifas_repository.dart';
@@ -21,4 +22,9 @@ final tarifasProvider = FutureProvider.autoDispose.family<List<Tarifa>, bool>((
 final suscripcionActivaProvider = FutureProvider.autoDispose
     .family<Suscripcion?, String>((ref, alumnoId) {
       return ref.watch(tarifasRepositoryProvider).suscripcionActiva(alumnoId);
+    });
+
+final clasesRestantesProvider = FutureProvider.autoDispose
+    .family<SaldoClases, String>((ref, alumnoId) {
+      return ref.watch(tarifasRepositoryProvider).clasesRestantes(alumnoId);
     });

@@ -85,6 +85,9 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     if (texto.contains('cuota activa')) {
       return 'Necesitas una cuota activa para reservar.';
     }
+    if (texto.contains('No te quedan clases')) {
+      return 'No te quedan clases en tu tarifa este mes. Renueva o compra una clase suelta.';
+    }
     if (texto.contains('Ya estás inscrito') ||
         texto.contains('Ya tienes una reserva')) {
       return 'Ya tienes una reserva o plaza de espera para esta clase.';
