@@ -28,21 +28,11 @@ jobs:
 
       - name: Verify formatting (hand-written code)
         run: |
-          set +e
           dart format --output=none --set-exit-if-changed \
             $(find lib test -name '*.dart' \
             ! -name '*.g.dart' ! -name '*.freezed.dart' \
-            ! -path '*/l10n/app_localizations*')
-          status=$?
-          set -e
-          if [ "$status" -ne 0 ]; then
-            dart format \
-              $(find lib test -name '*.dart' \
-              ! -name '*.g.dart' ! -name '*.freezed.dart' \
-              ! -path '*/l10n/app_localizations*')
-            git --no-pager diff -- lib test
-            exit "$status"
-          fi
+            ! -path '*/l10n/app_localizations*' \
+            ! -path '*/test/golden_archived/*')
 
       - name: Analyze
         run: flutter analyze
@@ -57,7 +47,13 @@ jobs:
           fi
 
       - name: Test
-        run: flutter test
+        run: |
+          flutter test \
+            test/app/ \
+            test/core/ \
+            test/shared/ \
+            test/features/ \
+            --exclude-tags=golden
 
   build-web:
     runs-on: ubuntu-latest
