@@ -27,6 +27,7 @@ class ClaseDetalleScreen extends ConsumerStatefulWidget {
 class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
   late Future<ParticipantesClase> _future;
   final Set<String> _marcando = {};
+  bool _confirmandoTodos = false;
 
   @override
   void initState() {
@@ -68,6 +69,58 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
       }
     } finally {
       if (mounted) setState(() => _marcando.remove(alumno.alumnoId));
+    }
+  }
+
+  /// Pasar lista de golpe: confirma a todos los inscritos que aún no tienen
+  /// la asistencia validada. Marca a todo el mundo presente — quien reserva
+  /// y no viene pierde la clase igual (regla ya en DECISIONS.md), así que no
+  /// hay «ausentes» que marcar aparte.
+  Future<void> _confirmarTodos(List<InscritoAlumno> pendientes) async {
+    final userId = ref.read(currentUserIdProvider);
+    if (userId == null || pendientes.isEmpty) return;
+
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar la clase entera'),
+        content: Text(
+          pendientes.length == 1
+              ? 'Se confirma la asistencia de 1 alumno.'
+              : 'Se confirma la asistencia de ${pendientes.length} alumnos.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Confirmar todos'),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true) return;
+
+    setState(() => _confirmandoTodos = true);
+    try {
+      await ref
+          .read(clasesRepositoryProvider)
+          .marcarAsistenciaEnBloque(
+            claseId: widget.clase.id,
+            alumnoIds: pendientes.map((a) => a.alumnoId).toList(),
+            validadoPor: userId,
+          );
+      _recargar();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se ha podido confirmar la clase.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _confirmandoTodos = false);
     }
   }
 
@@ -221,6 +274,9 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
           final inscritos = participantes.inscritos;
           final listaEspera = participantes.listaEspera;
           final sinCuota = inscritos.where((a) => a.sinCuota).length;
+          final pendientes = inscritos
+              .where((a) => !a.asistenciaValidada)
+              .toList();
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,6 +305,27 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                         child: PastillaEstado.error(
                           sinCuota == 1 ? '1 sin cuota' : '$sinCuota sin cuota',
                         ),
+                      ),
+                    ],
+                    if (pendientes.isNotEmpty) ...[
+                      const SizedBox(height: 14),
+                      OutlinedButton(
+                        onPressed: _confirmandoTodos
+                            ? null
+                            : () => _confirmarTodos(pendientes),
+                        child: _confirmandoTodos
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                pendientes.length == inscritos.length
+                                    ? 'Confirmar todos'
+                                    : 'Confirmar los ${pendientes.length} que faltan',
+                              ),
                       ),
                     ],
                   ],
