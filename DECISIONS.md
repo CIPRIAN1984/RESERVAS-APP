@@ -291,70 +291,24 @@ pidió un QR/enlace que él pueda mandar directamente a la gente.
 - Se añade la dependencia `qr_flutter` (dibuja el QR en el propio dispositivo,
   sin llamada de red — nada que romper si hay DNS filtrado).
 
-## 2026-08-03 — Familias y tutores: menores sin auth propia
+## 2026-08-03 — Pasar lista de golpe
 
-**El contexto:** hay clases infantiles. Un padre/tutor con varios hijos, cada
-uno con su ficha propia (nombre, cinturón, historial), pero sin cuenta de login
-independiente. Cipri accede a ellos desde su perfil de padre.
+Pasar lista alumno por alumno era media hora perdida en clases de 20-40
+personas. Cipri pidió «un botón para confirmar a todos los apuntados de
+golpe» — sin desmarcar excepciones, sin nada más: marca a todo el mundo
+presente de una vez.
 
-**Decisiones de arquitectura:**
-
-1. **Los menores NO tienen `auth.users`**: Solo tienen un perfil (row en
-   `profiles` con rol = 'alumno'). El UUID del perfil es el identificador
-   único, **no** el de un usuario de Auth inexistente.
-   
-   Rationale: Un niño de 6 años nunca va a loguear. Su padre los maneja viendo
-   la lista de hijos desde su cuenta. Simplifica la seguridad (no hay accounts
-   bloqueadas inútiles) y RLS (no hay que distinguir entre «minor logged in»
-   vs «minor seen by parent»).
-
-2. **Nueva tabla `relaciones_familia`**: vincula `parent_id` (uuid en
-   `profiles`) con `child_id` (idem). Tipo de relación explícito ('padre',
-   'madre', 'tutor', 'apoderado'). Un menor solo puede tener un padre/tutor
-   (`unique(child_id)`); un padre puede tener varios menores.
-
-3. **RLS en `relaciones_familia`**: 
-   - Un padre ve sus propias relaciones.
-   - Un administrador ve todas.
-   - Aislamiento por academia: los padres de academias distintas no se ven.
-
-4. **RLS en `profiles` actualizada**:
-   - Yo mismo (cualquier columna).
-   - Mis hijos (si tengo relación familia como padre) — solo los que me
-     pertenecen según `relaciones_familia`.
-   - Mis compañeros de academia (igual que antes).
-   - Soy administrador.
-
-5. **Función SQL `crear_perfil_hijo(p_parent_id, p_academia_id, ...)`**:
-   - Crea un perfil con `rol = 'alumno'`, sin auth.users.
-   - Crea la relación familia en la misma transacción (atómica).
-   - Security definer con service_role (la Edge Function es la puerta).
-   - No se expone directo al usuario: solo via Edge Function.
-
-6. **Edge Function `crear-hijo`**:
-   - Recibe nombre, apellidos, cinturón del menor.
-   - Valida que el caller sea padre (tiene perfil en la misma academia).
-   - Llama `crear_perfil_hijo()` con service_role.
-   - Devuelve hijo_id y familia_id.
-
-**Tests (`familias_tutores_test.sql`, 25 casos pgTAP):**
-- Creación de relaciones, unique constraint en child_id, no ciclos.
-- Padre ve/edita sus hijos; otros padres no pueden.
-- Función crea perfil + relación atómicamente.
-- Academia ve todos sus perfiles (incluyendo menores).
-
-**Estado actual (2026-08-03):**
-- ✅ Modelos Dart: `Profile.parentId`, `RelacionFamilia` creados y con freezed.
-- ✅ Repositorio: `FamiliaRepository` (crear, listar, actualizar, eliminar hijos).
-- ✅ Edge Function: `crear-hijo` validado y deployado.
-- ✅ Pantalla «Mis hijos» básica: lista con FloatingActionButton para agregar.
-- ✅ Formulario «Agregar hijo»: nombre, apellidos, cinturón en modal.
-- ✅ Integración en Perfil: sección "Mis hijos" con botón solo si hay hijos.
-- ✅ Ruta: `/mis-hijos` en router con navegación desde Perfil.
-- ✅ Tests: widget tests para la integración en PerfilScreen.
-
-**Próximos pasos:**
-- Pantalla de detalle/edición de hijo (nombre, apellidos, cinturón).
-- Botón de eliminar hijo con confirmación.
-- Edición en línea en MisHijosScreen (no solo lista).
-- E2E: datos reales en Supabase.
+- `ClasesRepository.marcarAsistenciaEnBloque` hace un único `upsert` con
+  todos los alumnos pendientes, en vez de un viaje al servidor por alumno.
+  **Sin RPC ni migración nueva**: la política RLS de `asistencias` ya
+  comprueba cada fila igual que en el alta individual (`validado_por =
+  auth.uid()`, rol profesor/dueño, clase de la propia academia), y esa
+  comprobación se aplica igual fila a fila venga una sola o vengan veinte en
+  el mismo lote.
+- El botón solo aparece si queda alguien sin validar, y pide confirmación
+  antes («Se confirma la asistencia de N alumnos») — es lo único que
+  distingue esto de un clic accidental que le cobra la clase a alguien que
+  no ha venido.
+- No hay forma de desmarcar después, ni aquí ni en la validación individual
+  que ya existía: no se ha tocado porque no es lo que se pidió, pero es una
+  carencia que ya estaba antes de este cambio.
