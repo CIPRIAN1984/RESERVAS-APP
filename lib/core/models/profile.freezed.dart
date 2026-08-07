@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Profile {
 
- String get id;@JsonKey(name: 'academia_id') String? get academiaId; String get rol; String get nombre; String? get apellidos;@JsonKey(name: 'foto_url') String? get fotoUrl; String? get cinturon; String get estado;
+ String get id;@JsonKey(name: 'academia_id') String? get academiaId; String get rol; String get nombre; String? get apellidos;@JsonKey(name: 'foto_url') String? get fotoUrl; String? get cinturon; String get estado;@JsonKey(name: 'parent_id') String? get parentId;
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ProfileCopyWith<Profile> get copyWith => _$ProfileCopyWithImpl<Profile>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.academiaId, academiaId) || other.academiaId == academiaId)&&(identical(other.rol, rol) || other.rol == rol)&&(identical(other.nombre, nombre) || other.nombre == nombre)&&(identical(other.apellidos, apellidos) || other.apellidos == apellidos)&&(identical(other.fotoUrl, fotoUrl) || other.fotoUrl == fotoUrl)&&(identical(other.cinturon, cinturon) || other.cinturon == cinturon)&&(identical(other.estado, estado) || other.estado == estado));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.academiaId, academiaId) || other.academiaId == academiaId)&&(identical(other.rol, rol) || other.rol == rol)&&(identical(other.nombre, nombre) || other.nombre == nombre)&&(identical(other.apellidos, apellidos) || other.apellidos == apellidos)&&(identical(other.fotoUrl, fotoUrl) || other.fotoUrl == fotoUrl)&&(identical(other.cinturon, cinturon) || other.cinturon == cinturon)&&(identical(other.estado, estado) || other.estado == estado)&&(identical(other.parentId, parentId) || other.parentId == parentId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,academiaId,rol,nombre,apellidos,fotoUrl,cinturon,estado);
+int get hashCode => Object.hash(runtimeType,id,academiaId,rol,nombre,apellidos,fotoUrl,cinturon,estado,parentId);
 
 @override
 String toString() {
-  return 'Profile(id: $id, academiaId: $academiaId, rol: $rol, nombre: $nombre, apellidos: $apellidos, fotoUrl: $fotoUrl, cinturon: $cinturon, estado: $estado)';
+  return 'Profile(id: $id, academiaId: $academiaId, rol: $rol, nombre: $nombre, apellidos: $apellidos, fotoUrl: $fotoUrl, cinturon: $cinturon, estado: $estado, parentId: $parentId)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ProfileCopyWith<$Res>  {
   factory $ProfileCopyWith(Profile value, $Res Function(Profile) _then) = _$ProfileCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'academia_id') String? academiaId, String rol, String nombre, String? apellidos,@JsonKey(name: 'foto_url') String? fotoUrl, String? cinturon, String estado
+ String id,@JsonKey(name: 'academia_id') String? academiaId, String rol, String nombre, String? apellidos,@JsonKey(name: 'foto_url') String? fotoUrl, String? cinturon, String estado,@JsonKey(name: 'parent_id') String? parentId
 });
 
 
@@ -65,7 +65,7 @@ class _$ProfileCopyWithImpl<$Res>
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? academiaId = freezed,Object? rol = null,Object? nombre = null,Object? apellidos = freezed,Object? fotoUrl = freezed,Object? cinturon = freezed,Object? estado = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? academiaId = freezed,Object? rol = null,Object? nombre = null,Object? apellidos = freezed,Object? fotoUrl = freezed,Object? cinturon = freezed,Object? estado = null,Object? parentId = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,academiaId: freezed == academiaId ? _self.academiaId : academiaId // ignore: cast_nullable_to_non_nullable
@@ -75,7 +75,8 @@ as String,apellidos: freezed == apellidos ? _self.apellidos : apellidos // ignor
 as String?,fotoUrl: freezed == fotoUrl ? _self.fotoUrl : fotoUrl // ignore: cast_nullable_to_non_nullable
 as String?,cinturon: freezed == cinturon ? _self.cinturon : cinturon // ignore: cast_nullable_to_non_nullable
 as String?,estado: null == estado ? _self.estado : estado // ignore: cast_nullable_to_non_nullable
-as String,
+as String,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -160,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'academia_id')  String? academiaId,  String rol,  String nombre,  String? apellidos, @JsonKey(name: 'foto_url')  String? fotoUrl,  String? cinturon,  String estado)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'academia_id')  String? academiaId,  String rol,  String nombre,  String? apellidos, @JsonKey(name: 'foto_url')  String? fotoUrl,  String? cinturon,  String estado, @JsonKey(name: 'parent_id')  String? parentId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
-return $default(_that.id,_that.academiaId,_that.rol,_that.nombre,_that.apellidos,_that.fotoUrl,_that.cinturon,_that.estado);case _:
+return $default(_that.id,_that.academiaId,_that.rol,_that.nombre,_that.apellidos,_that.fotoUrl,_that.cinturon,_that.estado,_that.parentId);case _:
   return orElse();
 
 }
@@ -181,10 +182,10 @@ return $default(_that.id,_that.academiaId,_that.rol,_that.nombre,_that.apellidos
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'academia_id')  String? academiaId,  String rol,  String nombre,  String? apellidos, @JsonKey(name: 'foto_url')  String? fotoUrl,  String? cinturon,  String estado)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'academia_id')  String? academiaId,  String rol,  String nombre,  String? apellidos, @JsonKey(name: 'foto_url')  String? fotoUrl,  String? cinturon,  String estado, @JsonKey(name: 'parent_id')  String? parentId)  $default,) {final _that = this;
 switch (_that) {
 case _Profile():
-return $default(_that.id,_that.academiaId,_that.rol,_that.nombre,_that.apellidos,_that.fotoUrl,_that.cinturon,_that.estado);case _:
+return $default(_that.id,_that.academiaId,_that.rol,_that.nombre,_that.apellidos,_that.fotoUrl,_that.cinturon,_that.estado,_that.parentId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +202,10 @@ return $default(_that.id,_that.academiaId,_that.rol,_that.nombre,_that.apellidos
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'academia_id')  String? academiaId,  String rol,  String nombre,  String? apellidos, @JsonKey(name: 'foto_url')  String? fotoUrl,  String? cinturon,  String estado)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'academia_id')  String? academiaId,  String rol,  String nombre,  String? apellidos, @JsonKey(name: 'foto_url')  String? fotoUrl,  String? cinturon,  String estado, @JsonKey(name: 'parent_id')  String? parentId)?  $default,) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
-return $default(_that.id,_that.academiaId,_that.rol,_that.nombre,_that.apellidos,_that.fotoUrl,_that.cinturon,_that.estado);case _:
+return $default(_that.id,_that.academiaId,_that.rol,_that.nombre,_that.apellidos,_that.fotoUrl,_that.cinturon,_that.estado,_that.parentId);case _:
   return null;
 
 }
@@ -216,7 +217,7 @@ return $default(_that.id,_that.academiaId,_that.rol,_that.nombre,_that.apellidos
 @JsonSerializable()
 
 class _Profile extends Profile {
-  const _Profile({required this.id, @JsonKey(name: 'academia_id') this.academiaId, required this.rol, required this.nombre, this.apellidos, @JsonKey(name: 'foto_url') this.fotoUrl, this.cinturon, required this.estado}): super._();
+  const _Profile({required this.id, @JsonKey(name: 'academia_id') this.academiaId, required this.rol, required this.nombre, this.apellidos, @JsonKey(name: 'foto_url') this.fotoUrl, this.cinturon, required this.estado, @JsonKey(name: 'parent_id') this.parentId}): super._();
   factory _Profile.fromJson(Map<String, dynamic> json) => _$ProfileFromJson(json);
 
 @override final  String id;
@@ -227,6 +228,7 @@ class _Profile extends Profile {
 @override@JsonKey(name: 'foto_url') final  String? fotoUrl;
 @override final  String? cinturon;
 @override final  String estado;
+@override@JsonKey(name: 'parent_id') final  String? parentId;
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
@@ -241,16 +243,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.academiaId, academiaId) || other.academiaId == academiaId)&&(identical(other.rol, rol) || other.rol == rol)&&(identical(other.nombre, nombre) || other.nombre == nombre)&&(identical(other.apellidos, apellidos) || other.apellidos == apellidos)&&(identical(other.fotoUrl, fotoUrl) || other.fotoUrl == fotoUrl)&&(identical(other.cinturon, cinturon) || other.cinturon == cinturon)&&(identical(other.estado, estado) || other.estado == estado));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.academiaId, academiaId) || other.academiaId == academiaId)&&(identical(other.rol, rol) || other.rol == rol)&&(identical(other.nombre, nombre) || other.nombre == nombre)&&(identical(other.apellidos, apellidos) || other.apellidos == apellidos)&&(identical(other.fotoUrl, fotoUrl) || other.fotoUrl == fotoUrl)&&(identical(other.cinturon, cinturon) || other.cinturon == cinturon)&&(identical(other.estado, estado) || other.estado == estado)&&(identical(other.parentId, parentId) || other.parentId == parentId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,academiaId,rol,nombre,apellidos,fotoUrl,cinturon,estado);
+int get hashCode => Object.hash(runtimeType,id,academiaId,rol,nombre,apellidos,fotoUrl,cinturon,estado,parentId);
 
 @override
 String toString() {
-  return 'Profile(id: $id, academiaId: $academiaId, rol: $rol, nombre: $nombre, apellidos: $apellidos, fotoUrl: $fotoUrl, cinturon: $cinturon, estado: $estado)';
+  return 'Profile(id: $id, academiaId: $academiaId, rol: $rol, nombre: $nombre, apellidos: $apellidos, fotoUrl: $fotoUrl, cinturon: $cinturon, estado: $estado, parentId: $parentId)';
 }
 
 
@@ -261,7 +263,7 @@ abstract mixin class _$ProfileCopyWith<$Res> implements $ProfileCopyWith<$Res> {
   factory _$ProfileCopyWith(_Profile value, $Res Function(_Profile) _then) = __$ProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'academia_id') String? academiaId, String rol, String nombre, String? apellidos,@JsonKey(name: 'foto_url') String? fotoUrl, String? cinturon, String estado
+ String id,@JsonKey(name: 'academia_id') String? academiaId, String rol, String nombre, String? apellidos,@JsonKey(name: 'foto_url') String? fotoUrl, String? cinturon, String estado,@JsonKey(name: 'parent_id') String? parentId
 });
 
 
@@ -278,7 +280,7 @@ class __$ProfileCopyWithImpl<$Res>
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? academiaId = freezed,Object? rol = null,Object? nombre = null,Object? apellidos = freezed,Object? fotoUrl = freezed,Object? cinturon = freezed,Object? estado = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? academiaId = freezed,Object? rol = null,Object? nombre = null,Object? apellidos = freezed,Object? fotoUrl = freezed,Object? cinturon = freezed,Object? estado = null,Object? parentId = freezed,}) {
   return _then(_Profile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,academiaId: freezed == academiaId ? _self.academiaId : academiaId // ignore: cast_nullable_to_non_nullable
@@ -288,7 +290,8 @@ as String,apellidos: freezed == apellidos ? _self.apellidos : apellidos // ignor
 as String?,fotoUrl: freezed == fotoUrl ? _self.fotoUrl : fotoUrl // ignore: cast_nullable_to_non_nullable
 as String?,cinturon: freezed == cinturon ? _self.cinturon : cinturon // ignore: cast_nullable_to_non_nullable
 as String?,estado: null == estado ? _self.estado : estado // ignore: cast_nullable_to_non_nullable
-as String,
+as String,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

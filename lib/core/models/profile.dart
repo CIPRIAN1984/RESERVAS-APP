@@ -18,6 +18,9 @@ abstract class Profile with _$Profile {
     @JsonKey(name: 'foto_url') String? fotoUrl,
     String? cinturon,
     required String estado,
+    // Familias: si no es null, este perfil es un menor con ese padre/tutor.
+    // Null = adulto (o administrador).
+    @JsonKey(name: 'parent_id') String? parentId,
   }) = _Profile;
 
   factory Profile.fromJson(Map<String, dynamic> json) =>
