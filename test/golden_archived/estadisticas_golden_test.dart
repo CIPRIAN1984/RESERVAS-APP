@@ -29,6 +29,7 @@ final _ranking = [
   _alumno('Alumno B', 'blanco', 4),
 ];
 
+@Tags(['golden'])
 void main() {
   setUpAll(cargarTipografias);
 

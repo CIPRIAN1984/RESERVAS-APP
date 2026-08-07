@@ -65,6 +65,7 @@ Widget _app({required String rol}) {
   );
 }
 
+@Tags(['golden'])
 void main() {
   setUpAll(cargarTipografias);
 
