@@ -27,6 +27,7 @@ import '../features/onboarding/presentation/restablecer_contrasena_screen.dart';
 import '../features/onboarding/presentation/splash_screen.dart';
 import '../features/perfil/presentation/perfil_screen.dart';
 import '../features/perfil/presentation/solicitudes_cambio_escuela_screen.dart';
+import '../features/perfil/presentation/mis_hijos_screen.dart';
 import '../shared/navigation/main_shell.dart';
 import '../shared/widgets/pantalla.dart';
 import 'routes.dart';
@@ -252,6 +253,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const PantallaConTitulo(
               titulo: 'Perfil',
               child: PerfilScreen(),
+            ),
+          ),
+          GoRoute(
+            path: Routes.misHijos,
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Mis hijos',
+              onVolver: () => context.go(Routes.perfil),
+              child: const MisHijosScreen(),
             ),
           ),
           GoRoute(

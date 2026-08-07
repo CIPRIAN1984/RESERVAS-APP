@@ -25,6 +25,7 @@ class Routes {
   static const String tienda = '/tienda';
   static const String tarifas = '/tarifas';
   static const String perfil = '/perfil';
+  static const String misHijos = '/mis-hijos';
 
   static const Set<String> publicRoutes = {
     login,
