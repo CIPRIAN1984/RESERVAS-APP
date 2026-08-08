@@ -21,7 +21,7 @@ import '../features/privacy/presentation/privacy_screen.dart';
 import '../features/tarifas/presentation/tarifas_screen.dart';
 // CONGELADO: import '../features/tienda/presentation/tienda_screen.dart';
 import '../features/onboarding/presentation/pendiente_aprobacion_screen.dart';
-import '../features/onboarding/presentation/registro_academia_screen.dart';
+// CONGELADO: import '../features/onboarding/presentation/registro_academia_screen.dart';
 import '../features/onboarding/presentation/registro_screen.dart';
 import '../features/onboarding/presentation/restablecer_contrasena_screen.dart';
 import '../features/onboarding/presentation/splash_screen.dart';
@@ -192,10 +192,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) =>
             RegistroScreen(academiaId: state.uri.queryParameters['academia']),
       ),
-      GoRoute(
-        path: Routes.registroAcademia,
-        builder: (context, state) => const RegistroAcademiaScreen(),
-      ),
+      // CONGELADO: Crear nueva academia (v1 es academia única)
+      // GoRoute(
+      //   path: Routes.registroAcademia,
+      //   builder: (context, state) => const RegistroAcademiaScreen(),
+      // ),
       GoRoute(
         path: Routes.pendienteAprobacion,
         builder: (context, state) => const PendienteAprobacionScreen(),

@@ -322,3 +322,28 @@ En Flutter, «Mi cuota» (`TarifasScreen`, vista de alumno) enseña ahora
 `incluidas`, `gastadas` y `disponibles` cuando la tarifa no es ilimitada, y
 el error de reservar sin clases tiene su propio mensaje en vez de caer en
 el genérico «no se ha podido completar la acción».
+
+## 2026-08-08 — ITACA como academia única en v1
+
+La app se lanza con una sola academia: ITACA (la academia de Cipri en Logroño).
+La arquitectura multi-academia se preserva en la base de datos para expansión
+futura (paso 11), pero el cliente se configura para trabajar solo con ITACA.
+
+**Cambios en el cliente:**
+
+- `AppConfig` añade `itacaAcademiaId` leyendo del `--dart-define` `ITACA_ACADEMIA_ID`.
+- `RegistroScreen` ya no muestra un desplegable de academias: siempre fija ITACA.
+  La pantalla sigue leyendo `listar_academias_aprobadas()` para validar que ITACA
+  existe, pero no para elegir.
+- El botón «Crear nueva academia» (`registerOwnerCta`) está comentado — en v1, no
+  se permite el alta de nuevas academias.
+- La ruta `/registroAcademia` (pantalla de alta de academia) está comentada.
+- El rol `administrador` sigue siendo global (sin academia), pero en v1 no hay
+  funciones de administración expuestas en Flutter (aprobaciones de academias,
+  etc.). Ver §4 de `FREEZE.md`.
+
+**Cambios en la base de datos: ninguno.** Las tablas `academias` y RLS siguen
+como estaban. En producción habrá solo una fila en `academias` (ITACA).
+
+**Recuperación en paso 11 (post-lanzamiento):** deshabilitar `ITACA_ACADEMIA_ID`,
+descomentar rutas y botón, y reimplementar `AdminAcademiasScreen` con aprobaciones.

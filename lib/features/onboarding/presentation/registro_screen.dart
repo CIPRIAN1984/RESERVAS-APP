@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 import '../../../app/routes.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/models/academia.dart';
 import '../../../core/utils/error_messages.dart';
 import '../../../l10n/app_localizations.dart';
@@ -44,7 +45,11 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
   @override
   void initState() {
     super.initState();
-    _academiaId = widget.academiaId;
+    // Para v1 (academia única), siempre usa ITACA. El parámetro academiaId
+    // se ignora (puede venir de un enlace antiguo de invitación multi-academia).
+    _academiaId = AppConfig.itacaAcademiaId.isNotEmpty
+        ? AppConfig.itacaAcademiaId
+        : widget.academiaId;
   }
 
   @override
@@ -143,41 +148,24 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
                           : null,
                     ),
                     const SizedBox(height: 16),
+                    // Para v1 (academia única), muestra solo ITACA. El provider
+                    // de academias se mantiene por compatibilidad futura con
+                    // multi-academia.
                     academiasAsync.when(
                       data: (academias) {
-                        if (widget.academiaId != null) {
-                          final fija = academias
-                              .where((a) => a.id == widget.academiaId)
-                              .firstOrNull;
-                          // El enlace apunta a una academia que ya no está
-                          // aprobada (o nunca lo estuvo): se avisa en vez de
-                          // dejar seguir con un id que el servidor va a
-                          // rechazar igualmente.
-                          if (fija == null) {
-                            return Text(
-                              'Este enlace de invitación ya no es válido. '
-                              'Pide uno nuevo a tu academia.',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                            );
-                          }
-                          return _AcademiaFija(nombre: fija.nombre);
+                        final itaca = academias
+                            .where((a) => a.id == AppConfig.itacaAcademiaId)
+                            .firstOrNull;
+                        // ITACA debería estar siempre en la lista de aprobadas.
+                        if (itaca == null) {
+                          return Text(
+                            'Error de configuración: ITACA no está en la lista de academias aprobadas.',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          );
                         }
-                        return DropdownButtonFormField<String>(
-                          initialValue: _academiaId,
-                          decoration: InputDecoration(
-                            labelText: l10n.registerYourAcademy,
-                          ),
-                          items: [
-                            for (final a in academias)
-                              DropdownMenuItem(
-                                value: a.id,
-                                child: Text(a.nombre),
-                              ),
-                          ],
-                          onChanged: (v) => setState(() => _academiaId = v),
-                        );
+                        return _AcademiaFija(nombre: itaca.nombre);
                       },
                       loading: () => const LinearProgressIndicator(),
                       error: (e, st) => Text(
@@ -207,13 +195,14 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
                             )
                           : Text(l10n.actionCreateAccount),
                     ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: _loading
-                          ? null
-                          : () => context.push(Routes.registroAcademia),
-                      child: Text(l10n.registerOwnerCta),
-                    ),
+                    // CONGELADO: Crear nueva academia (v1 es academia única)
+                    // const SizedBox(height: 16),
+                    // TextButton(
+                    //   onPressed: _loading
+                    //       ? null
+                    //       : () => context.push(Routes.registroAcademia),
+                    //   child: Text(l10n.registerOwnerCta),
+                    // ),
                   ],
                 ),
               ),

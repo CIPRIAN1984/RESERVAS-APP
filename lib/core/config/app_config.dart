@@ -11,6 +11,12 @@ class AppConfig {
     'STRIPE_PUBLISHABLE_KEY',
   );
 
+  /// UUID de la academia única (ITACA) para v1 de lanzamiento.
+  /// En multi-academia, esto no aplica y se toma del parámetro de registro.
+  static const String itacaAcademiaId = String.fromEnvironment(
+    'ITACA_ACADEMIA_ID',
+  );
+
   /// Sentry DSN for crash/error reporting. Optional: when empty, Sentry stays
   /// disabled and the app runs normally (see `ObservabilityConfig`).
   static const String sentryDsn = String.fromEnvironment('SENTRY_DSN');
