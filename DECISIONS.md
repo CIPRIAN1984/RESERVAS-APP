@@ -458,3 +458,48 @@ Las pruebas pgTAP cubren el flujo completo de operaciones:
 - CI Flutter: formato, análisis, codegen, unit tests, golden tests (separado)
 
 Suficiente para v1. CI está automatizado y verde.
+
+## 2026-08-08 — Despliegue controlado de v1 (pre-lanzamiento)
+
+Checklist de despliegue:
+
+**Pre-despliegue (local + staging):**
+- [ ] CI verde: formato, análisis, tests Flutter y pgTAP
+- [ ] Supabase local: `supabase start && supabase test db` pasan
+- [ ] `dart format`, `flutter analyze` sin avisos
+- [ ] Codegen actualizado: `dart run build_runner build --delete-conflicting-outputs`
+- [ ] All screenshots/golden tests updated (if any visual changes)
+
+**Despliegue de BD (Supabase):**
+- [ ] `supabase migration list` muestra exactamente 26 versiones
+- [ ] `supabase db push --dry-run` solo detecta nuevas (si las hay)
+- [ ] Ejecutar Advisors en Supabase Console, revisar SECURITY DEFINER
+- [ ] **NO** desplegar si alguna migración histórica aparece como pendiente
+
+**Despliegue de frontend (Vercel):**
+- [ ] Merge a rama `main` (o rama de producción si existe)
+- [ ] Vercel construye sin errores, estado = `READY`
+- [ ] Ejecutar `Production smoke` manual (GET /, /olvide-contrasena, /privacidad)
+- [ ] Verificar dominio: `https://itc2-reservas.vercel.app`
+
+**Post-despliegue (dentro de 1 hora):**
+- [ ] Revisar logs de Vercel y Supabase por errores nuevos
+- [ ] Si Sentry activo, confirmar release = commit hash
+- [ ] Ejecutar bootstrap de Administrador (proceso único):
+  - Crear usuario en Auth sin metadata
+  - Confirmar correo
+  - Copiar UUID
+  - SQL: `select public.bootstrap_initial_admin('<uuid>'::uuid, 'Nombre', null);`
+  - Verificar: `select * from public.profiles where rol = 'administrador';`
+  - Iniciar sesión, comprobar panel de academias
+
+**Monitoreo (primeros 7 días):**
+- [ ] Diariamente: revisar errores Sentry, disponibilidad en smoke
+- [ ] Semanalmente: comparar con MAAT en paralelo (sin meter dinero real)
+
+**Documentación post-lanzamiento:**
+- [ ] Actualizar fecha y versión en `PRODUCT.md`
+- [ ] Documentar qué usuario es el Administrador
+- [ ] Archivar este fichero en la wiki o GitHub Releases
+
+Referencia completa: `OPERATIONS.md` secciones "Despliegue", "Observabilidad" e "Incidentes".
