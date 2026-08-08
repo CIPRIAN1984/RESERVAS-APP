@@ -377,3 +377,34 @@ Todas las operaciones son atómicas bajo transacción; las races son evitadas co
 `for update` en las selects de `clases` e `inscripciones`. Las pruebas pgTAP
 cubren todos los casos: cuota válida/inválida, lista de espera, cancelaciones
 tardías, zona horaria, etc.
+
+## 2026-08-08 — Hardening de Auth, RPC, RLS (v1 pre-lanzamiento)
+
+El hardening de seguridad está en su lugar:
+
+**Auth:**
+- Solo el alta pública permite registrar Alumnos y Dueños
+- El Administrador se crea con `bootstrap_initial_admin` (service_role, no disponible en Flutter)
+- Nadie puede cambiar su propio rol ni convertirse en administrador
+
+**RPC (PostgREST):**
+- `anon` (sin autenticar) solo tiene acceso a `listar_academias_aprobadas()`
+- `authenticated` (usuario logueado) tiene acceso a: `reservar_clase`, `cancelar_reserva`, `registrar_device_token`,
+  `cambiar_rol_miembro` (restringida a dueño), `listar_clases_semana`, `ranking_mensual`
+- Las funciones internas (triggers, cron, helper) están cerradas a `anon` y `authenticated`
+- `service_role` (Edge Functions, backend) puede ejecutar todo
+
+**Permisos en columnas:**
+- Tabla `profiles`: columnas `rol` y `estado` tienen `revoke update` + grant explícito a columnas editables
+- Tabla `academias`: `stripe_charges_enabled`, `stripe_onboarding_status`, `estado` tienen revoke similar
+- Suscripciones: no se puede editar `estado` directamente; la cancelación pasa por una RPC (no implementada aún)
+
+**RLS (Row Level Security):**
+- Cada tabla con datos sensibles filtra por `current_academia_id()` (usuario dentro de su academia)
+- El `administrador` (rol global) ve todos los registros
+- Aislamiento multi-tenant verificado por pruebas pgTAP
+
+**Pendiente para v1 post-lanzamiento:**
+- Rate limiting en PostgREST (Supabase lo provee a nivel de plan, requiere configuración)
+- Auditoría de cambios en perfiles y configuración de academia (quién cambió qué y cuándo)
+- Webhook de Stripe con validación de firma (Edge Function desplegada pero no activada, ver FREEZE.md)
