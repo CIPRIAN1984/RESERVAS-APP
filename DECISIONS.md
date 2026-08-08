@@ -408,3 +408,23 @@ El hardening de seguridad está en su lugar:
 - Rate limiting en PostgREST (Supabase lo provee a nivel de plan, requiere configuración)
 - Auditoría de cambios en perfiles y configuración de academia (quién cambió qué y cuándo)
 - Webhook de Stripe con validación de firma (Edge Function desplegada pero no activada, ver FREEZE.md)
+
+## 2026-08-08 — Errores y reintentos (v1 pre-lanzamiento)
+
+**Manejo de errores:**
+- Todos los errores de red/timeout se convierten a mensajes amigables en `mensajeErrorAmigable()`
+- Los errores de validación vienen como excepciones de Supabase (ej: "Debes tener una cuota activa")
+- Sentry captura automáticamente errores no controlados (opcional, requiere SENTRY_DSN)
+
+**Reintentos:**
+- Las operaciones críticas (`reservar_clase`, `cancelar_reserva`) son atómicas en la BD
+- Sin reintentos automáticos en v1: Flutter intenta UNA vez y muestra el error
+- Si falla, el usuario ve el mensaje y puede reintentar manualmente
+
+**Logging:**
+- Los errores controlados (`try/catch`) se imprimen en modo debug
+- Los errores no controlados van a Sentry (con sampling 5% en producción)
+- No hay auditoría de intentos fallidos (posible mejora futura)
+
+Suficiente para v1. Las operaciones son atómicas, los errores son claros, y Sentry vigila lo
+no controlado. Los reintentos automáticos pueden venir en paso 11 si detectamos fallos sistemáticos.
