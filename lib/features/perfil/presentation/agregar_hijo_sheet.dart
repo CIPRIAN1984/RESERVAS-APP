@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/profile_providers.dart';
 
-Future<void> mostrarAgregarHijoSheet(BuildContext context, WidgetRef ref) async {
+Future<void> mostrarAgregarHijoSheet(
+  BuildContext context,
+  WidgetRef ref,
+) async {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -42,26 +45,30 @@ class _AgregarHijoSheetState extends ConsumerState<_AgregarHijoSheet> {
 
     setState(() => _guardando = true);
     try {
-      await ref.read(familiaRepositoryProvider).crearHijo(
-        nombre: nombre,
-        apellidos: _apellidos.text.trim().isEmpty ? null : _apellidos.text.trim(),
-        cinturon: _cinturon,
-      );
+      await ref
+          .read(familiaRepositoryProvider)
+          .crearHijo(
+            nombre: nombre,
+            apellidos: _apellidos.text.trim().isEmpty
+                ? null
+                : _apellidos.text.trim(),
+            cinturon: _cinturon,
+          );
 
       // Invalidar la lista para recargar
       ref.invalidate(hijosProvider);
 
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$nombre agregado.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$nombre agregado.')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _guardando = false);
@@ -104,7 +111,9 @@ class _AgregarHijoSheetState extends ConsumerState<_AgregarHijoSheet> {
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: _cinturon,
-              onChanged: _guardando ? null : (v) => setState(() => _cinturon = v),
+              onChanged: _guardando
+                  ? null
+                  : (v) => setState(() => _cinturon = v),
               decoration: const InputDecoration(
                 labelText: 'Cinturón (opcional)',
                 border: OutlineInputBorder(),

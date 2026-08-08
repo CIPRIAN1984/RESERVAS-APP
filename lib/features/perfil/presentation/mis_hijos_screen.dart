@@ -34,8 +34,9 @@ class MisHijosScreen extends ConsumerWidget {
             return Center(
               child: Text(
                 'No tienes hijos registrados todavía.',
-                style: Theme.of(context).textTheme.bodyMedium
-                    ?.copyWith(color: AppColors.subtle),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
               ),
             );
           }

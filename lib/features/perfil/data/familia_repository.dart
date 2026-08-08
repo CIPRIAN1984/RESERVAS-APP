@@ -10,20 +10,23 @@ class FamiliaRepository {
 
   /// Lista todos los hijos del usuario actual (via relaciones_familia).
   Future<List<Profile>> listarHijos() async {
-    final relaciones = await _client
-        .from('relaciones_familia')
-        .select('child_id')
-        .eq('parent_id', _client.auth.currentUser!.id) as List;
+    final relaciones =
+        await _client
+                .from('relaciones_familia')
+                .select('child_id')
+                .eq('parent_id', _client.auth.currentUser!.id)
+            as List;
 
     if (relaciones.isEmpty) return [];
 
-    final childIds =
-        relaciones.cast<Map<String, dynamic>>().map((r) => r['child_id'] as String).toList();
+    final childIds = relaciones
+        .cast<Map<String, dynamic>>()
+        .map((r) => r['child_id'] as String)
+        .toList();
 
-    final hijos = await _client
-        .from('profiles')
-        .select()
-        .inFilter('id', childIds) as List;
+    final hijos =
+        await _client.from('profiles').select().inFilter('id', childIds)
+            as List;
 
     return hijos
         .map((h) => Profile.fromJson(h as Map<String, dynamic>))
@@ -39,11 +42,7 @@ class FamiliaRepository {
   }) async {
     final response = await _client.functions.invoke(
       'crear-hijo',
-      body: {
-        'nombre': nombre,
-        'apellidos': apellidos,
-        'cinturon': cinturon,
-      },
+      body: {'nombre': nombre, 'apellidos': apellidos, 'cinturon': cinturon},
     );
 
     final data = response.data as Map<String, dynamic>;
@@ -76,10 +75,7 @@ class FamiliaRepository {
   /// Elimina la relación familia (el padre deja de tener potestad).
   /// Nota: el perfil del menor sigue existiendo; solo se rompe la relación.
   Future<void> eliminarHijo(String childId) async {
-    await _client
-        .from('relaciones_familia')
-        .delete()
-        .eq('child_id', childId);
+    await _client.from('relaciones_familia').delete().eq('child_id', childId);
   }
 
   /// Obtiene la relación familia (si existe).

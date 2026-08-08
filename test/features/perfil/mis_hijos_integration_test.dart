@@ -28,39 +28,34 @@ Profile _hijo({required String id, required String nombre}) => Profile(
   cinturon: 'blanco',
 );
 
-Widget _app({
-  required Profile perfil,
-  required List<Profile> hijos,
-}) => ProviderScope(
-  overrides: [
-    currentUserIdProvider.overrideWithValue(perfil.id),
-    currentProfileProvider.overrideWith((ref) async => perfil),
-    currentAcademiaProvider.overrideWith((ref) async => null),
-    hijosProvider.overrideWith((ref) async => hijos),
-  ],
-  child: MaterialApp(
-    theme: AppTheme.light,
-    home: const Scaffold(body: PerfilScreen()),
-  ),
-);
+Widget _app({required Profile perfil, required List<Profile> hijos}) =>
+    ProviderScope(
+      overrides: [
+        currentUserIdProvider.overrideWithValue(perfil.id),
+        currentProfileProvider.overrideWith((ref) async => perfil),
+        currentAcademiaProvider.overrideWith((ref) async => null),
+        hijosProvider.overrideWith((ref) async => hijos),
+      ],
+      child: MaterialApp(
+        theme: AppTheme.light,
+        home: const Scaffold(body: PerfilScreen()),
+      ),
+    );
 
 void main() {
-  testWidgets(
-    'un padre sin hijos no ve la sección Mis hijos',
-    (tester) async {
-      await tester.binding.setSurfaceSize(const Size(412, 1400));
-      await tester.pumpWidget(
-        _app(
-          perfil: _perfil(rol: 'alumno'),
-          hijos: [],
-        ),
-      );
-      await tester.pumpAndSettle();
+  testWidgets('un padre sin hijos no ve la sección Mis hijos', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(412, 1400));
+    await tester.pumpWidget(
+      _app(
+        perfil: _perfil(rol: 'alumno'),
+        hijos: [],
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      expect(find.text('Mis hijos'), findsNothing);
-      expect(find.text('Gestionar hijos'), findsNothing);
-    },
-  );
+    expect(find.text('Mis hijos'), findsNothing);
+    expect(find.text('Gestionar hijos'), findsNothing);
+  });
 
   testWidgets(
     'un padre con hijos ve el botón Gestionar hijos con el contador',
@@ -83,21 +78,18 @@ void main() {
     },
   );
 
-  testWidgets(
-    'un padre con un hijo ve el contador correcto',
-    (tester) async {
-      await tester.binding.setSurfaceSize(const Size(412, 1400));
-      final hijos = [_hijo(id: 'h1', nombre: 'Juan')];
-      await tester.pumpWidget(
-        _app(
-          perfil: _perfil(rol: 'alumno'),
-          hijos: hijos,
-        ),
-      );
-      await tester.pumpAndSettle();
+  testWidgets('un padre con un hijo ve el contador correcto', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(412, 1400));
+    final hijos = [_hijo(id: 'h1', nombre: 'Juan')];
+    await tester.pumpWidget(
+      _app(
+        perfil: _perfil(rol: 'alumno'),
+        hijos: hijos,
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      expect(find.text('Mis hijos'), findsOneWidget);
-      expect(find.text('Gestionar hijos (1)'), findsOneWidget);
-    },
-  );
+    expect(find.text('Mis hijos'), findsOneWidget);
+    expect(find.text('Gestionar hijos (1)'), findsOneWidget);
+  });
 }
