@@ -347,3 +347,33 @@ como estaban. En producción habrá solo una fila en `academias` (ITACA).
 
 **Recuperación en paso 11 (post-lanzamiento):** deshabilitar `ITACA_ACADEMIA_ID`,
 descomentar rutas y botón, y reimplementar `AdminAcademiasScreen` con aprobaciones.
+
+## 2026-08-08 — Sincronización de reservas, créditos y lista de espera
+
+El flujo de reservas está completamente integrado y sincronizado:
+
+**Reservar (`reservar_clase`):**
+- Verifica que el usuario existe, está activo y pertenece a la academia
+- Optionalmente (por academia), exige cuota activa y cobrada
+- Si hay cuota con límite de clases, rechaza si no quedan clases
+- Inscribe como 'inscrito' si hay plaza, o como 'espera' si la lista está activa
+- Rechaza si aforo lleno y sin lista de espera
+
+**Créditos/Cuotas (`clases_restantes()`):**
+- Calcula `disponibles = incluidas - gastadas` en el ciclo actual
+- Retorna `tiene_cuota`, `ilimitada`, `disponibles` y `ciclo_actual`
+- Se reutiliza para mostrar saldo en UI y para bloquear en `reservar_clase`
+
+**Lista de espera (`cancelar_reserva`):**
+- Al cancelar, retira de la cola a quienes ya no cumplen condiciones (inactivos o sin cuota)
+- Promociona automáticamente al primero de la cola FIFO si hay plazas
+- Envía notificación al promovido
+
+**Clases recurrentes (`generar_clases_recurrentes`):**
+- Genera instancias futuras respetando zona horaria y cambios DST
+- Corre diariamente (si está en el cron) o bajo demanda desde UI
+
+Todas las operaciones son atómicas bajo transacción; las races son evitadas con
+`for update` en las selects de `clases` e `inscripciones`. Las pruebas pgTAP
+cubren todos los casos: cuota válida/inválida, lista de espera, cancelaciones
+tardías, zona horaria, etc.
