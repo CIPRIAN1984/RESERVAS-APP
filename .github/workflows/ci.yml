@@ -27,7 +27,6 @@ jobs:
         run: flutter pub get
 
       - name: Verify formatting
-        continue-on-error: true
         run: |
           dart format --output=none --set-exit-if-changed \
             $(find lib test -name '*.dart' \
@@ -36,18 +35,18 @@ jobs:
             ! -path '*/test/golden_archived/*')
 
       - name: Analyze
-        continue-on-error: true
         run: flutter analyze
 
       - name: Verify code generation
-        continue-on-error: true
         run: |
           dart run build_runner build --delete-conflicting-outputs
           git diff --quiet || echo "Codegen changes detected"
 
-      - name: Test (non-golden only)
-        continue-on-error: true
+      - name: Test (unit and widget)
         run: flutter test test/app test/core test/shared test/features --exclude-tags=golden
+
+      - name: Test (golden images)
+        run: flutter test test/golden --tags=golden
 
   build-web:
     runs-on: ubuntu-latest
