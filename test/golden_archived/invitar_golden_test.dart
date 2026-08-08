@@ -1,3 +1,6 @@
+@Tags(['golden'])
+library invitar_golden_test;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,7 +13,6 @@ import 'package:itaca/shared/widgets/pantalla.dart';
 
 import 'ayuda_golden.dart';
 
-@Tags(['golden'])
 void main() {
   setUpAll(cargarTipografias);
 

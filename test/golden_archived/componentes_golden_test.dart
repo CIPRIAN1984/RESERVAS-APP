@@ -1,3 +1,6 @@
+@Tags(['golden'])
+library componentes_golden_test;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -48,7 +51,6 @@ Widget _lienzo(List<Widget> hijos) => MaterialApp(
   ),
 );
 
-@Tags(['golden'])
 void main() {
   setUpAll(cargarTipografias);
 

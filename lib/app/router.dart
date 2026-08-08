@@ -26,7 +26,7 @@ import '../features/onboarding/presentation/registro_screen.dart';
 import '../features/onboarding/presentation/restablecer_contrasena_screen.dart';
 import '../features/onboarding/presentation/splash_screen.dart';
 import '../features/perfil/presentation/perfil_screen.dart';
-import '../features/perfil/presentation/solicitudes_cambio_escuela_screen.dart';
+// CONGELADO: import '../features/perfil/presentation/solicitudes_cambio_escuela_screen.dart';
 // CONGELADO: import '../features/perfil/presentation/mis_hijos_screen.dart';
 import '../shared/navigation/main_shell.dart';
 import '../shared/widgets/pantalla.dart';

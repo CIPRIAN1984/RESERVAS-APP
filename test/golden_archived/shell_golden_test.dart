@@ -1,3 +1,6 @@
+@Tags(['golden'])
+library shell_golden_test;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -89,7 +92,6 @@ class _ModoFijo extends AppModeNotifier {
   AppMode build() => _inicial;
 }
 
-@Tags(['golden'])
 void main() {
   setUpAll(cargarTipografias);
 
