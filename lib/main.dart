@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
+// CONGELADO: import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
@@ -25,14 +25,15 @@ Future<void> main() async {
       return;
     }
 
-    if (AppConfig.stripePublishableKey.isNotEmpty) {
-      Stripe.publishableKey = AppConfig.stripePublishableKey;
-      // Not awaited: this talks to the native Stripe SDK, which has been
-      // observed to stall on some real-device networks. The app's first frame
-      // must never depend on it — nothing needs Stripe configured until a
-      // payment screen actually opens, by which point this has long finished.
-      unawaited(Stripe.instance.applySettings());
-    }
+    // CONGELADO: Stripe
+    // if (AppConfig.stripePublishableKey.isNotEmpty) {
+    //   Stripe.publishableKey = AppConfig.stripePublishableKey;
+    //   // Not awaited: this talks to the native Stripe SDK, which has been
+    //   // observed to stall on some real-device networks. The app's first frame
+    //   // must never depend on it — nothing needs Stripe configured until a
+    //   // payment screen actually opens, by which point this has long finished.
+    //   unawaited(Stripe.instance.applySettings());
+    // }
 
     await AppSupabase.initialize();
     runApp(const ProviderScope(child: ItacaApp()));

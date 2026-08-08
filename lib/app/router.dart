@@ -16,10 +16,10 @@ import '../features/equipo/presentation/equipo_screen.dart';
 import '../features/novedades/presentation/novedades_screen.dart';
 import '../features/onboarding/presentation/login_screen.dart';
 import '../features/onboarding/presentation/olvide_contrasena_screen.dart';
-import '../features/pagos/presentation/conectar_stripe_screen.dart';
+// CONGELADO: import '../features/pagos/presentation/conectar_stripe_screen.dart';
 import '../features/privacy/presentation/privacy_screen.dart';
 import '../features/tarifas/presentation/tarifas_screen.dart';
-import '../features/tienda/presentation/tienda_screen.dart';
+// CONGELADO: import '../features/tienda/presentation/tienda_screen.dart';
 import '../features/onboarding/presentation/pendiente_aprobacion_screen.dart';
 import '../features/onboarding/presentation/registro_academia_screen.dart';
 import '../features/onboarding/presentation/registro_screen.dart';
@@ -27,7 +27,7 @@ import '../features/onboarding/presentation/restablecer_contrasena_screen.dart';
 import '../features/onboarding/presentation/splash_screen.dart';
 import '../features/perfil/presentation/perfil_screen.dart';
 import '../features/perfil/presentation/solicitudes_cambio_escuela_screen.dart';
-import '../features/perfil/presentation/mis_hijos_screen.dart';
+// CONGELADO: import '../features/perfil/presentation/mis_hijos_screen.dart';
 import '../shared/navigation/main_shell.dart';
 import '../shared/widgets/pantalla.dart';
 import 'routes.dart';
@@ -62,7 +62,7 @@ const _rutasAcademia = {
   Routes.inicio,
   Routes.estadisticas,
   Routes.novedades,
-  Routes.tienda,
+  // CONGELADO: Routes.tienda,
   Routes.tarifas,
   Routes.ajustesReservas,
   Routes.herramientas,
@@ -232,14 +232,15 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: NovedadesScreen(),
             ),
           ),
-          GoRoute(
-            path: Routes.tienda,
-            builder: (context, state) => PantallaConTitulo(
-              titulo: 'Tienda y material',
-              onVolver: () => context.go(Routes.academia),
-              child: const TiendaScreen(),
-            ),
-          ),
+          // CONGELADO: Tienda
+          // GoRoute(
+          //   path: Routes.tienda,
+          //   builder: (context, state) => PantallaConTitulo(
+          //     titulo: 'Tienda y material',
+          //     onVolver: () => context.go(Routes.academia),
+          //     child: const TiendaScreen(),
+          //   ),
+          // ),
           GoRoute(
             path: Routes.tarifas,
             builder: (context, state) => PantallaConTitulo(
@@ -255,14 +256,15 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: PerfilScreen(),
             ),
           ),
-          GoRoute(
-            path: Routes.misHijos,
-            builder: (context, state) => PantallaConTitulo(
-              titulo: 'Mis hijos',
-              onVolver: () => context.go(Routes.perfil),
-              child: const MisHijosScreen(),
-            ),
-          ),
+          // CONGELADO: Familias y tutores
+          // GoRoute(
+          //   path: Routes.misHijos,
+          //   builder: (context, state) => PantallaConTitulo(
+          //     titulo: 'Mis hijos',
+          //     onVolver: () => context.go(Routes.perfil),
+          //     child: const MisHijosScreen(),
+          //   ),
+          // ),
           GoRoute(
             path: Routes.admin,
             builder: (context, state) => const PantallaConTitulo(
@@ -270,22 +272,24 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: AdminAcademiasScreen(),
             ),
           ),
-          GoRoute(
-            path: Routes.solicitudesCambioEscuela,
-            builder: (context, state) => PantallaConTitulo(
-              titulo: 'Cambios de escuela',
-              onVolver: () => context.go(Routes.academia),
-              child: const SolicitudesCambioEscuelaScreen(),
-            ),
-          ),
-          GoRoute(
-            path: Routes.cobros,
-            builder: (context, state) => PantallaConTitulo(
-              titulo: 'Cobros',
-              onVolver: () => context.go(Routes.academia),
-              child: const ConectarStripeScreen(),
-            ),
-          ),
+          // CONGELADO: Cambios de escuela (no aplica en academia única)
+          // GoRoute(
+          //   path: Routes.solicitudesCambioEscuela,
+          //   builder: (context, state) => PantallaConTitulo(
+          //     titulo: 'Cambios de escuela',
+          //     onVolver: () => context.go(Routes.academia),
+          //     child: const SolicitudesCambioEscuelaScreen(),
+          //   ),
+          // ),
+          // CONGELADO: Stripe y pagos
+          // GoRoute(
+          //   path: Routes.cobros,
+          //   builder: (context, state) => PantallaConTitulo(
+          //     titulo: 'Cobros',
+          //     onVolver: () => context.go(Routes.academia),
+          //     child: const ConectarStripeScreen(),
+          //   ),
+          // ),
           GoRoute(
             path: Routes.ajustesReservas,
             builder: (context, state) => PantallaConTitulo(
