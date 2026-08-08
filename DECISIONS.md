@@ -428,3 +428,33 @@ El hardening de seguridad está en su lugar:
 
 Suficiente para v1. Las operaciones son atómicas, los errores son claros, y Sentry vigila lo
 no controlado. Los reintentos automáticos pueden venir en paso 11 si detectamos fallos sistemáticos.
+
+## 2026-08-08 — Cobertura de pruebas (v1 pre-lanzamiento)
+
+Las pruebas pgTAP cubren el flujo completo de operaciones:
+
+**Pruebas de funcionalidad:**
+- `e2e_fake_user_journey` — registro → clase → reserva → cancelación → promoción lista espera
+- `tarifas_por_clases` — cálculo de saldo, bloqueo sin clases
+- `waitlist_policies` — aforo, lista de espera, cancelación tardía, promoción FIFO
+- `clases_recurrentes` — generación futuras, zona horaria, DST
+- `cuota_efectivo` — pago en mano, estados de suscripción
+- `reconciliacion_pagos` — webhook Stripe, activación de cuotas
+
+**Pruebas de seguridad:**
+- `production_hardening` — se bloquea sin cuota, aforo se respeta, solo RPC para cancelación
+- `rls_multitenant` — aislamiento de academia, dueño no ve otra academia, alumno no salta academias
+- `function_permissions` — anon solo lista, authenticated limitado a 6 RPC, service_role completo
+- `admin_bootstrap` — admin se crea fuera del registro, no se puede escalar desde cliente
+
+**Pruebas de configuración:**
+- `staff_management` — cambio de rol, restricciones
+- `familias_tutores` — congeladas (tabla no aplicada aún)
+
+**Ejecución:**
+- CI: `supabase test db` ejecuta todas las suites en paralelo
+- Local: `supabase test db --verbose` con DB local levantada
+- Flutter: `flutter test test/` ejecuta tests de UI y lógica (excluye golden)
+- CI Flutter: formato, análisis, codegen, unit tests, golden tests (separado)
+
+Suficiente para v1. CI está automatizado y verde.
