@@ -503,3 +503,56 @@ Checklist de despliegue:
 - [ ] Archivar este fichero en la wiki o GitHub Releases
 
 Referencia completa: `OPERATIONS.md` secciones "Despliegue", "Observabilidad" e "Incidentes".
+
+## 2026-08-08 — Plan post-lanzamiento v1: Paso 11 (retomar congeladas)
+
+Después del lanzamiento y ~2 semanas de operación en paralelo con MAAT:
+
+**Paso 11a — Familias y tutores (menores sin Auth propia):**
+- Descomentar tabla `relaciones_familia` en migración 20260803*
+- Redesign: `relaciones_familia` → nueva tabla `dependientes` (menor SIN Auth, padre SÍ)
+- RPC `crear_dependiente(nombre, email_opcional, fecha_nacimiento)`
+- RPC `listar_dependientes()` para ver hijos
+- Descomentar pantalla `MisHijosScreen` y rutas en router
+- Descomentar botón "Añadir hijo" en Perfil
+- Pruebas pgTAP: dependientes no se pueden autocursar, padre ve sus hijos, admin ve todos
+
+**Paso 11b — Stripe y pagos (webhook + flujo completo):**
+- Descomentar `Stripe.publishableKey` en main.dart
+- Descomentar ruta `/cobros` (ConectarStripeScreen)
+- Desplegar Edge Function `activar-suscripcion-webhook` en Supabase
+- Probar webhook con Stripe test mode: pago → activación de suscripción
+- Implementar flujo de cancelación y reembolsos
+- Descomentar botón "Conectar Stripe" en Perfil de Dueño
+- Pruebas: pago simulado activa cuota, webhook válido activa, firma inválida rechaza
+
+**Paso 11c — Tienda (inventario y compras):**
+- Descomentar ruta `/tienda` en router
+- Implementar stock atómico: descuento en transacción única al pagar
+- Conectar pagos de productos con Stripe o cobro en mano
+- Crear comprobante de compra (PDF o email)
+- Integración con lista de espera si aplica (ej: notificación cuando hay stock)
+- Pruebas: stock no se vuelve negativo, carrito persiste, comprobante se envía
+
+**Paso 11d — Multi-academia (reactivar selector en registro):**
+- Descomentar ruta `/registroAcademia` (RegistroAcademiaScreen)
+- Descomentar botón "Crear academia" en RegistroScreen
+- Descomentar ruta `/admin/academias` (AdminAcademiasScreen)
+- Descomentar selector de academia en RegistroScreen (quitar AppConfig.itacaAcademiaId)
+- Implementar flujo de aprobación de academias (Administrador)
+- Pruebas: dueño crea academia, aparece como 'pendiente_aprobacion', admin aprueba
+
+**Paso 11e — Cambios de escuela (transfer between academies):**
+- Descomentar ruta `/solicitudes-cambio-escuela` si existe
+- Implementar pantalla de solicitud + flujo de aprobación por dueño
+- Solo aplica si multi-academia
+
+**Paso 11f — Gestión de miembros (suspender, archivar):**
+- Agregar columnas de estado: `suspendido`, `inactivo` a profiles
+- Implementar RPC `cambiar_estado_miembro(perfil_id, nuevo_estado)` con auditoría
+- Descomentar acciones en pantalla de Equipo
+- Pruebas: suspendido no puede reservar, inactivo no aparece en listas
+
+Criterio de lanzamiento de cada step: CI verde + pruebas integrales pasadas + sin regresiones en paralelo con MAAT.
+
+Todos estos steps están ya documentados en `FREEZE.md` (secciones 1-6).
