@@ -607,3 +607,37 @@ es idempotente: `create or replace function`, `drop constraint if exists`).
 Se reconstruyó el archivo local con el contenido exacto de producción. Las
 33 migraciones del repositorio y las 33 de producción coinciden ahora
 versión por versión — verificado por comparación directa, no de memoria.
+
+## 2026-08-10 — CanvasKit servido desde el propio dominio, no desde Google
+
+La web se quedaba cargando (girando) para siempre en redes con DNS filtrado,
+incluso en incógnito (descarta caché de navegador). El servidor respondía
+bien (200, HTML correcto, sin errores de runtime) — el fallo estaba en el
+navegador, no en Vercel.
+
+**Causa:** la app usa el motor gráfico CanvasKit para dibujar. El script de
+arranque que genera Flutter por defecto (`flutter_bootstrap.js`) lo descarga
+de `www.gstatic.com` (Google) salvo que se le diga lo contrario — el mismo
+problema que ya se resolvió para las tipografías (§6 de `CLAUDE.md`), pero
+sin resolver para CanvasKit. Como `AppSupabase.initialize()` corre antes de
+`runApp()` en `main.dart`, si ese arranque nunca termina de descargar
+CanvasKit, la app no llega ni a pintar el primer fotograma: gira para
+siempre sin ningún error visible para el usuario.
+
+**Arreglo:** `web/flutter_bootstrap.js` (plantilla que Flutter respeta al
+compilar) fija `canvasKitBaseUrl: "canvaskit/"`, sirviendo CanvasKit desde
+el propio dominio — Flutter ya empaquetaba esos archivos en
+`build/web/canvaskit/`, solo faltaba decirle al loader que los usara.
+
+**Verificado en rojo/verde:** con un navegador controlado (Playwright) que
+bloquea toda petición a `gstatic.com`, el script antiguo pide
+`canvaskit.wasm`/`canvaskit.js` a `www.gstatic.com` (falla, tal como le pasa
+a Cipri). Con el arreglo, esas peticiones desaparecen por completo.
+
+**Pendiente, menor:** el propio motor CanvasKit todavía pide
+`fonts.gstatic.com/.../Roboto...woff2` como *fallback* quieto (no bloqueante)
+cuando falta una tipografía para algún carácter. No causa el giro infinito
+(es asíncrono y falla rápido, no cuelga), pero en una red con Google
+bloqueado esos caracteres concretos podrían no dibujarse. Queda para otra
+sesión: localizar qué texto dispara ese fallback y asegurarse de que está
+cubierto por Inter Tight o JetBrains Mono.
