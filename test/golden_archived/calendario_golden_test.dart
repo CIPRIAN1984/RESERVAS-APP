@@ -1,3 +1,4 @@
+@Tags(['golden'])
 library calendario_golden_test;
 
 import 'package:flutter/material.dart';
