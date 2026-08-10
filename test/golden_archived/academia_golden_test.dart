@@ -1,5 +1,4 @@
 @Tags(['golden'])
-library academia_golden_test;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
