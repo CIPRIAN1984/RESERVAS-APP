@@ -596,8 +596,14 @@ timestamp de versión distinto al del nombre del archivo local si no se fija
 explícitamente. Los archivos de `bloquear_reserva_sin_clases`,
 `familias_tutores`, `reservar_sin_cuota` y `tarifas_por_clases` se
 renombraron para que el nombre de archivo coincida exactamente con la
-versión aplicada en producción y evitar que este desajuste se repita. Sigue
-pendiente investigar una migración huérfana en producción
-(`20260729165614_cuota_en_efectivo`) sin archivo local correspondiente —
-no bloquea el despliegue, pero hay que reconciliarla antes de la próxima
-vez que se reconstruya la base local desde cero.
+versión aplicada en producción y evitar que este desajuste se repita.
+
+**Migración huérfana reconciliada (2026-08-10):** `20260729165614_cuota_en_efectivo`
+estaba aplicada en producción sin archivo local. Se consultó
+`supabase_migrations.schema_migrations` directamente: es un duplicado exacto,
+letra por letra, de `20260729160000_cuota_en_efectivo` — probablemente
+reaplicada sin querer 56 minutos después. No cambia el esquema (todo el SQL
+es idempotente: `create or replace function`, `drop constraint if exists`).
+Se reconstruyó el archivo local con el contenido exacto de producción. Las
+33 migraciones del repositorio y las 33 de producción coinciden ahora
+versión por versión — verificado por comparación directa, no de memoria.
