@@ -556,3 +556,48 @@ Después del lanzamiento y ~2 semanas de operación en paralelo con MAAT:
 Criterio de lanzamiento de cada step: CI verde + pruebas integrales pasadas + sin regresiones en paralelo con MAAT.
 
 Todos estos steps están ya documentados en `FREEZE.md` (secciones 1-6).
+
+## 2026-08-10 — Fallo de seguridad en el despliegue a producción: `crear_perfil_hijo` abierta a cualquiera
+
+Al aplicar la migración `familias_tutores` a producción (Supabase MCP), el
+Security Advisor detectó que `crear_perfil_hijo` — función `SECURITY
+DEFINER` que crea un perfil de hijo y lo cuelga de un `parent_id` — era
+ejecutable por `anon` sin haber iniciado sesión. La función no comprueba
+quién la llama (la comprobación de identidad se delega a la Edge Function
+que la invoca con `service_role`), así que cualquiera podía crear perfiles
+de "hijo" colgando de cualquier padre existente llamando directamente a
+`/rest/v1/rpc/crear_perfil_hijo`.
+
+**Causa:** la migración `20260723143656_harden_function_permissions.sql`
+deja las funciones nuevas cerradas por defecto con `alter default
+privileges ... revoke execute on functions from public, anon,
+authenticated`. Pero `alter default privileges` solo protege a las
+funciones creadas **por el mismo rol** que ejecutó ese `alter`. Las
+migraciones aplicadas vía CLI/`supabase test db` (incluida la suite pgTAP
+de CI) corren siempre bajo el mismo rol, así que ahí la protección por
+defecto sí alcanzaba a `crear_perfil_hijo` y las pruebas pasaban en verde.
+Pero aplicar una migración a producción vía la herramienta MCP de Supabase
+puede correr bajo un rol distinto, que no hereda ese `alter default
+privileges` — de ahí que el aviso solo apareciera en producción, no en CI.
+
+**Arreglo:** migración `20260810101142_cerrar_execute_crear_perfil_hijo`
+revoca `EXECUTE` de `public`, `anon` y `authenticated` explícitamente.
+Confirmado con el Security Advisor de producción: el aviso desaparece.
+
+**Regla de aquí en adelante:** ninguna migración que cree una función
+`SECURITY DEFINER` puede confiar en el cierre por defecto. Cada una debe
+llevar su propio `revoke`/`grant` explícito, igual que ya se hacía en
+`reservar_clase`. Añadidas dos pruebas pgTAP en `familias_tutores_test.sql`
+que comprueban que `anon` y `authenticated` no pueden ejecutar
+`crear_perfil_hijo` directamente.
+
+**Nota de higiene de migraciones:** aplicar vía MCP también genera un
+timestamp de versión distinto al del nombre del archivo local si no se fija
+explícitamente. Los archivos de `bloquear_reserva_sin_clases`,
+`familias_tutores`, `reservar_sin_cuota` y `tarifas_por_clases` se
+renombraron para que el nombre de archivo coincida exactamente con la
+versión aplicada en producción y evitar que este desajuste se repita. Sigue
+pendiente investigar una migración huérfana en producción
+(`20260729165614_cuota_en_efectivo`) sin archivo local correspondiente —
+no bloquea el despliegue, pero hay que reconciliarla antes de la próxima
+vez que se reconstruya la base local desde cero.

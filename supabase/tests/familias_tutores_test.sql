@@ -3,7 +3,7 @@
 
 begin;
 
-select plan(15);
+select plan(17);
 
 -- ============================================================
 -- Validar tabla relaciones_familia
@@ -84,6 +84,27 @@ select ok(
 select has_function('public'::name, 'crear_perfil_hijo'::name,
   array['uuid', 'uuid', 'text', 'text', 'text'],
   'Función crear_perfil_hijo existe con signatures correctas');
+
+-- La función es SECURITY DEFINER y no comprueba quién llama: solo la puerta
+-- es segura si nadie externo puede invocarla directamente. La Edge Function
+-- usa service_role, que no pasa por estos grants.
+select ok(
+  not has_function_privilege(
+    'anon',
+    'public.crear_perfil_hijo(uuid, uuid, text, text, text)',
+    'EXECUTE'
+  ),
+  'Anon no puede crear perfiles de hijo directamente'
+);
+
+select ok(
+  not has_function_privilege(
+    'authenticated',
+    'public.crear_perfil_hijo(uuid, uuid, text, text, text)',
+    'EXECUTE'
+  ),
+  'Authenticated tampoco: debe pasar por la Edge Function'
+);
 
 select finish();
 
