@@ -3,6 +3,7 @@ set -euo pipefail
 
 : "${SUPABASE_URL:?SUPABASE_URL is required}"
 : "${SUPABASE_ANON_KEY:?SUPABASE_ANON_KEY is required}"
+: "${ITACA_ACADEMIA_ID:?ITACA_ACADEMIA_ID is required (UUID of the ITACA academia row)}"
 
 FLUTTER_VERSION="3.44.6"
 FLUTTER_HOME="${TMPDIR:-/tmp}/flutter-${FLUTTER_VERSION}"
@@ -24,6 +25,7 @@ flutter build web --release \
   --dart-define="SUPABASE_URL=${SUPABASE_URL}" \
   --dart-define="SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}" \
   --dart-define="STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}" \
+  --dart-define="ITACA_ACADEMIA_ID=${ITACA_ACADEMIA_ID}" \
   --dart-define="SENTRY_DSN=${SENTRY_DSN:-}" \
   --dart-define="APP_ENV=${APP_ENV:-preview}" \
   --dart-define="APP_RELEASE=${APP_RELEASE:-${VERCEL_GIT_COMMIT_SHA:-}}" \
