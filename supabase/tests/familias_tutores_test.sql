@@ -117,7 +117,7 @@ select ok(
 
 -- ============================================================
 -- Regresión: la RLS de profiles y relaciones_familia no debe entrar en
--- recursión entre sí (ver migración 20260811090000_arreglar_recursion_rls_familias).
+-- recursión entre sí (ver migración 20260812112854_arreglar_recursion_rls_familias).
 -- Antes de esa migración, profiles_select/profiles_update y
 -- relaciones_familia_select se consultaban directamente entre sí dentro
 -- de `using`, y Postgres devolvía "infinite recursion detected in policy
@@ -179,7 +179,7 @@ select lives_ok(
 
 -- ============================================================
 -- Regresión: permisos que faltaban en relaciones_familia y en las
--- funciones auxiliares nuevas (ver 20260811090000_arreglar_recursion_rls_familias).
+-- funciones auxiliares nuevas (ver 20260812112854_arreglar_recursion_rls_familias).
 -- ============================================================
 
 -- Sin el GRANT de tabla, el select de arriba fallaría con "permission
