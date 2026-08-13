@@ -11,6 +11,16 @@ Estas funcionalidades existen en el código pero están **desactivadas, ocultas 
 
 **Estado:** Código implementado, tabla NO aplicada en Supabase.
 
+**Actualización 2026-08-12:** pese a este congelamiento, una sesión posterior
+(10 de agosto) sí aplicó la tabla `relaciones_familia`, su RLS y la función
+`crear_perfil_hijo()` en la base de datos de producción. La pantalla y la
+Edge Function siguen sin desplegar, así que ningún usuario puede llegar hasta
+ahí — pero si algún día se intenta invocar `crear_perfil_hijo()`, falla
+siempre: exige una fila en `auth.users` para el perfil del menor y nunca la
+crea (los menores están pensados para no tener cuenta propia). Confirmado
+probándolo directamente. Es la prueba concreta de por qué este congelamiento
+seguía siendo necesario — no tocar hasta el rediseño de abajo.
+
 **Por qué se congela:**
 - Necesita rediseño: menores sin Auth propia genera huérfanos.
 - Cambio arquitectónico: tabla `relaciones_familia` debe ser reemplazada.
