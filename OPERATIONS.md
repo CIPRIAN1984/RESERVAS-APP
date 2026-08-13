@@ -1,5 +1,51 @@
 # Operaciones
 
+## Pendiente manual antes del piloto (Supabase Auth)
+
+Ninguno de estos puntos se puede activar desde una migración: son ajustes
+del panel de Supabase Auth del proyecto `dpcdpcvjcutcqyqcacti`
+(**Authentication → Settings / Providers**). Se dejan documentados aquí
+para que Cipri los revise y decida antes de meter alumnos reales — algunos
+son un simple interruptor, otros son una decisión de producto.
+
+1. **Confirmación de correo obligatoria.** Comprobar en
+   **Authentication → Settings → Email** que "Confirm email" está
+   activado. Sin esto, cualquiera podría registrarse con un correo ajeno y
+   entrar sin confirmarlo nunca.
+2. **Protección de contraseñas filtradas** (*leaked password protection*).
+   Está desactivada hoy — el Security Advisor la marca como aviso. Se
+   activa en **Authentication → Settings → Password**; comprueba cada
+   contraseña nueva contra la base de HaveIBeenPwned antes de aceptarla.
+   Recomendado activarla: no tiene coste de producto, solo obliga a elegir
+   una contraseña que no esté ya filtrada en otra brecha.
+3. **Duración de sesión.** Revisar "JWT expiry" y "Refresh token
+   reuse interval" en **Authentication → Settings → Sessions**. Los
+   valores por defecto de Supabase (1 hora de JWT, refresco automático) son
+   razonables para el piloto; no se ha tocado nada aquí porque cambiar la
+   duración de sesión es una decisión de producto (cuánto tiempo se queda
+   un alumno con la sesión iniciada en el móvil), no de seguridad pura —
+   que la decida Cipri si quiere sesiones más largas o más cortas.
+4. **MFA para el Administrador de plataforma.** Hoy el rol
+   `administrador` (el único con acceso a aprobar academias y cambiar
+   roles de cualquiera) inicia sesión solo con contraseña. Activar un
+   segundo factor (TOTP) para esa cuenta concreta en
+   **Authentication → Settings → Multi-Factor Auth**, y exigirlo antes de
+   dar por buena la sesión de administrador. Con una sola academia real
+   (ITACA) el radio de un fallo aquí es menor, pero sigue siendo la cuenta
+   más peligrosa si se compromete.
+5. **Monitorización de errores en producción.** `Observability`
+   (`lib/core/observability/observability.dart`) ya está integrado y listo
+   — solo reporta si el build lleva un `SENTRY_DSN` (ver
+   `DECISIONS.md`, 2026-07-27). Falta decidir si se paga un proyecto
+   Sentry (u otro backend de errores) antes del piloto o si se lanza sin
+   monitorización activa y se revisa manualmente. Sin esto, un fallo en
+   producción durante el piloto solo se sabría si un alumno lo reporta a
+   Cipri.
+
+Ninguno de estos cinco puntos se ha tocado en el PR de seguridad web: son
+ajustes de panel, no de código, y cambiarlos afecta a Auth en producción —
+fuera del alcance de "solo local y GitHub" de ese trabajo.
+
 ## Validación de permisos Supabase
 
 Antes de aplicar una migración de permisos:

@@ -641,3 +641,48 @@ cuando falta una tipografía para algún carácter. No causa el giro infinito
 bloqueado esos caracteres concretos podrían no dibujarse. Queda para otra
 sesión: localizar qué texto dispara ese fallback y asegurarse de que está
 cubierto por Inter Tight o JetBrains Mono.
+
+## 2026-08-13 — Cabeceras de seguridad en Vercel y límite al bucket de avatares
+
+`vercel.json` no fijaba ninguna cabecera de seguridad: sin CSP, sin
+`X-Frame-Options`, sin HSTS. Añadidas en el bloque `headers` de
+`vercel.json` (aplican a todas las rutas, incluida `index.html`).
+
+**CSP** compatible con lo que la app realmente carga: `script-src 'self'
+'wasm-unsafe-eval'` (CanvasKit compila WebAssembly; no hace falta
+`unsafe-eval` — no hay `eval()` en `main.dart.js` ni en los loaders),
+`worker-src 'self' blob:` (Flutter/CanvasKit arrancan un Worker desde
+blob:), `connect-src` limitado al propio proyecto Supabase
+(`dpcdpcvjcutcqyqcacti.supabase.co`, `wss://` incluido para Realtime) más
+los dominios de ingesta de Sentry (por si `SENTRY_DSN` se activa más
+adelante — ver `OPERATIONS.md`, pendiente #5), `frame-ancestors 'none'` y
+`X-Frame-Options: DENY` (redundantes a propósito: la cabecera cubre
+navegadores que no leen CSP nivel 2). No se añaden dominios de Stripe: la
+inicialización de `Stripe.publishableKey` está comentada en `main.dart`
+(`// CONGELADO: Stripe`) desde el cierre de accesos congelados, así que
+`js.stripe.com` no se carga hoy.
+
+**Verificado de verdad, no solo leído:** build de producción real
+(`flutter build web --release`) servido en local con un servidor que
+replica exactamente estas cabeceras, cargado con Chromium vía Playwright.
+Resultado: la app arranca, CanvasKit pinta el primer fotograma (pantalla
+"Falta configuración de Supabase", la esperada sin secretos de build) y no
+hay ninguna petición bloqueada por la CSP salvo la ya conocida y aceptada
+de `fonts.gstatic.com` (arriba) — que es exactamente el comportamiento que
+ya se quería (no depender de Google), solo que ahora queda explícito en
+vez de fallar en silencio.
+
+**Bucket `avatars` sin tope.** Tenía lectura pública y escritura para
+cada usuario en su propia carpeta, pero sin `file_size_limit` ni
+`allowed_mime_types`: nada impedía subir un archivo enorme o de un tipo
+que no fuera imagen a través de la API de Storage directamente (sin pasar
+por el cliente Flutter, que si usa `image_picker` con calidad 85). Migración
+`20260813130136_limitar_avatares.sql`: 5 MiB, solo
+`image/jpeg`/`image/png`/`image/webp`. Verificado en rojo/verde con
+pgTAP: quitando la migración, los dos tests nuevos fallan exactamente con
+`NULL` donde se esperaba el límite; restaurada, 167/167 en verde.
+
+Ninguna de las dos cosas (cabeceras, migración) se ha aplicado a
+producción: cabeceras en `vercel.json` solo surten efecto en el próximo
+despliegue, y la migración de Storage queda pendiente de autorización como
+el resto de migraciones de este trabajo.
