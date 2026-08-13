@@ -103,14 +103,6 @@ class AcademiaScreen extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _Bloque(
-                    icono: Icons.credit_card_outlined,
-                    titulo: 'Cobros',
-                    onTap: () => context.go(Routes.cobros),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _Bloque(
                     icono: Icons.qr_code_2_outlined,
                     titulo: 'Invitar',
                     onTap: () => context.go(Routes.invitar),
@@ -128,12 +120,6 @@ class AcademiaScreen extends ConsumerWidget {
             icono: Icons.tune_outlined,
             texto: 'Ajustes de reservas',
             onTap: () => context.go(Routes.ajustesReservas),
-          ),
-        if (esDueno)
-          _Fila(
-            icono: Icons.swap_horiz_outlined,
-            texto: 'Cambios de escuela',
-            onTap: () => context.go(Routes.solicitudesCambioEscuela),
           ),
         _Fila(
           icono: Icons.privacy_tip_outlined,

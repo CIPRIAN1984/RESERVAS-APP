@@ -8,6 +8,12 @@ import 'package:itaca/core/models/profile.dart';
 import 'package:itaca/features/perfil/application/profile_providers.dart';
 import 'package:itaca/features/perfil/presentation/perfil_screen.dart';
 
+/// Familias y tutores está congelado para v1 (ver FREEZE.md): la sección
+/// "Mis hijos" no debe aparecer en Perfil aunque el perfil tenga hijos
+/// asignados, porque el botón llevaba a una ruta (`Routes.misHijos`) que el
+/// router ya no resuelve. Antes de este cierre el botón seguía siendo
+/// visible y tapable pese a la ruta congelada.
+
 Profile _perfil({required String rol}) => Profile(
   id: 'u1',
   academiaId: 'a1',
@@ -54,33 +60,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Mis hijos'), findsNothing);
-    expect(find.text('Gestionar hijos'), findsNothing);
+    expect(find.textContaining('Gestionar hijos'), findsNothing);
   });
 
-  testWidgets(
-    'un padre con hijos ve el botón Gestionar hijos con el contador',
-    (tester) async {
-      await tester.binding.setSurfaceSize(const Size(412, 1400));
-      final hijos = [
-        _hijo(id: 'h1', nombre: 'Juan'),
-        _hijo(id: 'h2', nombre: 'María'),
-      ];
-      await tester.pumpWidget(
-        _app(
-          perfil: _perfil(rol: 'alumno'),
-          hijos: hijos,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Mis hijos'), findsOneWidget);
-      expect(find.text('Gestionar hijos (2)'), findsOneWidget);
-    },
-  );
-
-  testWidgets('un padre con un hijo ve el contador correcto', (tester) async {
+  testWidgets('un padre CON hijos tampoco ve la sección: sigue congelada', (
+    tester,
+  ) async {
     await tester.binding.setSurfaceSize(const Size(412, 1400));
-    final hijos = [_hijo(id: 'h1', nombre: 'Juan')];
+    final hijos = [
+      _hijo(id: 'h1', nombre: 'Juan'),
+      _hijo(id: 'h2', nombre: 'María'),
+    ];
     await tester.pumpWidget(
       _app(
         perfil: _perfil(rol: 'alumno'),
@@ -89,7 +79,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Mis hijos'), findsOneWidget);
-    expect(find.text('Gestionar hijos (1)'), findsOneWidget);
+    expect(find.text('Mis hijos'), findsNothing);
+    expect(find.textContaining('Gestionar hijos'), findsNothing);
   });
 }

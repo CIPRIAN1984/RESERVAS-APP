@@ -30,6 +30,10 @@ seguía siendo necesario — no tocar hasta el rediseño de abajo.
 - Pantalla `AgregarHijoSheet` en `lib/features/perfil/presentation/agregar_hijo_sheet.dart`.
 - Método `familia_repository.dart` (crear, listar, actualizar hijos).
 - Ruta `/familia/agregar-hijo` en router.
+- **2026-08-13:** el botón "Gestionar hijos" en Perfil (`context.push(Routes.misHijos)`)
+  seguía visible y tapable aunque la ruta destino estuviera comentada en el
+  router — se quita del todo. Antes de esto era el único acceso real que
+  quedaba desde la interfaz.
 
 **Qué hacer para retomarlo:**
 - Diseñar tabla `dependientes` en lugar de `relaciones_familia`.
@@ -54,6 +58,10 @@ seguía siendo necesario — no tocar hasta el rediseño de abajo.
 - Pantalla `ConectarStripeScreen` en `lib/features/pagos/presentation/conectar_stripe_screen.dart`.
 - Botón en perfil de Dueño: "Conectar Stripe".
 - Imports innecesarios en `main.dart`: `Stripe.publishableKey` y `applySettings()`.
+- **2026-08-13:** el bloque "Cobros" en Academia (`context.go(Routes.cobros)`,
+  ruta sin `GoRoute`) y el botón "Suscribirse" en Tarifas (abría de verdad la
+  hoja de pago de Stripe si la academia tenía `stripeChargesEnabled`) se
+  quitan. El alta de cuota sigue siendo solo en mano (`dar_cuota_sheet.dart`).
 
 **Qué está activo:**
 - Cobro en mano (`dar_cuota_sheet.dart`) — mantener.
@@ -83,6 +91,9 @@ seguía siendo necesario — no tocar hasta el rediseño de abajo.
 - Ruta `/tienda` en navegación principal (si existe).
 - Pantalla de carrito si está incompleta.
 - Botón "Comprar" en productos.
+- **2026-08-13:** la tarjeta "Tienda y material" en Perfil y en Herramientas
+  saltaba directamente a `TiendaScreen()` con `Navigator.push`, sin pasar por
+  el router — por eso el bloqueo de rutas no la alcanzaba. Se quitan ambas.
 
 **Qué está activo:**
 - Tablas `productos`, `pedidos`, `prestamos` en BD.
@@ -118,6 +129,17 @@ seguía siendo necesario — no tocar hasta el rediseño de abajo.
 **Qué hacer para retomarlo:**
 - No hacer nada. Una vez que sea multiacademia de nuevo, el flujo vuelve.
 
+**Pendiente de decisión (2026-08-13):** la pantalla `AdminAcademiasScreen`
+("Academias", con botones Aprobar/Rechazar) sigue activa y es la primera
+pestaña del Administrador de plataforma — no se ha tocado en este cierre.
+No la puede ver ningún Alumno/Dueño/Profesor (solo quien tenga el rol
+`administrador`, hoy solo Cipri), y hoy no muestra nunca nada pendiente
+porque el único camino para crear una academia nueva (`RegistroAcademiaScreen`)
+está congelado sin ningún acceso vivo. Se deja fuera de este PR porque
+apagar del todo el modo Administrador es una decisión de producto, no un
+descuido — está pendiente de que Cipri diga si quiere clausurarlo también
+o dejarlo tal cual para el piloto.
+
 ---
 
 ## 5. Cambios de Escuela (Transfer)
@@ -131,6 +153,12 @@ seguía siendo necesario — no tocar hasta el rediseño de abajo.
 **Qué está oculto:**
 - RPC `resolver_cambio_escuela` — no disponible en Flutter.
 - Pantalla de cambio de escuela — no implementada.
+- **2026-08-13:** en realidad sí estaba implementada e igual de accesible que
+  las demás. Se quitan tres accesos vivos: el botón "Solicitar cambio de
+  escuela" en Perfil (`Navigator.push` directo, todo Alumno lo veía), la fila
+  "Cambios de escuela" en Academia (`context.go`, ruta sin `GoRoute`), y la
+  pestaña "Cambios" de la barra inferior del Administrador (mismo problema:
+  llevaba a una ruta que el router nunca resuelve).
 
 **Qué está activo:**
 - Tabla vacía en BD (innecesaria, pero puede quedarse).
@@ -161,14 +189,18 @@ seguía siendo necesario — no tocar hasta el rediseño de abajo.
 
 ## Checklist de Congelamiento
 
-- [ ] Eliminar/comentar rutas de Familias en router.
-- [ ] Eliminar/comentar rutas de Stripe en router.
-- [ ] Ocultar botones de "Conectar Stripe", "Añadir hijo" en UI.
-- [ ] Comentar Stripe.publishableKey en main.dart.
+- [x] Eliminar/comentar rutas de Familias en router.
+- [x] Eliminar/comentar rutas de Stripe en router.
+- [x] Ocultar botones de "Conectar Stripe", "Añadir hijo" en UI (completado
+      del todo el 2026-08-13: el router ya bloqueaba las rutas con nombre,
+      pero quedaban botones que saltaban directo con `Navigator.push`/
+      `MaterialPageRoute`/`context.go` a rutas sin `GoRoute`, sin pasar por
+      ese bloqueo — ver las entradas fechadas 2026-08-13 en cada sección).
+- [x] Comentar Stripe.publishableKey en main.dart.
 - [ ] Documentar en DECISIONS.md por qué se congelaron (si no está ya).
 - [ ] Crear issue de GitHub para cada feature congelada (paso 11).
 - [ ] Verificar que CI sigue en verde sin estas rutas.
-- [ ] Hacer commit: "Congelar Familias, Stripe, Tienda, Cambios de escuela".
+- [x] Hacer commit: "Congelar Familias, Stripe, Tienda, Cambios de escuela".
 
 ---
 

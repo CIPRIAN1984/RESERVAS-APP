@@ -49,12 +49,9 @@ Widget _app({
             Routes.herramientas,
             Routes.academia,
             Routes.equipo,
-            Routes.cobros,
             Routes.ajustesReservas,
-            Routes.tienda,
             Routes.tarifas,
             Routes.admin,
-            Routes.solicitudesCambioEscuela,
           ])
             GoRoute(path: r, builder: (_, _) => const SizedBox.shrink()),
         ],
@@ -109,16 +106,6 @@ void main() {
       expect(_seleccionado(tester), 3);
     });
 
-    testWidgets('en Cobros se sigue marcando Academia', (tester) async {
-      await montar(
-        tester,
-        rol: 'dueño',
-        modo: AppMode.gestor,
-        ruta: Routes.cobros,
-      );
-      expect(_seleccionado(tester), 3);
-    });
-
     testWidgets('en Tarifas se marca Herramientas', (tester) async {
       await montar(
         tester,
@@ -129,17 +116,21 @@ void main() {
       expect(_seleccionado(tester), 1);
     });
 
-    testWidgets(
-      'el Administrador tiene Cambios como destino propio, no como hijo',
-      (tester) async {
-        await montar(
-          tester,
-          rol: 'administrador',
-          modo: AppMode.entrenamiento,
-          ruta: Routes.solicitudesCambioEscuela,
-        );
-        expect(_seleccionado(tester), 1);
-      },
-    );
+    // Cambios de escuela está congelado para v1 (ver FREEZE.md): la pestaña
+    // "Cambios" del Administrador llevaba a una ruta que el router ya no
+    // resuelve. Ahora el Administrador solo tiene Academias y Perfil.
+    testWidgets('el Administrador ya no tiene la pestaña Cambios', (
+      tester,
+    ) async {
+      await montar(
+        tester,
+        rol: 'administrador',
+        modo: AppMode.entrenamiento,
+        ruta: Routes.admin,
+      );
+      final barra = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      expect(barra.destinations.length, 2);
+      expect(find.text('Cambios'), findsNothing);
+    });
   });
 }

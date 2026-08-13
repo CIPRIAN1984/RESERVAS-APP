@@ -42,10 +42,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Mi cuota'), findsOneWidget);
-    expect(find.text('Tienda y material'), findsOneWidget);
   });
 
-  testWidgets('un dueño también los tiene: entrena en la misma academia', (
+  testWidgets('un dueño también lo tiene: entrena en la misma academia', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(412, 1400));
@@ -53,8 +52,23 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Mi cuota'), findsOneWidget);
-    expect(find.text('Tienda y material'), findsOneWidget);
   });
+
+  // Tienda, Familias y cambio de escuela están congelados para v1 (ver
+  // FREEZE.md): ningún rol debe poder llegar a ellos desde Perfil.
+  for (final rol in ['alumno', 'profesor', 'dueño', 'administrador']) {
+    testWidgets('un $rol no ve accesos a funciones congeladas desde Perfil', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(412, 1600));
+      await tester.pumpWidget(_app(_perfil(rol: rol)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tienda y material'), findsNothing);
+      expect(find.textContaining('Gestionar hijos'), findsNothing);
+      expect(find.text('Solicitar cambio de escuela'), findsNothing);
+    });
+  }
 
   testWidgets(
     'el Administrador de plataforma no los ve: no pertenece a ninguna academia',

@@ -9,9 +9,11 @@
 - **Alumno:** consulta contenidos, mantiene su perfil y reserva clases según su
   suscripción.
 
-El registro público crea únicamente Dueños de nuevas academias o Alumnos que se
-unen a una academia aprobada. Administradores y Profesores nunca se
-autoasignan desde el cliente.
+El registro público crea únicamente Alumnos que se unen a ITACA, la única
+academia operativa en esta versión (ver `FREEZE.md`). El alta de Dueños de
+academias nuevas existe en el código pero está congelada — no tiene ningún
+acceso desde la interfaz. Administradores y Profesores nunca se autoasignan
+desde el cliente.
 
 ## Gestión de Profesores y equipo
 
