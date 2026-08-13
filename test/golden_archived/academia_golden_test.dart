@@ -78,7 +78,8 @@ void main() {
 
     expect(find.text('ITACA JIU JITSU'), findsOneWidget);
     expect(find.text('Equipo'), findsOneWidget);
-    expect(find.text('Cobros'), findsOneWidget);
+    // Cobros está congelado (ver FREEZE.md): la fila ya no aparece.
+    expect(find.text('Cobros'), findsNothing);
     expect(find.text('Ajustes de reservas'), findsOneWidget);
     // Cerrar sesión vive en Perfil, que lo tienen todos los roles.
     expect(find.text('Cerrar sesión'), findsNothing);
