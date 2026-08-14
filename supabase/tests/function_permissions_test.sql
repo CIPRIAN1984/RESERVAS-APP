@@ -1,6 +1,6 @@
 -- Regresiones de permisos de funciones expuestas por PostgREST.
 begin;
-select plan(12);
+select plan(14);
 
 -- 1-2. El alta puede listar academias; el resto de RPC no queda abierto.
 select ok(
@@ -160,6 +160,22 @@ select ok(
     where n.nspname = 'public' and p.proname = 'sembrar_tecnicas_default'
   ),
   'La función de siembra de técnicas ya no existe'
+);
+
+-- 13-14. El bucket de avatares tiene un tope de tamaño y de tipo de
+-- archivo (ver 20260813130136_limitar_avatares.sql): antes, cualquier
+-- autenticado podía subir un archivo de cualquier tamaño o tipo a su propia
+-- carpeta, servido después desde la URL pública del bucket.
+select is(
+  (select file_size_limit from storage.buckets where id = 'avatars'),
+  5242880::bigint,
+  'El bucket avatars tiene un límite de tamaño de 5 MiB'
+);
+
+select is(
+  (select allowed_mime_types from storage.buckets where id = 'avatars'),
+  array['image/jpeg', 'image/png', 'image/webp'],
+  'El bucket avatars solo admite jpeg, png y webp'
 );
 
 select * from finish();
