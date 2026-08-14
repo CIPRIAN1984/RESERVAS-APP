@@ -1,6 +1,6 @@
 -- Regresiones de seguridad y consistencia del flujo de reservas/pagos.
 begin;
-select plan(10);
+select plan(11);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-000000000c01', 'owner-hardening@test.dev'),
@@ -177,6 +177,31 @@ select is(
   ),
   'inscrito',
   'Cancelar libera la plaza y promociona a la lista de espera'
+);
+
+-- 11. Un alumno no puede resolver una solicitud de cambio de escuela ajena
+-- (esa RPC solo la puede resolver el dueño de la academia DESTINO o un
+-- administrador; no tenía ninguna prueba que lo comprobara).
+reset role;
+
+insert into public.academias (id, nombre, estado) values
+  ('00000000-0000-0000-0000-0000000000DD', 'Academia Destino Hardening', 'approved');
+
+insert into public.solicitudes_cambio_escuela (
+  id, alumno_id, academia_destino_id
+) values (
+  '00000000-0000-0000-0000-00000000e201',
+  '00000000-0000-0000-0000-000000000c04',
+  '00000000-0000-0000-0000-0000000000DD'
+);
+
+select pg_temp.actuar_como('00000000-0000-0000-0000-000000000c02');
+select throws_ok(
+  $$ select public.resolver_cambio_escuela(
+       '00000000-0000-0000-0000-00000000e201', true
+     ) $$,
+  null,
+  'Un alumno no puede resolver una solicitud de cambio de escuela ajena'
 );
 
 select * from finish();
