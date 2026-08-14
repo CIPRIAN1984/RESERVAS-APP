@@ -41,7 +41,11 @@ jobs:
       - name: Verify code generation
         run: |
           dart run build_runner build --delete-conflicting-outputs
-          git diff --quiet || echo "Codegen changes detected"
+          if ! git diff --quiet; then
+            echo "::error::El código generado (freezed/g.dart) no coincide con el commit. Ejecuta 'dart run build_runner build --delete-conflicting-outputs' y confirma el resultado."
+            git diff
+            exit 1
+          fi
 
       - name: Test (unit and widget)
         run: flutter test test/app test/core test/shared test/features --exclude-tags=golden
