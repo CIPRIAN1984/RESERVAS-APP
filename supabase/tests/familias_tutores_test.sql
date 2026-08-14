@@ -3,7 +3,7 @@
 
 begin;
 
-select plan(25);
+select plan(29);
 
 -- ============================================================
 -- Validar tabla relaciones_familia
@@ -202,6 +202,53 @@ select ok(
 select ok(
   not has_function_privilege('anon', 'public.academia_id_de(uuid)', 'EXECUTE'),
   'Anon no puede ejecutar academia_id_de'
+);
+
+-- ============================================================
+-- Regresión: academia_id_de() ya no devuelve la academia de cualquier
+-- perfil sin comprobar nada (ver 20260813133000_endurecer_academia_id_de).
+-- Antes, cualquier autenticado podía llamar
+-- /rest/v1/rpc/academia_id_de con el id de cualquier otro perfil, de
+-- cualquier academia, y le devolvía su academia sin ninguna comprobación.
+-- ============================================================
+
+reset role;
+
+insert into public.academias (id, nombre, estado) values
+  ('00000000-0000-0000-0000-00000000fbbb', 'Academia Ajena', 'approved');
+
+insert into auth.users (id, email) values
+  ('00000000-0000-0000-0000-00000000fa03', 'ajeno_familia@test.dev'),
+  ('00000000-0000-0000-0000-00000000fa04', 'companero_familia@test.dev');
+
+insert into public.profiles (id, academia_id, rol, nombre, estado) values
+  ('00000000-0000-0000-0000-00000000fa03', '00000000-0000-0000-0000-00000000fbbb', 'alumno', 'Ajeno', 'activo'),
+  ('00000000-0000-0000-0000-00000000fa04', '00000000-0000-0000-0000-00000000faaa', 'alumno', 'Compañero', 'activo');
+
+select pg_temp.actuar_como('00000000-0000-0000-0000-00000000fa01');
+
+select is(
+  public.academia_id_de('00000000-0000-0000-0000-00000000fa01'),
+  '00000000-0000-0000-0000-00000000faaa'::uuid,
+  'academia_id_de de uno mismo sigue funcionando'
+);
+
+select is(
+  public.academia_id_de('00000000-0000-0000-0000-00000000fa02'),
+  '00000000-0000-0000-0000-00000000faaa'::uuid,
+  'academia_id_de del propio hijo sigue funcionando'
+);
+
+select is(
+  public.academia_id_de('00000000-0000-0000-0000-00000000fa04'),
+  '00000000-0000-0000-0000-00000000faaa'::uuid,
+  'academia_id_de de un compañero de la misma academia sigue funcionando'
+);
+
+select is(
+  public.academia_id_de('00000000-0000-0000-0000-00000000fa03'),
+  null,
+  'academia_id_de de alguien ajeno, de otra academia y sin relación, ya no se filtra'
 );
 
 select finish();

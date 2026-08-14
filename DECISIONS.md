@@ -642,6 +642,55 @@ bloqueado esos caracteres concretos podrían no dibujarse. Queda para otra
 sesión: localizar qué texto dispara ese fallback y asegurarse de que está
 cubierto por Inter Tight o JetBrains Mono.
 
+## 2026-08-13 — Revisión de seguridad de las 27 funciones `SECURITY DEFINER`, de cara al piloto
+
+Repaso completo de RLS/GRANT/`SECURITY DEFINER` en `public` antes de meter a
+alumnos reales. Resultado: **un solo fallo concreto**, no una lista larga de
+huecos — la política de la migración de julio (arriba) ya se venía
+cumpliendo en la práctica.
+
+**El fallo:** `academia_id_de(p_profile_id uuid)` devolvía la academia de
+CUALQUIER perfil sin comprobar nada. Cualquier alumno autenticado podía
+llamar a `/rest/v1/rpc/academia_id_de` con el id de cualquier otro perfil —
+de cualquier academia, sin relación alguna — y averiguar a qué academia
+pertenece. No permitía leer datos personales ni cambiar nada, pero sí
+mapear la pertenencia de perfiles ajenos a academias, cosa que no le
+incumbe a nadie salvo el propio interesado, su familia o su academia.
+
+Se usa dentro de la política RLS `relaciones_familia_select`
+(`arreglar_recursion_rls_familias.sql`), así que revocarle el `EXECUTE` a
+`authenticated` sin más rompía esa política para todo el mundo: Postgres
+comprueba el permiso de ejecutar una función en quien hace la consulta, no
+en quien es su dueño, aunque la función sea `SECURITY DEFINER`. La
+corrección (`20260813133000_endurecer_academia_id_de.sql`) no toca los
+permisos: limita lo que la función devuelve a los tres casos que la
+política realmente necesita — la propia academia, la de un hijo a su
+cargo, o la de alguien que ya comparte su misma academia — y `null` para
+cualquier otro perfil.
+
+**El resto de las 27 no necesita revocarse ni moverse de esquema.** Cada
+una de las RPC expuestas a `authenticated` (`reservar_clase`,
+`cancelar_reserva`, `cambiar_rol_miembro`, `aprobar_academia`,
+`rechazar_academia`, `resolver_cambio_escuela`, `activar_cuota_efectivo`,
+`desactivar_cuota_efectivo`, `clases_restantes`, etc.) valida identidad,
+rol y pertenencia a la academia dentro de su propio cuerpo — es el patrón
+que ya exige la decisión de julio. El Security Advisor de Supabase marca
+igualmente cada una como aviso (`WARN`): así de estricto es el linter con
+cualquier `SECURITY DEFINER` alcanzable desde fuera, sepa o no validar por
+dentro. Se documentan como excepciones explícitas, no se ignoran ni se
+revocan en bloque. El detalle función por función va en el PR de esta
+revisión, no aquí.
+
+`listar_academias_aprobadas()` es la única accesible también para `anon`
+— a propósito: hace falta antes de iniciar sesión, para el desplegable de
+academias del registro.
+
+**Se añadió una prueba pgTAP que faltaba:** `resolver_cambio_escuela` no
+tenía ninguna prueba negativa que comprobara que un alumno no puede
+resolver una solicitud de cambio de escuela ajena (sí las tenían
+`cambiar_rol_miembro`, `aprobar_academia` y `rechazar_academia`). La RPC ya
+validaba esto correctamente; ahora queda comprobado.
+
 ## 2026-08-13 — Cabeceras de seguridad en Vercel y límite al bucket de avatares
 
 `vercel.json` no fijaba ninguna cabecera de seguridad: sin CSP, sin
