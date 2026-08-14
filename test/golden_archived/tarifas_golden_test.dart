@@ -66,7 +66,11 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    expect(find.text('Suscribirse'), findsOneWidget);
+    // El botón «Suscribirse» que originalmente apretaba el nombre está
+    // congelado (ver FREEZE.md): ya no aparece. El resto de la prueba se
+    // conserva porque el mismo ListTile sigue mostrando el nombre de la
+    // tarifa con el mismo ancho disponible.
+    expect(find.text('Suscribirse'), findsNothing);
 
     // La prueba de verdad: el nombre ocupa una franja ancha y baja, no una
     // columna estrecha y altísima de una letra por línea.

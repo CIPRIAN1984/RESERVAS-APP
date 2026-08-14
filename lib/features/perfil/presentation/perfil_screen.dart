@@ -9,9 +9,7 @@ import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../tarifas/presentation/tarifas_screen.dart';
-import '../../tienda/presentation/tienda_screen.dart';
 import '../application/profile_providers.dart';
-import 'solicitar_cambio_escuela_screen.dart';
 
 class PerfilScreen extends ConsumerStatefulWidget {
   const PerfilScreen({super.key});
@@ -156,7 +154,6 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
     final profileAsync = ref.watch(currentProfileProvider);
     final academiaAsync = ref.watch(currentAcademiaProvider);
     final userId = ref.watch(currentUserIdProvider);
-    final hijosAsync = ref.watch(hijosProvider);
 
     return profileAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -272,41 +269,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                       descripcion: 'Consulta tu plan, cámbialo o date de baja.',
                       destino: const TarifasScreen(),
                     ),
-                    const SizedBox(height: 12),
-                    TarjetaAcceso(
-                      icono: Icons.storefront_outlined,
-                      titulo: 'Tienda y material',
-                      descripcion:
-                          'Compra material y consulta lo que tienes prestado.',
-                      destino: const TiendaScreen(),
-                    ),
                   ],
-                  hijosAsync.when(
-                    data: (hijos) {
-                      if (hijos.isEmpty) return const SizedBox.shrink();
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SizedBox(height: 32),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Mis hijos',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: () => context.push(Routes.misHijos),
-                            icon: const Icon(Icons.child_friendly),
-                            label: Text('Gestionar hijos (${hijos.length})'),
-                          ),
-                        ],
-                      );
-                    },
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, _) => const SizedBox.shrink(),
-                  ),
                   const SizedBox(height: 32),
                   Align(
                     alignment: Alignment.centerLeft,
@@ -408,21 +371,6 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                       ],
                     ),
                   ),
-                  if (profile.isAlumno && profile.academiaId != null) ...[
-                    const SizedBox(height: 32),
-                    OutlinedButton.icon(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => SolicitarCambioEscuelaScreen(
-                            alumnoId: userId,
-                            academiaActualId: profile.academiaId!,
-                          ),
-                        ),
-                      ),
-                      icon: const Icon(Icons.swap_horiz),
-                      label: const Text('Solicitar cambio de escuela'),
-                    ),
-                  ],
                   const SizedBox(height: 16),
                   TextButton.icon(
                     onPressed: () => context.push(Routes.privacidad),

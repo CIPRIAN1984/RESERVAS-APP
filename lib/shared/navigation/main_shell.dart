@@ -75,12 +75,6 @@ class MainShell extends ConsumerWidget {
       Icons.verified_user_outlined,
       Icons.verified_user,
     ),
-    _Destino(
-      Routes.solicitudesCambioEscuela,
-      'Cambios',
-      Icons.swap_horiz_outlined,
-      Icons.swap_horiz,
-    ),
     _Destino(Routes.perfil, 'Perfil', Icons.person_outline, Icons.person),
   ];
 
@@ -94,10 +88,7 @@ class MainShell extends ConsumerWidget {
   /// primer destino: parecía que estabas en «Hoy» cuando no lo estabas.
   static const _rutaPadre = <String, String>{
     Routes.equipo: Routes.academia,
-    Routes.cobros: Routes.academia,
     Routes.ajustesReservas: Routes.academia,
-    Routes.solicitudesCambioEscuela: Routes.academia,
-    Routes.tienda: Routes.herramientas,
     Routes.tarifas: Routes.herramientas,
   };
 
@@ -113,8 +104,6 @@ class MainShell extends ConsumerWidget {
     final location = GoRouterState.of(context).matchedLocation;
 
     final destinos = _destinosPara(profile, modo);
-    // El Administrador sí tiene «Cambios de escuela» como destino propio, así
-    // que para él no se remonta al padre.
     final rutaMarcada = destinos.any((d) => d.ruta == location)
         ? location
         : (_rutaPadre[location] ?? location);
