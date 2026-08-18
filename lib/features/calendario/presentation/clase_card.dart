@@ -16,7 +16,9 @@ class ClaseCard extends StatelessWidget {
     this.onTap,
     this.onUnirse,
     this.onBorrarse,
+    this.onConfirmarTodos,
     this.loadingAccion = false,
+    this.confirmandoTodos = false,
     super.key,
   });
 
@@ -24,7 +26,12 @@ class ClaseCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onUnirse;
   final VoidCallback? onBorrarse;
+
+  /// Modo Gestor: confirma de golpe la asistencia de todos los inscritos
+  /// sin validar, sin entrar en el detalle de la clase.
+  final VoidCallback? onConfirmarTodos;
   final bool loadingAccion;
+  final bool confirmandoTodos;
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +147,29 @@ class ClaseCard extends StatelessWidget {
                     ),
                   ),
                 ],
+              ],
+              if (onConfirmarTodos != null &&
+                  clase.pendientesConfirmar > 0) ...[
+                const SizedBox(height: 14),
+                confirmandoTodos
+                    ? const SizedBox(
+                        height: 52,
+                        child: Center(
+                          child: SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2.4),
+                          ),
+                        ),
+                      )
+                    : OutlinedButton(
+                        onPressed: onConfirmarTodos,
+                        child: Text(
+                          clase.pendientesConfirmar == 1
+                              ? 'Confirmar 1 alumno'
+                              : 'Confirmar ${clase.pendientesConfirmar} alumnos',
+                        ),
+                      ),
               ],
             ],
           ),

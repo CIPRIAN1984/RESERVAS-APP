@@ -247,6 +247,24 @@ class ClasesRepository {
     return (await listarParticipantes(claseId)).inscritos;
   }
 
+  /// Solo los IDs de quien tiene plaza confirmada, para "Confirmar todos"
+  /// desde la tarjeta de la vista de día — no hace falta el nombre, la
+  /// foto ni el cinturón para eso, así que no reutiliza
+  /// `listarParticipantes`.
+  Future<List<String>> listarAlumnosInscritos(String claseId) async {
+    final rows =
+        await _client
+                .from('inscripciones')
+                .select('alumno_id')
+                .eq('clase_id', claseId)
+                .eq('estado', 'inscrito')
+            as List;
+    return rows
+        .cast<Map<String, dynamic>>()
+        .map((row) => row['alumno_id'] as String)
+        .toList();
+  }
+
   Future<void> marcarAsistencia({
     required String claseId,
     required String alumnoId,

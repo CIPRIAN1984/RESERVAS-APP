@@ -22,6 +22,7 @@ abstract class ClaseResumen with _$ClaseResumen {
     @JsonKey(name: 'inscritos_count') required int inscritosCount,
     @JsonKey(name: 'mi_estado') String? miEstado,
     @Default('activa') String estado,
+    @JsonKey(name: 'pendientes_confirmar') @Default(0) int pendientesConfirmar,
   }) = _ClaseResumen;
 
   factory ClaseResumen.fromJson(Map<String, dynamic> json) =>
