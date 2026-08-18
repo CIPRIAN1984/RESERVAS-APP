@@ -775,3 +775,27 @@ paso de pruebas unitarias en CI, pero el paso de imágenes doradas la
 recoge igualmente porque `test/golden` es prefijo de `test/golden_
 archived`. No se toca en este PR: es un tema aparte de la infraestructura
 de pruebas, no de esta funcionalidad.
+
+## 2026-08-18 — La lista de compañeros se descontrolaba con muchos apuntados
+
+Cipri probó la vista previa con una clase real de 40 alumnos: la hoja
+inferior se veía "desproporcionada" e "imposible" de usar.
+
+Causa real, medida con una prueba de Flutter (no a ojo): la lista de
+`companeros_clase_sheet.dart` usaba `shrinkWrap: true` sin ningún límite
+de alto, dentro de un `Flexible` que le dejaba crecer todo lo que hiciera
+falta. Con 40 filas, la lista llegaba a ocupar 764 de los 900 px de
+pantalla de prueba — casi toda la hoja, dejando apenas título y hueco
+para cerrar.
+
+Arreglo: la lista va ahora dentro de un `ConstrainedBox` con
+`maxHeight: MediaQuery.of(context).size.height * 0.5`. Con pocos
+apuntados la hoja sigue compacta (el límite no se nota); con muchos, la
+lista se para en la mitad de la pantalla y se desplaza ella sola, en vez
+de tragarse la hoja entera.
+
+**Verificado en rojo/verde de verdad:** añadida una prueba que mide con
+`tester.getSize()` el alto real de la lista con 40 apuntados y espera que
+no pase de 450 px (la mitad de los 900 de la prueba). Contra el código
+sin arreglar dio 764 px —prueba en rojo, con el número real que veía
+Cipri—; con el arreglo, verde.

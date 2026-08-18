@@ -97,12 +97,24 @@ class _CompanerosClaseSheetState extends State<_CompanerosClaseSheet> {
                       ),
                     );
                   }
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: companeros.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 14),
-                    itemBuilder: (context, index) =>
-                        _FilaCompanero(alumno: companeros[index]),
+                  // `shrinkWrap` deja la hoja compacta con pocos apuntados,
+                  // pero sin límite se ponía a pedir tanto alto como hiciera
+                  // falta: con una clase de 40 alumnos la lista llegaba a
+                  // ocupar 764 de los 900 px de pantalla, casi todo el
+                  // hueco. El límite de altura obliga a esta lista a
+                  // desplazarse ella sola en vez de estirar la hoja entera.
+                  return ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.5,
+                    ),
+                    child: ListView.separated(
+                      key: const Key('lista_companeros'),
+                      shrinkWrap: true,
+                      itemCount: companeros.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 14),
+                      itemBuilder: (context, index) =>
+                          _FilaCompanero(alumno: companeros[index]),
+                    ),
                   );
                 },
               ),

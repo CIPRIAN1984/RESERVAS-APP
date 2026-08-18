@@ -139,4 +139,41 @@ void main() {
 
     expect(find.text('Apuntados a esta clase'), findsNothing);
   });
+
+  testWidgets('una clase con 40 apuntados no revienta el layout', (
+    tester,
+  ) async {
+    // Cipri lo probó con una clase real de 40 alumnos y la hoja se rompía:
+    // sin límite de alto, intentaba pedir sitio para las 40 filas de golpe.
+    await tester.binding.setSurfaceSize(const Size(412, 900));
+    final repo = _RepoFalso([
+      for (var i = 0; i < 40; i++)
+        InscritoAlumno(
+          alumnoId: 'a$i',
+          nombre: 'Alumno $i',
+          apellidos: 'Ejemplo',
+          cinturon: 'azul',
+          asistenciaValidada: false,
+        ),
+    ]);
+    await tester.pumpWidget(_app(repo));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Iniciación no gi'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Alumno 0 Ejemplo'), findsOneWidget);
+    // Con 40 filas la lista no cabe entera: se desplaza, así que el
+    // último no tiene por qué estar ya construido en pantalla.
+    expect(find.text('Alumno 39 Ejemplo'), findsNothing);
+
+    // La lista tiene que quedarse dentro de un límite razonable de la
+    // pantalla, nunca crecer sin tope: eso es justo lo que se rompía con
+    // muchos apuntados.
+    final alto = tester
+        .getSize(find.byKey(const Key('lista_companeros')))
+        .height;
+    expect(alto, lessThanOrEqualTo(450));
+  });
 }
