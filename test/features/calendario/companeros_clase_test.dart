@@ -15,8 +15,12 @@ import 'package:itaca/features/calendario/presentation/calendario_screen.dart';
 
 /// Los alumnos pedían ver quién más va a una clase, como en MAAT. Solo
 /// nombre, foto y cinturón —lo que decidió Cipri—, nunca datos de pago:
-/// por eso hay un repositorio de mentira que no expone `sinCuota` alguno,
-/// y una prueba específica comprobando que esa columna nunca se pide.
+/// por eso hay un repositorio de mentira que no expone `sinCuota` alguno.
+///
+/// Va en una pantalla completa al entrar en la clase, no en una hoja
+/// emergente desde la vista del día: la primera versión usaba una hoja
+/// inferior y Cipri, comparándolo con MAAT, pidió que se viera igual que
+/// ahí — al abrir la clase, no antes.
 
 class _RepoFalso implements ClasesRepository {
   _RepoFalso(this.companeros);
@@ -81,7 +85,9 @@ void main() {
     await initializeDateFormatting('es_ES');
   });
 
-  testWidgets('tocar la clase enseña quién está apuntado', (tester) async {
+  testWidgets('tocar la clase abre su pantalla y enseña quién está apuntado', (
+    tester,
+  ) async {
     await tester.binding.setSurfaceSize(const Size(412, 900));
     final repo = _RepoFalso([
       const InscritoAlumno(
@@ -106,6 +112,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.clasesConsultadas, ['c1']);
+    // El título de la pantalla nueva y el de la tarjeta de la que venimos
+    // coinciden: por eso se espera más de uno.
+    expect(find.text('Iniciación no gi'), findsWidgets);
     expect(find.text('Uno Ejemplo'), findsOneWidget);
     expect(find.text('Dos Ejemplo'), findsOneWidget);
   });
@@ -124,11 +133,11 @@ void main() {
     expect(find.text('Todavía no se ha apuntado nadie.'), findsOneWidget);
   });
 
-  testWidgets('tocar el botón de reservar no abre la hoja de compañeros', (
+  testWidgets('tocar el botón de reservar no abre la pantalla de compañeros', (
     tester,
   ) async {
     // El botón de acción vive dentro de la tarjeta: si el toque se colara
-    // hasta el InkWell de fondo, reservar plaza abriría también la hoja.
+    // hasta el InkWell de fondo, reservar plaza abriría también la pantalla.
     await tester.binding.setSurfaceSize(const Size(412, 900));
     final repo = _RepoFalso(const []);
     await tester.pumpWidget(_app(repo));
@@ -137,14 +146,16 @@ void main() {
     await tester.tap(find.text('Reservar plaza'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Apuntados a esta clase'), findsNothing);
+    expect(repo.clasesConsultadas, isEmpty);
   });
 
-  testWidgets('una clase con 40 apuntados no revienta el layout', (
+  testWidgets('una clase con 40 apuntados se desplaza sin romperse', (
     tester,
   ) async {
-    // Cipri lo probó con una clase real de 40 alumnos y la hoja se rompía:
-    // sin límite de alto, intentaba pedir sitio para las 40 filas de golpe.
+    // Cipri lo probó con una clase real de 40 alumnos: con la hoja
+    // emergente de la primera versión la lista se salía de la pantalla.
+    // Al ser una pantalla completa, la lista tiene todo el alto disponible
+    // y se desplaza como cualquier otra lista larga de la app.
     await tester.binding.setSurfaceSize(const Size(412, 900));
     final repo = _RepoFalso([
       for (var i = 0; i < 40; i++)
@@ -167,13 +178,5 @@ void main() {
     // Con 40 filas la lista no cabe entera: se desplaza, así que el
     // último no tiene por qué estar ya construido en pantalla.
     expect(find.text('Alumno 39 Ejemplo'), findsNothing);
-
-    // La lista tiene que quedarse dentro de un límite razonable de la
-    // pantalla, nunca crecer sin tope: eso es justo lo que se rompía con
-    // muchos apuntados.
-    final alto = tester
-        .getSize(find.byKey(const Key('lista_companeros')))
-        .height;
-    expect(alto, lessThanOrEqualTo(450));
   });
 }

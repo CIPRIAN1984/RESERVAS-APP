@@ -831,3 +831,34 @@ la lista con 40 apuntados se mantiene (`Key('lista_companeros')`, tope de
 prueba vuelve a fallar con 810 px; restaurado, verde. El resto de la
 suite (`flutter test test/app test/core test/shared test/features
 --exclude-tags=golden`, igual que CI) sigue en 88/88.
+
+## 2026-08-18 — Los compañeros de clase van en pantalla propia, no en hoja
+
+Cipri mandó dos capturas de MAAT: en el calendario del día hay un botón
+"Confirmar todos" en la propia tarjeta (eso ya lo tenemos, punto 2), y los
+apuntados a una clase se ven **al entrar en la clase**, en una pantalla
+propia con lista de asistentes — no antes, desde el calendario. Su
+mensaje textual: "no se ven desde la vista diaria, solo cuando abres la
+clase". La hoja inferior (`DraggableScrollableSheet`, arreglo del punto
+anterior) no encajaba con eso por diseño, no solo por sensación: abría
+directamente desde la tarjeta del día, que es justo lo que pidió que no
+pasara.
+
+Se sustituye `companeros_clase_sheet.dart` por
+`companeros_clase_screen.dart`: una pantalla `Scaffold` normal con
+`AppBar`, mismo patrón que ya usa `ClaseDetalleScreen` para el dueño/
+profesor. Tocar la tarjeta en modo Entrenamiento navega con
+`Navigator.push` en vez de abrir una hoja. Efecto colateral bueno: al ser
+una pantalla completa, la lista ya no necesita ningún límite de alto
+artificial —el problema de fondo de las dos vueltas anteriores—; una
+`ListView` normal en una pantalla llena se comporta como cualquier otra
+lista larga de la app.
+
+Se mantienen los mismos datos (nombre, foto, cinturón; nada de pago) y el
+mismo repositorio (`listarCompaneros`), solo cambia la presentación.
+
+Verificado: `flutter analyze` limpio, sin deriva de codegen, suite
+completa en 88/88. Rojo/verde de verdad quitando el `onTap` que navega a
+la pantalla nueva: 3 de las 4 pruebas del archivo fallan correctamente
+(no encuentran el título de la pantalla nueva ni a los compañeros);
+restaurado, verde.
