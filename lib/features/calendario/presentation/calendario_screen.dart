@@ -95,6 +95,9 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     if (texto.contains('clases futuras')) {
       return 'Esta clase ya ha comenzado.';
     }
+    if (texto.contains('no admite nuevas reservas')) {
+      return 'Esta clase está cerrada y no admite nuevas reservas.';
+    }
     return 'No se ha podido completar la acción.';
   }
 

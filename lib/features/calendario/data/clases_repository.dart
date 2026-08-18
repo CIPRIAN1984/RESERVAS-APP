@@ -91,6 +91,66 @@ class ClasesRepository {
     return (generadas as int?) ?? 0;
   }
 
+  /// Vuelve a pedir los datos propios de una clase (título, horario, aforo,
+  /// estado) tras editarla/cerrarla/reabrirla, sin depender de que la
+  /// pantalla de detalle reciba de nuevo el listado completo del día.
+  Future<Map<String, dynamic>> obtenerClase(String claseId) async {
+    return await _client
+        .from('clases')
+        .select(
+          'titulo, descripcion, fecha_hora_inicio, fecha_hora_fin, '
+          'aforo_maximo, estado',
+        )
+        .eq('id', claseId)
+        .single();
+  }
+
+  /// Edita una clase ya publicada. Si cambia la hora, la RPC avisa por push
+  /// a quienes ya tenían plaza o estaban en la lista de espera.
+  Future<void> editarClase({
+    required String claseId,
+    required String titulo,
+    String? descripcion,
+    required DateTime fechaHoraInicio,
+    required DateTime fechaHoraFin,
+    required int aforoMaximo,
+  }) async {
+    await _client.rpc(
+      'editar_clase',
+      params: {
+        'p_clase_id': claseId,
+        'p_titulo': titulo,
+        'p_descripcion': descripcion,
+        'p_fecha_hora_inicio': fechaHoraInicio.toUtc().toIso8601String(),
+        'p_fecha_hora_fin': fechaHoraFin.toUtc().toIso8601String(),
+        'p_aforo_maximo': aforoMaximo,
+      },
+    );
+  }
+
+  /// Cierra (deja de admitir reservas nuevas, reversible) o reabre una
+  /// clase.
+  Future<void> cambiarEstadoClase({
+    required String claseId,
+    required bool cerrar,
+  }) async {
+    await _client.rpc(
+      'cambiar_estado_clase',
+      params: {'p_clase_id': claseId, 'p_cerrar': cerrar},
+    );
+  }
+
+  /// Cancela la clase de forma terminal: libera a todos los apuntados
+  /// (inscritos y lista de espera) y les avisa por notificación push.
+  /// Devuelve cuántos alumnos se han visto afectados.
+  Future<int> cancelarClase(String claseId) async {
+    final notificados = await _client.rpc(
+      'cancelar_clase',
+      params: {'p_clase_id': claseId},
+    );
+    return (notificados as int?) ?? 0;
+  }
+
   Future<String> unirse({required String claseId}) async {
     final estado = await _client.rpc(
       'reservar_clase',
