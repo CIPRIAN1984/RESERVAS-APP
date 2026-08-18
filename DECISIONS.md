@@ -799,3 +799,35 @@ de tragarse la hoja entera.
 no pase de 450 px (la mitad de los 900 de la prueba). Contra el código
 sin arreglar dio 764 px —prueba en rojo, con el número real que veía
 Cipri—; con el arreglo, verde.
+
+## 2026-08-18 — La hoja de compañeros pasa a `DraggableScrollableSheet`
+
+El arreglo anterior (`ConstrainedBox` a la mitad de la pantalla) seguía
+sin convencer: Cipri lo probó otra vez y lo describió como "inestable,
+brusco y nada fino", y "sigue siendo grande". El problema no era ya que
+reventara —eso ya estaba arreglado—, sino cómo se abría: con
+`shrinkWrap` calculando el alto exacto del contenido, la hoja saltaba de
+golpe a su tamaño final en la propia animación de apertura, y ese tamaño
+era siempre medio móvil aunque hicieran falta menos apuntados.
+
+Se sustituye por `DraggableScrollableSheet`: abre a un tamaño inicial
+más modesto (40 % de la pantalla) con una animación continua, sin el
+salto de recalcular el alto intrínseco a mitad de apertura, y se puede
+estirar arrastrando hasta el 85 % si hace falta ver más gente sin soltar
+el dedo — el gesto nativo que ya se espera de una hoja así, en vez de un
+tamaño fijo impuesto. Con pocos apuntados sigue sin ocupar de más: el
+80/85 % es un tope, no un tamaño por defecto.
+
+El fondo de la hoja pasa a pintarlo el propio `Container` (con las
+esquinas redondeadas solo arriba) en vez de Material, con
+`backgroundColor: Colors.transparent` en `showModalBottomSheet`: sin eso
+asomaban las esquinas cuadradas de Material por detrás de las
+redondeadas de la hoja.
+
+Verificado igual que el arreglo anterior: la prueba que mide el alto de
+la lista con 40 apuntados se mantiene (`Key('lista_companeros')`, tope de
+450 px sobre una pantalla de prueba de 900). Rompiendo el rango
+(`initialChildSize`/`minChildSize`/`maxChildSize` casi al 100 %) la
+prueba vuelve a fallar con 810 px; restaurado, verde. El resto de la
+suite (`flutter test test/app test/core test/shared test/features
+--exclude-tags=golden`, igual que CI) sigue en 88/88.

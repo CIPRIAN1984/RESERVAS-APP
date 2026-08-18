@@ -18,8 +18,11 @@ void mostrarCompanerosClase(
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    showDragHandle: true,
     useRootNavigator: true,
+    // El fondo lo pinta la propia hoja (necesita las esquinas redondeadas
+    // solo arriba); sin esto, Material dibuja detrás un rectángulo blanco
+    // que asoma en las esquinas.
+    backgroundColor: Colors.transparent,
     builder: (_) => _CompanerosClaseSheet(
       repositorio: repositorio,
       claseId: claseId,
@@ -49,79 +52,100 @@ class _CompanerosClaseSheetState extends State<_CompanerosClaseSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.tituloClase,
-              style: Theme.of(context).textTheme.titleLarge,
+    // Con `ConstrainedBox` + `shrinkWrap` la hoja se abría directa a su
+    // tamaño máximo con una clase grande: brusco, y siempre ocupando medio
+    // móvil aunque solo hiciera falta un tercio. `DraggableScrollableSheet`
+    // anima un tamaño inicial modesto y se puede estirar arrastrando —el
+    // mismo gesto nativo de cualquier hoja de apuntados— en vez de saltar
+    // de golpe a un tamaño fijo.
+    return DraggableScrollableSheet(
+      initialChildSize: 0.4,
+      minChildSize: 0.22,
+      maxChildSize: 0.85,
+      expand: false,
+      builder: (context, scrollController) {
+        return SafeArea(
+          top: false,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: AppColors.ground,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
-            const SizedBox(height: 2),
-            Text(
-              'Apuntados a esta clase',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
-            ),
-            const SizedBox(height: 16),
-            Flexible(
-              child: FutureBuilder<List<InscritoAlumno>>(
-                future: _future,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState != ConnectionState.done) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 32),
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                  if (snapshot.hasError) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Text(
-                        'No se ha podido cargar quién está apuntado.',
-                        style: TextStyle(color: AppColors.subtle),
-                      ),
-                    );
-                  }
-                  final companeros = snapshot.data ?? const [];
-                  if (companeros.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Text(
-                        'Todavía no se ha apuntado nadie.',
-                        style: TextStyle(color: AppColors.subtle),
-                      ),
-                    );
-                  }
-                  // `shrinkWrap` deja la hoja compacta con pocos apuntados,
-                  // pero sin límite se ponía a pedir tanto alto como hiciera
-                  // falta: con una clase de 40 alumnos la lista llegaba a
-                  // ocupar 764 de los 900 px de pantalla, casi todo el
-                  // hueco. El límite de altura obliga a esta lista a
-                  // desplazarse ella sola en vez de estirar la hoja entera.
-                  return ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.height * 0.5,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 10, bottom: 6),
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.line,
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                    child: ListView.separated(
-                      key: const Key('lista_companeros'),
-                      shrinkWrap: true,
-                      itemCount: companeros.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 14),
-                      itemBuilder: (context, index) =>
-                          _FilaCompanero(alumno: companeros[index]),
-                    ),
-                  );
-                },
-              ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.tituloClase,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Apuntados a esta clase',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.subtle,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1, color: AppColors.line),
+                Expanded(
+                  child: FutureBuilder<List<InscritoAlumno>>(
+                    future: _future,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState != ConnectionState.done) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasError) {
+                        return const Center(
+                          child: Text(
+                            'No se ha podido cargar quién está apuntado.',
+                            style: TextStyle(color: AppColors.subtle),
+                          ),
+                        );
+                      }
+                      final companeros = snapshot.data ?? const [];
+                      if (companeros.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'Todavía no se ha apuntado nadie.',
+                            style: TextStyle(color: AppColors.subtle),
+                          ),
+                        );
+                      }
+                      return ListView.separated(
+                        key: const Key('lista_companeros'),
+                        controller: scrollController,
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                        itemCount: companeros.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 14),
+                        itemBuilder: (context, index) =>
+                            _FilaCompanero(alumno: companeros[index]),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
