@@ -187,6 +187,38 @@ class ClasesRepository {
     return (await listarParticipantes(claseId)).inscritos;
   }
 
+  /// Quién más viene a esta clase, para que los propios alumnos se vean
+  /// entre ellos.
+  ///
+  /// A propósito **no** reutiliza [listarParticipantes]: esa consulta trae
+  /// también si cada uno tiene la cuota al día (mirando `suscripciones`), un
+  /// dato de pago que un compañero no debe ver. Aquí solo se piden nombre,
+  /// foto y cinturón —lo que Cipri decidió que se enseña— y solo los
+  /// confirmados (`inscrito`), no la lista de espera: a un compañero no le
+  /// aporta ver quién está pendiente de plaza.
+  Future<List<InscritoAlumno>> listarCompaneros(String claseId) async {
+    final filas =
+        await _client
+                .from('inscripciones')
+                .select(
+                  'alumno_id, alumno:profiles(nombre, apellidos, foto_url, cinturon)',
+                )
+                .eq('clase_id', claseId)
+                .eq('estado', 'inscrito')
+                .order('created_at')
+            as List;
+
+    return filas
+        .cast<Map<String, dynamic>>()
+        .map(
+          (row) => InscritoAlumno.fromInscripcionJson(
+            row,
+            asistenciaValidada: false,
+          ),
+        )
+        .toList();
+  }
+
   Future<void> marcarAsistencia({
     required String claseId,
     required String alumnoId,

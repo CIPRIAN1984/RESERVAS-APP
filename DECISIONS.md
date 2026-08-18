@@ -735,3 +735,43 @@ Ninguna de las dos cosas (cabeceras, migración) se ha aplicado a
 producción: cabeceras en `vercel.json` solo surten efecto en el próximo
 despliegue, y la migración de Storage queda pendiente de autorización como
 el resto de migraciones de este trabajo.
+
+## 2026-08-18 — Los alumnos ven quién más está apuntado a una clase
+
+Cipri lo pedía tal cual lo tienen en MAAT: "los alumnos me dicen que
+quieren ver quien estan apuntados en las clases". Preguntado qué datos
+enseñar, eligió **nombre, foto y cinturón** — no la opción mínima
+(nombre y foto) que se le proponía.
+
+**Sin migración ni cambio de permisos.** Las políticas RLS que ya existen
+(`inscripciones_select`, `profiles_select`) dejan leer a cualquier
+miembro de la academia — no solo al dueño o al profesor — las filas de
+`inscripciones` y `profiles` de su propia academia. Un alumno ya podía
+consultar esto por API; solo faltaba la pantalla. No hace falta pgTAP
+nuevo porque no se toca ningún permiso: la prueba que existe (`test/
+features/calendario/companeros_clase_test.dart`) es de Flutter.
+
+**`listarCompaneros` es una consulta nueva, no reutiliza
+`listarParticipantes`.** Esa otra trae también si cada alumno tiene la
+cuota al día (mirando `suscripciones`), y eso es un dato de pago que un
+compañero no debe ver. La nueva solo pide `alumno_id` +
+`profiles(nombre, apellidos, foto_url, cinturon)`, filtrada a
+`estado = 'inscrito'` — la lista de espera no se enseña a los
+compañeros, no aporta nada verla.
+
+Se toca la tarjeta de clase en modo Entrenamiento: tocar la clase (no el
+botón de reservar/cancelar, que sigue teniendo su propio toque) abre una
+hoja inferior con la lista. Verificado en rojo/verde quitando el `onTap`
+de `calendario_screen.dart`: las dos pruebas que esperan ver la lista
+fallan correctamente por no encontrar el texto; restaurado, las tres
+pruebas nuevas pasan y el resto de la suite (`flutter test test/app
+test/core test/shared test/features --exclude-tags=golden`, igual que
+CI) sigue en verde.
+
+Los fallos de `test/golden_archived/` al correr `flutter test test/golden
+--tags=golden` son previos a este cambio (confirmado con `git stash`
+sobre el mismo comando) — esa carpeta ya está excluida a propósito del
+paso de pruebas unitarias en CI, pero el paso de imágenes doradas la
+recoge igualmente porque `test/golden` es prefijo de `test/golden_
+archived`. No se toca en este PR: es un tema aparte de la infraestructura
+de pruebas, no de esta funcionalidad.
