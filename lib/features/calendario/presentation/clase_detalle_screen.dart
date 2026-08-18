@@ -72,6 +72,31 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
     }
   }
 
+  /// Deshacer una confirmación por error —incluida la de «confirmar todos»,
+  /// si al repasar la lista resulta que uno no había venido.
+  Future<void> _deshacerAsistencia(InscritoAlumno alumno) async {
+    setState(() => _marcando.add(alumno.alumnoId));
+    try {
+      await ref
+          .read(clasesRepositoryProvider)
+          .deshacerAsistencia(
+            claseId: widget.clase.id,
+            alumnoId: alumno.alumnoId,
+          );
+      _recargar();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se ha podido deshacer la asistencia.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _marcando.remove(alumno.alumnoId));
+    }
+  }
+
   /// Pasar lista de golpe: confirma a todos los inscritos que aún no tienen
   /// la asistencia validada. Marca a todo el mundo presente — quien reserva
   /// y no viene pierde la clase igual (regla ya en DECISIONS.md), así que no
@@ -198,13 +223,17 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          if (alumno.asistenciaValidada)
-            const Icon(Icons.check_circle, color: AppColors.successFg)
-          else if (marcando)
+          if (marcando)
             const SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else if (alumno.asistenciaValidada)
+            IconButton(
+              onPressed: () => _deshacerAsistencia(alumno),
+              icon: const Icon(Icons.check_circle, color: AppColors.successFg),
+              tooltip: 'Deshacer confirmación',
             )
           else
             // Acotado a propósito: por tema, los botones de la app son de

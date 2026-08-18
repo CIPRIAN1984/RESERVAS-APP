@@ -205,6 +205,19 @@ class ClasesRepository {
         );
   }
 
+  /// Deshacer una asistencia marcada por error —incluida al confirmar todos
+  /// de golpe, si luego resulta que uno no había venido.
+  Future<void> deshacerAsistencia({
+    required String claseId,
+    required String alumnoId,
+  }) async {
+    await _client
+        .from('asistencias')
+        .delete()
+        .eq('clase_id', claseId)
+        .eq('alumno_id', alumnoId);
+  }
+
   /// Pasar lista de golpe: confirma a todos los que llegan sin validar en un
   /// único viaje al servidor, en vez de uno por alumno. La política RLS de
   /// `asistencias` comprueba cada fila igual que en el alta individual, así
