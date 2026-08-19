@@ -42,8 +42,7 @@ class MainShell extends ConsumerWidget {
     _Destino(Routes.perfil, 'Perfil', Icons.person_outline, Icons.person),
   ];
 
-  /// Lo que ve quien lleva la academia. El hueco de "Miembros" se añadirá
-  /// aquí cuando exista la gestión de alumnos.
+  /// Lo que ve quien lleva la academia.
   static const _gestor = <_Destino>[
     _Destino(Routes.inicio, 'Hoy', Icons.today_outlined, Icons.today),
     _Destino(
@@ -52,6 +51,7 @@ class MainShell extends ConsumerWidget {
       Icons.handyman_outlined,
       Icons.handyman,
     ),
+    _Destino(Routes.miembros, 'Miembros', Icons.groups_outlined, Icons.groups),
     _Destino(
       Routes.novedades,
       'Novedades',

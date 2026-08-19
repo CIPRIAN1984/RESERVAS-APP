@@ -735,3 +735,50 @@ Ninguna de las dos cosas (cabeceras, migración) se ha aplicado a
 producción: cabeceras en `vercel.json` solo surten efecto en el próximo
 despliegue, y la migración de Storage queda pendiente de autorización como
 el resto de migraciones de este trabajo.
+
+## 2026-08-19 — Primera versión de Miembros
+
+Cipri mandó capturas de MAAT y pidió una pantalla de Miembros para el
+panel del Dueño/Profesor: buscar por nombre, filtrar por cinturón, ver de
+un vistazo quién tiene la cuota al día. MAAT tiene bastante más: cuatro
+categorías de cuota (pagando/prueba/impagado/sin membresía), cinturones
+de niños, "listo para graduarse", filtro de inactividad. Preguntado si
+prefería todo eso de una vez o empezar sencillo, eligió **empezar
+sencillo**: esta versión es solo nombre, cinturón (solo adultos, que es
+lo único que hay en la base de datos) y cuota al día/sin cuota. El resto
+queda para otra tanda, cuando se decida qué datos nuevos hacen falta en
+la base de datos (`suscripciones` no tiene hoy estados de prueba ni
+pausada, y no existe ninguna noción de "listo para graduarse" ni de
+última asistencia — investigado antes de escribir una sola línea).
+
+**Sin migración.** Reutiliza `profiles` y `suscripciones` tal como están;
+el criterio de "cuota al día" es el mismo que ya usa
+`ClasesRepository._alumnosConCuotaAlDia` (activa, cobrada y dentro de
+fechas) — si aquí se relajara, Miembros diría "al día" de alguien a quien
+el servidor considera moroso.
+
+**No sustituye a `EquipoScreen`.** Equipo (alcanzable desde Academia) es
+para gestionar: cambiar de rol, cobrar en efectivo, retirar una cuota.
+Miembros es para *ver y encontrar* — un directorio, no un panel de
+acciones. La única acción que tiene es tocar a alguien sin cuota para
+cobrarle en el momento (`mostrarDarCuota`, la misma hoja que ya usan
+Equipo y la ficha de una clase), reutilizada tal cual.
+
+**Entra en la barra inferior de Gestor**, en el hueco que ya estaba
+reservado (`main_shell.dart` lo decía explícitamente desde julio):
+Hoy, Herramientas, **Miembros**, Novedades, Academia, más el cambio de
+modo — seis sitios en total para dueño/profesor. Verificado que cabe sin
+desbordar en 412 px con una captura de pantalla (no solo mirando el
+código): todas las etiquetas se leen, nada se solapa.
+
+Dos pruebas que fallaron por esto, arregladas correctamente (no
+enmascaradas): `test/shared/navegacion_test.dart` tenía el índice de
+"Academia" en la barra escrito a mano (era 3, pasa a 4 porque Miembros
+entra antes). No es una prueba rota por el cambio — es una prueba que
+hacía justo lo que tenía que hacer: avisar de que el orden cambió.
+
+Verificado: `flutter analyze` limpio, suite completa
+(`--exclude-tags=golden`) en 88/88, sin deriva de codegen. Rojo/verde de
+verdad: rompiendo el filtro de cinturón (`if (false)` en vez de comparar
+con el cinturón elegido), la prueba que espera que el filtro funcione
+falla; restaurado, verde.
