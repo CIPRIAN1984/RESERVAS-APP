@@ -799,3 +799,130 @@ arista falsa).
 Verificado en rojo/verde: forzando `pendientes_confirmar` a `0` fijo en la
 migración, el test que espera `1` falla exactamente como se espera.
 Restaurado, 205 pruebas pgTAP en verde.
+
+## 2026-08-18 — Los alumnos ven quién más está apuntado a una clase
+
+Cipri lo pedía tal cual lo tienen en MAAT: "los alumnos me dicen que
+quieren ver quien estan apuntados en las clases". Preguntado qué datos
+enseñar, eligió **nombre, foto y cinturón** — no la opción mínima
+(nombre y foto) que se le proponía.
+
+**Sin migración ni cambio de permisos.** Las políticas RLS que ya existen
+(`inscripciones_select`, `profiles_select`) dejan leer a cualquier
+miembro de la academia — no solo al dueño o al profesor — las filas de
+`inscripciones` y `profiles` de su propia academia. Un alumno ya podía
+consultar esto por API; solo faltaba la pantalla. No hace falta pgTAP
+nuevo porque no se toca ningún permiso: la prueba que existe (`test/
+features/calendario/companeros_clase_test.dart`) es de Flutter.
+
+**`listarCompaneros` es una consulta nueva, no reutiliza
+`listarParticipantes`.** Esa otra trae también si cada alumno tiene la
+cuota al día (mirando `suscripciones`), y eso es un dato de pago que un
+compañero no debe ver. La nueva solo pide `alumno_id` +
+`profiles(nombre, apellidos, foto_url, cinturon)`, filtrada a
+`estado = 'inscrito'` — la lista de espera no se enseña a los
+compañeros, no aporta nada verla.
+
+Se toca la tarjeta de clase en modo Entrenamiento: tocar la clase (no el
+botón de reservar/cancelar, que sigue teniendo su propio toque) abre una
+hoja inferior con la lista. Verificado en rojo/verde quitando el `onTap`
+de `calendario_screen.dart`: las dos pruebas que esperan ver la lista
+fallan correctamente por no encontrar el texto; restaurado, las tres
+pruebas nuevas pasan y el resto de la suite (`flutter test test/app
+test/core test/shared test/features --exclude-tags=golden`, igual que
+CI) sigue en verde.
+
+Los fallos de `test/golden_archived/` al correr `flutter test test/golden
+--tags=golden` son previos a este cambio (confirmado con `git stash`
+sobre el mismo comando) — esa carpeta ya está excluida a propósito del
+paso de pruebas unitarias en CI, pero el paso de imágenes doradas la
+recoge igualmente porque `test/golden` es prefijo de `test/golden_
+archived`. No se toca en este PR: es un tema aparte de la infraestructura
+de pruebas, no de esta funcionalidad.
+
+## 2026-08-18 — La lista de compañeros se descontrolaba con muchos apuntados
+
+Cipri probó la vista previa con una clase real de 40 alumnos: la hoja
+inferior se veía "desproporcionada" e "imposible" de usar.
+
+Causa real, medida con una prueba de Flutter (no a ojo): la lista de
+`companeros_clase_sheet.dart` usaba `shrinkWrap: true` sin ningún límite
+de alto, dentro de un `Flexible` que le dejaba crecer todo lo que hiciera
+falta. Con 40 filas, la lista llegaba a ocupar 764 de los 900 px de
+pantalla de prueba — casi toda la hoja, dejando apenas título y hueco
+para cerrar.
+
+Arreglo: la lista va ahora dentro de un `ConstrainedBox` con
+`maxHeight: MediaQuery.of(context).size.height * 0.5`. Con pocos
+apuntados la hoja sigue compacta (el límite no se nota); con muchos, la
+lista se para en la mitad de la pantalla y se desplaza ella sola, en vez
+de tragarse la hoja entera.
+
+**Verificado en rojo/verde de verdad:** añadida una prueba que mide con
+`tester.getSize()` el alto real de la lista con 40 apuntados y espera que
+no pase de 450 px (la mitad de los 900 de la prueba). Contra el código
+sin arreglar dio 764 px —prueba en rojo, con el número real que veía
+Cipri—; con el arreglo, verde.
+
+## 2026-08-18 — La hoja de compañeros pasa a `DraggableScrollableSheet`
+
+El arreglo anterior (`ConstrainedBox` a la mitad de la pantalla) seguía
+sin convencer: Cipri lo probó otra vez y lo describió como "inestable,
+brusco y nada fino", y "sigue siendo grande". El problema no era ya que
+reventara —eso ya estaba arreglado—, sino cómo se abría: con
+`shrinkWrap` calculando el alto exacto del contenido, la hoja saltaba de
+golpe a su tamaño final en la propia animación de apertura, y ese tamaño
+era siempre medio móvil aunque hicieran falta menos apuntados.
+
+Se sustituye por `DraggableScrollableSheet`: abre a un tamaño inicial
+más modesto (40 % de la pantalla) con una animación continua, sin el
+salto de recalcular el alto intrínseco a mitad de apertura, y se puede
+estirar arrastrando hasta el 85 % si hace falta ver más gente sin soltar
+el dedo — el gesto nativo que ya se espera de una hoja así, en vez de un
+tamaño fijo impuesto. Con pocos apuntados sigue sin ocupar de más: el
+80/85 % es un tope, no un tamaño por defecto.
+
+El fondo de la hoja pasa a pintarlo el propio `Container` (con las
+esquinas redondeadas solo arriba) en vez de Material, con
+`backgroundColor: Colors.transparent` en `showModalBottomSheet`: sin eso
+asomaban las esquinas cuadradas de Material por detrás de las
+redondeadas de la hoja.
+
+Verificado igual que el arreglo anterior: la prueba que mide el alto de
+la lista con 40 apuntados se mantiene (`Key('lista_companeros')`, tope de
+450 px sobre una pantalla de prueba de 900). Rompiendo el rango
+(`initialChildSize`/`minChildSize`/`maxChildSize` casi al 100 %) la
+prueba vuelve a fallar con 810 px; restaurado, verde. El resto de la
+suite (`flutter test test/app test/core test/shared test/features
+--exclude-tags=golden`, igual que CI) sigue en 88/88.
+
+## 2026-08-18 — Los compañeros de clase van en pantalla propia, no en hoja
+
+Cipri mandó dos capturas de MAAT: en el calendario del día hay un botón
+"Confirmar todos" en la propia tarjeta (eso ya lo tenemos, punto 2), y los
+apuntados a una clase se ven **al entrar en la clase**, en una pantalla
+propia con lista de asistentes — no antes, desde el calendario. Su
+mensaje textual: "no se ven desde la vista diaria, solo cuando abres la
+clase". La hoja inferior (`DraggableScrollableSheet`, arreglo del punto
+anterior) no encajaba con eso por diseño, no solo por sensación: abría
+directamente desde la tarjeta del día, que es justo lo que pidió que no
+pasara.
+
+Se sustituye `companeros_clase_sheet.dart` por
+`companeros_clase_screen.dart`: una pantalla `Scaffold` normal con
+`AppBar`, mismo patrón que ya usa `ClaseDetalleScreen` para el dueño/
+profesor. Tocar la tarjeta en modo Entrenamiento navega con
+`Navigator.push` en vez de abrir una hoja. Efecto colateral bueno: al ser
+una pantalla completa, la lista ya no necesita ningún límite de alto
+artificial —el problema de fondo de las dos vueltas anteriores—; una
+`ListView` normal en una pantalla llena se comporta como cualquier otra
+lista larga de la app.
+
+Se mantienen los mismos datos (nombre, foto, cinturón; nada de pago) y el
+mismo repositorio (`listarCompaneros`), solo cambia la presentación.
+
+Verificado: `flutter analyze` limpio, sin deriva de codegen, suite
+completa en 88/88. Rojo/verde de verdad quitando el `onTap` que navega a
+la pantalla nueva: 3 de las 4 pruebas del archivo fallan correctamente
+(no encuentran el título de la pantalla nueva ni a los compañeros);
+restaurado, verde.

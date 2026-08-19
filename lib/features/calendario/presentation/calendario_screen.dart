@@ -11,6 +11,7 @@ import '../application/clases_providers.dart';
 import '../data/clase_resumen.dart';
 import 'clase_card.dart';
 import 'clase_detalle_screen.dart';
+import 'companeros_clase_screen.dart';
 import 'crear_clase_screen.dart';
 
 class CalendarioScreen extends ConsumerStatefulWidget {
@@ -265,6 +266,14 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                     return ClaseCard(
                       clase: clase,
                       loadingAccion: cargando,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => CompanerosClaseScreen(
+                            clase: clase,
+                            repositorio: ref.read(clasesRepositoryProvider),
+                          ),
+                        ),
+                      ),
                       onUnirse: userId == null ? null : () => _unirse(clase),
                       onBorrarse: userId == null
                           ? null
