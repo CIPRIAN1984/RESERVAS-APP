@@ -974,3 +974,43 @@ El antetítulo de `TituloPantalla` se renderiza en mayúsculas
 gestión de clases). Una prueba buscaba `'Histórico'` tal cual y fallaba
 por eso, no por ningún fallo de lógica; se corrigió la prueba, no el
 widget.
+
+## 2026-08-18 — Deshacer una asistencia confirmada por error
+
+Tras probar «confirmar todos» (punto 2 de esta tanda), Cipri pidió poder
+deshacer una confirmación suelta: *"puede que le doy a confirmar a todos
+y me doy cuenta que a uno no quiero confirmarlo, quiero tener la
+opción"*.
+
+**No había ninguna forma de hacerlo, ni con RLS perfecta.** `asistencias`
+solo tenía `GRANT INSERT` para `authenticated` — sin `GRANT DELETE` de
+tabla, ninguna política de fila habría servido de nada (la misma lección
+de julio con las columnas de Stripe, aplicada aquí a nivel de tabla).
+Migración `20260818193559_deshacer_asistencia.sql`: añade el `GRANT
+DELETE` y una política `asistencias_delete` con el mismo alcance que ya
+usa `asistencias_insert` (profesor/dueño de la propia academia) — a
+propósito **sin** restringir a "quien la validó": si el dueño marcó por
+error y el profesor lo ve después, tiene que poder deshacerlo igual.
+
+En la pantalla de la clase, la marca verde de un alumno ya confirmado
+pasa a ser tocable: deshace justo esa asistencia, sin afectar a las
+demás ni pedir confirmación aparte (es una acción de un toque, tan fácil
+de deshacer como de repetir — a diferencia de «confirmar todos», que sí
+avisa antes por tocar a mucha gente de golpe).
+
+Verificado en rojo/verde en los dos lados:
+- pgTAP (`supabase/tests/deshacer_asistencia_test.sql`, plan de 4):
+  rompiendo la condición de rol de la política (`and false` en vez de
+  comprobar profesor/dueño), la prueba de que el Profesor puede deshacer
+  una asistencia falla correctamente; restaurado, 187/187 en verde.
+- Flutter (`test/features/calendario/deshacer_asistencia_test.dart`):
+  quitando el `onPressed` del icono, la prueba que espera ver el cambio
+  falla; restaurado, verde. Suite completa
+  (`--exclude-tags=golden`) en 86/86.
+
+**Aplicada a producción** junto con las migraciones de los puntos 1, 2 y
+4 de esta tanda (edición/cierre/cancelación de clase, confirmar todos
+desde el día, ranking por periodo) — con luz verde explícita de Cipri
+tras pedir dos veces las mismas funciones y no verlas, porque las cuatro
+vistas previas de Vercel comparten la misma base de datos real y las
+migraciones nunca se aplican solas.
