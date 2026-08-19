@@ -926,3 +926,51 @@ completa en 88/88. Rojo/verde de verdad quitando el `onTap` que navega a
 la pantalla nueva: 3 de las 4 pruebas del archivo fallan correctamente
 (no encuentran el título de la pantalla nueva ni a los compañeros);
 restaurado, verde.
+
+## 2026-08-18 — Ranking por mes, año o desde siempre
+
+Cipri pidió mejorar el Ranking mirando MAAT: poder filtrar por mes, año o
+histórico. Con `AskUserQuestion` se le presentaron dos alcances —solo el
+filtro, o además una pestaña de gráficas de actividad como en MAAT— y
+eligió el primero: **solo el filtro**, sin gráficas nuevas.
+
+**Se sustituye `ranking_mensual` por `ranking_periodo`, no se añade al
+lado.** La RPC vieja solo admitía un mes concreto; la nueva recibe
+`p_desde`/`p_hasta` (`date`, ambos opcionales) y filtra por rango abierto:
+nulo por un lado significa sin límite por ese lado. Los tres casos que
+pidió Cipri son el mismo código con fechas distintas calculadas en
+Flutter:
+
+- **Mes**: primer y último día del mes en curso.
+- **Año**: 1 de enero a 31 de diciembre del año en curso.
+- **Siempre**: `p_desde`/`p_hasta` los dos nulos.
+
+Mantener las dos funciones habría dejado `ranking_mensual` como RPC
+huérfana (nada la llama ya desde Flutter) — superficie de permisos sin
+uso, justo lo que la revisión de seguridad de julio fue cerrando. Se
+borra en la misma migración que crea la nueva
+(`20260818073509_ranking_periodo.sql`), y `function_permissions_test.sql`
+ahora comprueba explícitamente que `ranking_mensual` ya no existe.
+
+**Sigue incluyendo a los alumnos con 0 asistencias en el rango** —
+propiedad que ya tenía `ranking_mensual` y que hacía falta conservar: cada
+alumno tiene que ver su posición real, aunque sea la última.
+
+**Verificado en rojo/verde, dos veces:**
+- pgTAP (`supabase/tests/ranking_periodo_test.sql`, plan de 7): rompiendo
+  el filtro de fecha (`and true` en vez de comparar con `p_desde`/
+  `p_hasta`), 3 de 7 pruebas fallan con el recuento sin filtrar; restaurado,
+  192/192 en verde en toda la suite.
+- Flutter (`test/features/estadisticas/ranking_periodo_test.dart`):
+  rompiendo el cálculo del último día del mes (`ahora.month, 28` en vez de
+  `ahora.month + 1, 0`), la prueba del rango por defecto falla comparando
+  contra el 31; restaurado, verde.
+
+La pestaña usa `PestanasPildora`, un componente del sistema de diseño que
+ya existía en el repositorio sin ningún sitio que lo usara todavía.
+
+El antetítulo de `TituloPantalla` se renderiza en mayúsculas
+(`.toUpperCase()` interno, como ya pasaba con `PastillaEstado` — ver PR de
+gestión de clases). Una prueba buscaba `'Histórico'` tal cual y fallaba
+por eso, no por ningún fallo de lógica; se corrigió la prueba, no el
+widget.

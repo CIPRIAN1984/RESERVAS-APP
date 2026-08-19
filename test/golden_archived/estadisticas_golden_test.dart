@@ -40,7 +40,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          rankingMensualProvider.overrideWith((ref) async => _ranking),
+          rankingPeriodoProvider.overrideWith((ref) async => _ranking),
           // El cuarto clasificado es "yo": su fila debe destacarse.
           currentUserIdProvider.overrideWithValue('id-Alumno A'),
         ],
@@ -67,7 +67,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          rankingMensualProvider.overrideWith((ref) async => <RankingEntry>[]),
+          rankingPeriodoProvider.overrideWith((ref) async => <RankingEntry>[]),
           currentUserIdProvider.overrideWithValue(null),
         ],
         child: MaterialApp(
@@ -79,10 +79,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('Todavía no hay clases con asistencia este mes.'),
-      findsOneWidget,
-    );
+    expect(find.text('No hay clases con asistencia este mes.'), findsOneWidget);
     // El estado vacío sustituía la pantalla entera y se llevaba por delante
     // la cabecera: no sabías ni en qué pantalla estabas.
     expect(find.text('Estadísticas'), findsOneWidget);

@@ -10,16 +10,19 @@ import '../../../shared/widgets/pantalla.dart';
 import '../application/estadisticas_providers.dart';
 import '../data/ranking_entry.dart';
 
-/// Ranking de asistencia del mes: podio con los tres primeros y lista
-/// numerada con el resto, como en el prototipo I+.
+const _etiquetasPeriodo = ['Este mes', 'Este año', 'Siempre'];
+
+/// Ranking de asistencia por periodo: podio con los tres primeros y lista
+/// numerada con el resto, como en el prototipo I+. El periodo (mes, año o
+/// desde siempre) lo elige quien mira el ranking, como en MAAT.
 class EstadisticasScreen extends ConsumerWidget {
   const EstadisticasScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final rankingAsync = ref.watch(rankingMensualProvider);
+    final periodo = ref.watch(periodoRankingProvider);
+    final rankingAsync = ref.watch(rankingPeriodoProvider);
     final userId = ref.watch(currentUserIdProvider);
-    final mes = DateFormat.yMMMM('es_ES').format(DateTime.now());
 
     // El título vive fuera del `when`: antes, cuando no había ranking, el
     // estado vacío sustituía la pantalla entera y se llevaba por delante la
@@ -27,16 +30,53 @@ class EstadisticasScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TituloPantalla('Estadísticas', antetitulo: mes),
-        Expanded(child: _contenido(context, rankingAsync, userId)),
+        TituloPantalla('Estadísticas', antetitulo: _antetitulo(periodo)),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+          child: PestanasPildora(
+            valor: periodo.index,
+            etiquetas: _etiquetasPeriodo,
+            onCambio: (i) => ref.read(periodoRankingProvider.notifier).state =
+                PeriodoRanking.values[i],
+          ),
+        ),
+        Expanded(child: _contenido(context, rankingAsync, userId, periodo)),
       ],
     );
+  }
+
+  String _antetitulo(PeriodoRanking periodo) {
+    final ahora = DateTime.now();
+    return switch (periodo) {
+      PeriodoRanking.mes => DateFormat.yMMMM('es_ES').format(ahora),
+      PeriodoRanking.anio => '${ahora.year}',
+      PeriodoRanking.siempre => 'Histórico',
+    };
+  }
+
+  String _tituloRanking(PeriodoRanking periodo, bool top3) {
+    final cuando = switch (periodo) {
+      PeriodoRanking.mes => 'del mes',
+      PeriodoRanking.anio => 'del año',
+      PeriodoRanking.siempre => 'de siempre',
+    };
+    return top3 ? 'Top 3 $cuando' : 'Ranking $cuando';
+  }
+
+  String _mensajeVacio(PeriodoRanking periodo) {
+    final cuando = switch (periodo) {
+      PeriodoRanking.mes => 'este mes',
+      PeriodoRanking.anio => 'este año',
+      PeriodoRanking.siempre => 'todavía',
+    };
+    return 'No hay clases con asistencia $cuando.';
   }
 
   Widget _contenido(
     BuildContext context,
     AsyncValue<List<RankingEntry>> rankingAsync,
     String? userId,
+    PeriodoRanking periodo,
   ) {
     return rankingAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -46,9 +86,9 @@ class EstadisticasScreen extends ConsumerWidget {
       ),
       data: (ranking) {
         if (ranking.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.leaderboard_outlined,
-            message: 'Todavía no hay clases con asistencia este mes.',
+            message: _mensajeVacio(periodo),
           );
         }
 
@@ -61,7 +101,7 @@ class EstadisticasScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
               child: Text(
-                podio.length >= 3 ? 'Top 3 del mes' : 'Ranking del mes',
+                _tituloRanking(periodo, podio.length >= 3),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
