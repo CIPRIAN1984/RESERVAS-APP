@@ -782,3 +782,53 @@ Verificado: `flutter analyze` limpio, suite completa
 verdad: rompiendo el filtro de cinturón (`if (false)` en vez de comparar
 con el cinturón elegido), la prueba que espera que el filtro funcione
 falla; restaurado, verde.
+
+## 2026-08-20 — Cinturones de niños (sistema IBJJF) en Miembros
+
+Cipri preguntó qué faltaba para las cuatro cosas de Miembros que se
+quedaron fuera de la primera versión (prueba/pausada, cinturones de
+niños, listo para graduarse, inactividad). Primera de las cuatro:
+cinturones de niños — la más independiente de las otras tres, sin
+decisiones de negocio pendientes una vez confirmado el sistema (IBJJF,
+igual que la academia sigue ya).
+
+**Trece colores nuevos** en `profiles.cinturon`
+(`20260820202054_cinturones_ninos.sql`): blanco (compartido con el de
+adulto, mismo color de salida), gris-blanca, gris, gris-negra,
+amarilla-blanca, amarilla, amarilla-negra, naranja-blanca, naranja,
+naranja-negra, verde-blanca, verde, verde-negra. Solo amplía un `CHECK`
+de columna — no toca RLS ni permisos, así que no hace falta el patrón de
+`revoke`/`grant` de tabla, pero sí una prueba pgTAP de regresión: que los
+trece se acepten y que un color inventado se siga rechazando
+(`cinturones_ninos_test.sql`, plan de 15).
+
+**Los cinturones mixtos (`<base>_<franja>`) se resuelven sin tabla
+nueva.** `gris_blanco` no es una entrada más en `AppColors.beltColors`:
+`AppColors.belt()` corta por el `_` y usa el color base (`gris`); un
+`AppColors.franjaCinturon()` nuevo resuelve el segundo color reutilizando
+las mismas entradas de `blanco`/`negro` que ya existían. `PuntoCinturon`
+pinta una franja inferior cuando el cinturón es mixto (`ColoredBox`
+partido con `Expanded` dentro de un `Container` recortado en círculo), en
+vez del punto sólido de siempre — así lo describe la skill
+`diseno-i-plus`: "color base + franja inferior".
+
+El filtro de cinturón de Miembros pasa de una fila de pestañas a un botón
+que abre una hoja con dos secciones, **Adultos** y **Niños** — como en
+MAAT—, cada cinturón con su punto de color y su nombre en español. No hay
+una entrada "Blanco (Niños)" aparte: es el mismo color que el blanco de
+adulto, así que filtrar por "Blanco" ya trae a los dos.
+
+Verificado en rojo/verde en los dos lados:
+- SQL: quitando dos colores de la lista del `CHECK`, el bloque que los
+  inserta a los trece falla exactamente donde se esperaba; restaurado,
+  198/198 en verde.
+- Flutter: rompiendo `esCinturonMixto` para que devuelva siempre `false`,
+  la prueba que comprueba el color base y la franja de un mixto falla;
+  restaurado, verde. Suite completa (`--exclude-tags=golden`) en 90/90.
+
+Quedan pendientes, cada una con sus propias decisiones de Cipri ya
+tomadas mientras tanto (ver la conversación del 20/08): prueba (1 día),
+pausada (indefinida o con fecha), y listo para graduarse (solo cambio de
+color, no grados; cuenta desde la fecha de alta salvo que se actualice a
+mano; total acumulado de entrenos, no mínimo semanal estricto; niños a 6
+meses por cinturón, adultos a 2 años). Ninguna se ha empezado todavía.

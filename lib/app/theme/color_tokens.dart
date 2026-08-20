@@ -57,12 +57,22 @@ class AppColors {
   // ── Cinturones ─────────────────────────────────────────────────────────
   /// Los cinturones **son el dato**, no decoración: aquí el color se queda.
   /// El blanco necesita borde para verse sobre fondo claro (ver [beltNeedsBorder]).
+  ///
+  /// Los cinturones mixtos de niños (`gris_blanco`, `amarillo_negro`…) no
+  /// tienen entrada propia aquí: se resuelven a partir del color base
+  /// (antes del `_`) más una franja del segundo color — ver [belt] y
+  /// [franjaCinturon].
   static const Map<String, Color> beltColors = {
     'blanco': Color(0xFFFFFFFF),
     'azul': Color(0xFF1D8FEF),
     'morado': Color(0xFF8B2FE0),
     'marron': Color(0xFF8A4B22),
     'negro': Color(0xFF111111),
+    // Niños (sistema IBJJF).
+    'gris': Color(0xFF9CA3AF),
+    'amarillo': Color(0xFFF5C518),
+    'naranja': Color(0xFFF97316),
+    'verde': Color(0xFF16A34A),
   };
 
   /// Borde para los cinturones demasiado claros para distinguirse del fondo.
@@ -70,6 +80,22 @@ class AppColors {
 
   static const Color beltBorder = Color(0xFFD4D4D8);
 
-  static Color belt(String? cinturon) =>
-      beltColors[cinturon] ?? beltColors['blanco']!;
+  /// `true` para los cinturones mixtos de niños (`<base>_<franja>`, p. ej.
+  /// `gris_blanco`) — los únicos cinturones cuyo identificador lleva `_`.
+  static bool esCinturonMixto(String cinturon) => cinturon.contains('_');
+
+  static Color belt(String? cinturon) {
+    if (cinturon == null) return beltColors['blanco']!;
+    final base = esCinturonMixto(cinturon)
+        ? cinturon.split('_').first
+        : cinturon;
+    return beltColors[base] ?? beltColors['blanco']!;
+  }
+
+  /// Color de la franja inferior de un cinturón mixto de niños. Solo tiene
+  /// sentido cuando [esCinturonMixto] es `true`.
+  static Color franjaCinturon(String cinturon) {
+    final sufijo = cinturon.split('_').last;
+    return beltColors[sufijo] ?? beltColors['blanco']!;
+  }
 }

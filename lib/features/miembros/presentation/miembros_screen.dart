@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/theme/color_tokens.dart';
 import '../../../core/models/profile.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/pantalla.dart';
@@ -8,12 +9,50 @@ import '../../equipo/presentation/dar_cuota_sheet.dart';
 import '../application/miembros_providers.dart';
 
 /// Alumnos de la academia, buscables y filtrables por cinturón — lo que
-/// pidió Cipri mirando MAAT. Primera versión: nombre, cinturón y si la
-/// cuota está al día. Lo que exige datos que la base de datos todavía no
-/// tiene (cinturones de niños, prueba/pausada, listo para graduarse,
-/// inactividad) queda para una tanda futura, decisión de Cipri.
-const _cinturones = ['Todos', 'Blanco', 'Azul', 'Morado', 'Marrón', 'Negro'];
-const _valoresCinturon = [null, 'blanco', 'azul', 'morado', 'marron', 'negro'];
+/// pidió Cipri mirando MAAT. Cuota al día/sin cuota ya está; lo que exige
+/// datos que la base de datos todavía no tiene (prueba/pausada, listo para
+/// graduarse, inactividad) queda para una tanda futura.
+const _etiquetasCinturon = {
+  'blanco': 'Blanco',
+  'azul': 'Azul',
+  'morado': 'Morado',
+  'marron': 'Marrón',
+  'negro': 'Negro',
+  'gris_blanco': 'Gris-Blanco',
+  'gris': 'Gris',
+  'gris_negro': 'Gris-Negro',
+  'amarillo_blanco': 'Amarillo-Blanco',
+  'amarillo': 'Amarillo',
+  'amarillo_negro': 'Amarillo-Negro',
+  'naranja_blanco': 'Naranja-Blanco',
+  'naranja': 'Naranja',
+  'naranja_negro': 'Naranja-Negro',
+  'verde_blanco': 'Verde-Blanco',
+  'verde': 'Verde',
+  'verde_negro': 'Verde-Negro',
+};
+
+const _cinturonesAdultos = ['blanco', 'azul', 'morado', 'marron', 'negro'];
+
+/// El blanco de niño es el mismo color que el de adulto (no hay entrada
+/// separada: filtrar por "Blanco" ya trae a todos, niños incluidos).
+const _cinturonesNinos = [
+  'gris_blanco',
+  'gris',
+  'gris_negro',
+  'amarillo_blanco',
+  'amarillo',
+  'amarillo_negro',
+  'naranja_blanco',
+  'naranja',
+  'naranja_negro',
+  'verde_blanco',
+  'verde',
+  'verde_negro',
+];
+
+String etiquetaCinturon(String cinturon) =>
+    _etiquetasCinturon[cinturon] ?? cinturon;
 
 class MiembrosScreen extends ConsumerStatefulWidget {
   const MiembrosScreen({super.key});
@@ -24,7 +63,7 @@ class MiembrosScreen extends ConsumerStatefulWidget {
 
 class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
   String _busqueda = '';
-  int _filtroCinturon = 0;
+  String? _cinturonElegido;
 
   Future<void> _darCuota(Profile alumno) async {
     final hecho = await mostrarDarCuota(context, alumno);
@@ -36,6 +75,22 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
     }
   }
 
+  Future<void> _elegirCinturon() async {
+    final elegido = await showModalBottomSheet<String?>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useRootNavigator: true,
+      builder: (_) => _FiltroCinturonSheet(actual: _cinturonElegido),
+    );
+    // `elegido` distingue "canceló la hoja" (sin tocar nada, `context.mounted`
+    // sigue vivo pero no hay valor) de "eligió Todos" (String? nulo explícito
+    // devuelto a propósito) gracias a que el sheet siempre hace `pop` con un
+    // valor: solo llega aquí `null` de verdad cuando se cierra deslizando.
+    if (!mounted) return;
+    setState(() => _cinturonElegido = elegido);
+  }
+
   @override
   Widget build(BuildContext context) {
     final alumnosAsync = ref.watch(alumnosMiembrosProvider);
@@ -45,22 +100,22 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Buscar por nombre',
-                  prefixIcon: Icon(Icons.search),
+              Expanded(
+                child: TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Buscar por nombre',
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                  onChanged: (value) =>
+                      setState(() => _busqueda = value.trim().toLowerCase()),
                 ),
-                onChanged: (value) =>
-                    setState(() => _busqueda = value.trim().toLowerCase()),
               ),
-              const SizedBox(height: 12),
-              PestanasPildora(
-                valor: _filtroCinturon,
-                etiquetas: _cinturones,
-                onCambio: (i) => setState(() => _filtroCinturon = i),
+              const SizedBox(width: 8),
+              _BotonCinturon(
+                cinturon: _cinturonElegido,
+                onTap: _elegirCinturon,
               ),
             ],
           ),
@@ -73,9 +128,9 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
               message: 'No se han podido cargar los alumnos.',
             ),
             data: (alumnos) {
-              final cinturonElegido = _valoresCinturon[_filtroCinturon];
               final visibles = alumnos.where((a) {
-                if (cinturonElegido != null && a.cinturon != cinturonElegido) {
+                if (_cinturonElegido != null &&
+                    a.cinturon != _cinturonElegido) {
                   return false;
                 }
                 if (_busqueda.isEmpty) return true;
@@ -136,7 +191,7 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                             titulo: alumno.nombreCompleto,
                             detalle: alumno.cinturon == null
                                 ? null
-                                : 'Cinturón ${alumno.cinturon}',
+                                : 'Cinturón ${etiquetaCinturon(alumno.cinturon!)}',
                             estado: tieneCuota
                                 ? const PastillaEstado.exito('Al día')
                                 : const PastillaEstado.error('Sin cuota'),
@@ -158,6 +213,139 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
 extension on Profile {
   String get nombreCompleto =>
       [nombre, apellidos].whereType<String>().join(' ');
+}
+
+class _BotonCinturon extends StatelessWidget {
+  const _BotonCinturon({required this.cinturon, required this.onTap});
+
+  final String? cinturon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      icon: cinturon == null
+          ? const Icon(Icons.filter_list, size: 18)
+          : PuntoCinturon(cinturon, tamano: 14),
+      label: Text(cinturon == null ? 'Cinturón' : etiquetaCinturon(cinturon!)),
+      style: OutlinedButton.styleFrom(minimumSize: const Size(0, 56)),
+    );
+  }
+}
+
+class _FiltroCinturonSheet extends StatelessWidget {
+  const _FiltroCinturonSheet({required this.actual});
+
+  final String? actual;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Filtrar por cinturón',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _CinturonChip(
+                  texto: 'Todos',
+                  seleccionado: actual == null,
+                  onTap: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text('Adultos', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final cinturon in _cinturonesAdultos)
+                  _CinturonChip(
+                    texto: etiquetaCinturon(cinturon),
+                    cinturon: cinturon,
+                    seleccionado: actual == cinturon,
+                    onTap: () => Navigator.of(context).pop(cinturon),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text('Niños', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final cinturon in _cinturonesNinos)
+                  _CinturonChip(
+                    texto: etiquetaCinturon(cinturon),
+                    cinturon: cinturon,
+                    seleccionado: actual == cinturon,
+                    onTap: () => Navigator.of(context).pop(cinturon),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CinturonChip extends StatelessWidget {
+  const _CinturonChip({
+    required this.texto,
+    required this.seleccionado,
+    required this.onTap,
+    this.cinturon,
+  });
+
+  final String texto;
+  final String? cinturon;
+  final bool seleccionado;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(100),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: seleccionado ? AppColors.ink : AppColors.surface,
+          borderRadius: BorderRadius.circular(100),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (cinturon != null) ...[
+              PuntoCinturon(cinturon, tamano: 14),
+              const SizedBox(width: 8),
+            ],
+            Text(
+              texto.toUpperCase(),
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: seleccionado ? Colors.white : AppColors.ink,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _TarjetaResumen extends StatelessWidget {
