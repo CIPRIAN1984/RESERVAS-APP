@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/profile.dart';
 import 'package:itaca/features/miembros/application/miembros_providers.dart';
+import 'package:itaca/features/miembros/domain/progreso_cinturon.dart';
 import 'package:itaca/features/miembros/presentation/miembros_screen.dart';
+import 'package:itaca/features/tarifas/application/tarifas_providers.dart';
 
 /// Cipri pidió una pantalla de Miembros como la de MAAT: buscar por nombre,
 /// filtrar por cinturón (incluidos los trece de niños del sistema IBJJF) y
@@ -43,6 +46,22 @@ Widget _app({required List<Profile> alumnos, required Set<String> alDia}) =>
         ),
         alumnosMiembrosProvider.overrideWith((ref) async => alumnos),
         cuotaAlDiaMiembrosProvider.overrideWith((ref) async => alDia),
+        // Para cuando se toca a quien no tiene cuota: la hoja de cobro en
+        // efectivo necesita las tarifas para renderizarse sin quedarse
+        // cargando para siempre.
+        tarifasProvider(true).overrideWith((ref) async => const []),
+        for (final alumno in alumnos)
+          progresoCinturonProvider((
+            alumnoId: alumno.id,
+            cinturon: alumno.cinturon,
+            fechaInicioCinturon: alumno.fechaInicioCinturon,
+          )).overrideWith(
+            (ref) async => const ProgresoCinturon(
+              asistencias: 0,
+              requeridas: 78,
+              proximoCinturon: 'gris_blanco',
+            ),
+          ),
       ],
       child: MaterialApp(
         theme: AppTheme.light,
@@ -188,4 +207,56 @@ void main() {
 
     expect(find.text('Todavía no hay alumnos en la academia.'), findsOneWidget);
   });
+
+  testWidgets('tocar a quien tiene la cuota al día abre su ficha', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 900));
+    await tester.pumpWidget(
+      _app(
+        alumnos: [_alumno(id: 'a1', nombre: 'Ana', cinturon: 'azul')],
+        alDia: {'a1'},
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Ana Ejemplo'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Promover a un nuevo cinturón'),
+      findsOneWidget,
+      reason: 'La ficha del alumno se abre con su progreso de cinturón.',
+    );
+  });
+
+  testWidgets(
+    'tocar a quien no tiene cuota sigue abriendo el cobro en efectivo, no la ficha',
+    (tester) async {
+      await initializeDateFormatting('es_ES');
+      await tester.binding.setSurfaceSize(const Size(412, 900));
+      await tester.pumpWidget(
+        _app(
+          alumnos: [_alumno(id: 'a1', nombre: 'Ana', cinturon: 'azul')],
+          alDia: const {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Ana Ejemplo'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Promover a un nuevo cinturón'),
+        findsNothing,
+        reason:
+            'Sin cuota al día, el hueco se sigue usando para cobrar, no para la ficha.',
+      );
+      expect(
+        find.text('Registrar cobro'),
+        findsOneWidget,
+        reason: 'Se abre la hoja de cobro en efectivo, como antes.',
+      );
+    },
+  );
 }

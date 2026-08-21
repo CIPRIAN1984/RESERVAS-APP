@@ -832,3 +832,74 @@ pausada (indefinida o con fecha), y listo para graduarse (solo cambio de
 color, no grados; cuenta desde la fecha de alta salvo que se actualice a
 mano; total acumulado de entrenos, no mínimo semanal estricto; niños a 6
 meses por cinturón, adultos a 2 años). Ninguna se ha empezado todavía.
+
+## 2026-08-21 — Ficha de alumno: progreso hacia el siguiente cinturón
+
+Cipri, tras probar el filtro de cinturón de Miembros: "los puedo filtrar
+por el cinturon pero no puedo entrar en cada perfil y ver cuanto han
+entrenando, proxima graducacion etc". Sobre las capturas de MAAT que
+había mandado antes (ficha con pestañas Resumen/Actividad/Promociones),
+confirmó por `AskUserQuestion` que de momento solo hace falta
+**Promociones** (el anillo de progreso y el botón de promover): el resto
+—teléfono, país, documentos, notas, gráficas de actividad— son datos que
+la base de datos no guarda hoy y quedan para otra tanda.
+
+**Nueva columna `profiles.fecha_inicio_cinturon`**
+(`20260821071211_promociones_cinturon.sql`), no nula, con `default now()`.
+Para quien ya estaba de alta, un `update` de una sola vez la pone a su
+`created_at` (backfill). Para cualquier alumno nuevo a partir de esta
+migración, el propio default ya es su fecha de alta — no hace falta tocar
+el trigger de registro. El futuro importador de MAAT deberá pasar la
+fecha de alta real de cada alumno al insertar, en vez de dejar el
+default (lo prueba `promociones_cinturon_test.sql`, insertando una fila
+con `fecha_inicio_cinturon` explícita y comprobando que se respeta).
+
+**RPC `promover_cinturon(alumno_id, nuevo_cinturon)`**, mismo patrón que
+`cambiar_rol_miembro`: `security definer`, exige Profesor/Dueño activo de
+la misma academia que el alumno, y el `CHECK` de `cinturon` ya rechaza
+cualquier color inventado. Cambia el cinturón **y** reinicia
+`fecha_inicio_cinturon` a `now()` — el contador de entrenos empieza de
+cero en el cinturón nuevo.
+
+**Regla de "cuánto falta", confirmada por Cipri el 20/08 (ver la entrada
+de cinturones de niños) y ahora implementada en
+`lib/features/miembros/domain/progreso_cinturon.dart`:** el ritmo exigido
+es 3 entrenos/semana; niños (con relación en `relaciones_familia`) 6
+meses por cinturón — igual para cada uno de los doce pasos IBJJF—;
+adultos 2 años por cinturón, igual para las cuatro transiciones
+(blanco→azul→morado→marrón→negro). Cuenta el total acumulado de
+asistencias desde `fecha_inicio_cinturon`, no un mínimo semanal estricto.
+"Es menor" se resuelve consultando `relaciones_familia` (por `child_id`),
+no `profiles.parent_id` — esa columna no existe en la base de datos; el
+campo del mismo nombre en el modelo `Profile` de Flutter nunca se ha
+rellenado porque no hay tal columna que seleccionar.
+
+**La ficha se abre tocando a un alumno con la cuota al día** en la lista
+de Miembros (antes esa fila no hacía nada). A quien no tiene cuota le
+sigue pasando lo de siempre: tocar abre el cobro en efectivo, no la
+ficha — son dos usos distintos del mismo hueco y no se pisan.
+
+El botón "Promover a un nuevo cinturón" **no está condicionado a que el
+anillo llegue al 100 %**: el profesor decide, el progreso es solo
+informativo (los grados intermedios de blanco los sigue llevando Cipri a
+mano). En el cinturón más alto que gestiona la app (negro en adultos,
+verde-negra en niños) no hay ni anillo ni botón — promover más allá de
+ahí es una decisión fuera de alcance que no estaba pedida.
+
+Verificado en rojo/verde en los dos lados:
+- SQL: quitando la comprobación de rol de `promover_cinturon` (`v_actor_rol
+  not in (...)` → `false`), la prueba que espera que un Alumno no pueda
+  promoverse deja de fallar como debía; restaurado, 206/206 en verde.
+- Flutter: la fracción de progreso, el CHECK de siguiente cinturón y el
+  diálogo de confirmación tienen sus propias pruebas unitarias y de
+  widget (`progreso_cinturon_test.dart`, `ficha_miembro_screen_test.dart`).
+  Suite completa (`--exclude-tags=golden`) en 103/103.
+
+Nota de arquitectura para quien toque `progresoCinturonProvider`: la
+clave del `family` lleva `fechaInicioCinturon` (el valor real, nulo o no)
+en vez de un `DateTime.now()` ya resuelto — así la clave es estable y
+comparable, y una prueba puede sobreescribir exactamente la misma
+instancia del provider que construye la pantalla. Meter `DateTime.now()`
+en la clave (el primer intento) hacía que ninguna prueba pudiera
+adivinar la instancia exacta a sobreescribir y la pantalla se quedaba
+cargando para siempre.

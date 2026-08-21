@@ -7,6 +7,7 @@ import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../equipo/presentation/dar_cuota_sheet.dart';
 import '../application/miembros_providers.dart';
+import 'ficha_miembro_screen.dart';
 
 /// Alumnos de la academia, buscables y filtrables por cinturón — lo que
 /// pidió Cipri mirando MAAT. Cuota al día/sin cuota ya está; lo que exige
@@ -64,6 +65,12 @@ class MiembrosScreen extends ConsumerStatefulWidget {
 class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
   String _busqueda = '';
   String? _cinturonElegido;
+
+  void _abrirFicha(Profile alumno) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => FichaMiembroScreen(alumno: alumno)),
+    );
+  }
 
   Future<void> _darCuota(Profile alumno) async {
     final hecho = await mostrarDarCuota(context, alumno);
@@ -195,7 +202,9 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                             estado: tieneCuota
                                 ? const PastillaEstado.exito('Al día')
                                 : const PastillaEstado.error('Sin cuota'),
-                            onTap: tieneCuota ? null : () => _darCuota(alumno),
+                            onTap: tieneCuota
+                                ? () => _abrirFicha(alumno)
+                                : () => _darCuota(alumno),
                           );
                         },
                       ),

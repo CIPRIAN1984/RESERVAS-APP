@@ -21,6 +21,9 @@ abstract class Profile with _$Profile {
     // Familias: si no es null, este perfil es un menor con ese padre/tutor.
     // Null = adulto (o administrador).
     @JsonKey(name: 'parent_id') String? parentId,
+    // Desde cuándo lleva el alumno en su cinturón actual — arranca en la
+    // fecha de alta y se reinicia con cada promoción (ver Miembros).
+    @JsonKey(name: 'fecha_inicio_cinturon') DateTime? fechaInicioCinturon,
   }) = _Profile;
 
   factory Profile.fromJson(Map<String, dynamic> json) =>
