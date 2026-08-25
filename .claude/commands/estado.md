@@ -6,7 +6,7 @@ Dale a Cipri una foto del estado de la app. **Él no es desarrollador: escribe e
 
 Averigua primero por tu cuenta, sin pedirle nada:
 
-1. **Sincronía**: `git fetch` y compara la rama actual con `origin/claude/app-setup-github-nohews`. ¿Hay trabajo sin fusionar?
+1. **Sincronía**: `git fetch` y compara la rama actual con `origin/production` (la rama real de despliegue — ver la skill `flujo-de-trabajo`). ¿Hay trabajo sin fusionar?
 2. **Salud**: con Flutter en el PATH, ejecuta `flutter analyze` y `flutter test`. ¿Verde?
 3. **Pull requests abiertos**: cuáles hay, si su CI está en verde y si esperan algo de él.
 4. **Despliegue**: último despliegue de producción en Vercel (proyecto `itc2-reservas`) y si está correcto.
