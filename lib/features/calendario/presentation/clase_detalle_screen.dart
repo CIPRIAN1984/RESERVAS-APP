@@ -12,6 +12,7 @@ import '../application/clases_providers.dart';
 import '../data/clase_resumen.dart';
 import '../data/clases_repository.dart';
 import '../data/inscrito_alumno.dart';
+import 'crear_clase_screen.dart';
 
 /// Profesor/Dueño/Administrador view of a class: confirmed roster, attendance
 /// and the FIFO waitlist that the backend promotes automatically.
@@ -28,13 +29,132 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
   late Future<ParticipantesClase> _future;
   final Set<String> _marcando = {};
   bool _confirmandoTodos = false;
+  bool _gestionando = false;
+  late ClaseResumen _clase;
 
   @override
   void initState() {
     super.initState();
+    _clase = widget.clase;
     _future = ref
         .read(clasesRepositoryProvider)
         .listarParticipantes(widget.clase.id);
+  }
+
+  /// Tras editar/cerrar/reabrir, vuelve a pedir los datos propios de la
+  /// clase para no dejar el título, el horario o el estado obsoletos en
+  /// esta pantalla mientras el dueño sigue gestionando asistencia.
+  Future<void> _recargarClase() async {
+    final datos = await ref
+        .read(clasesRepositoryProvider)
+        .obtenerClase(widget.clase.id);
+    if (!mounted) return;
+    setState(() {
+      _clase = _clase.copyWith(
+        titulo: datos['titulo'] as String,
+        descripcion: datos['descripcion'] as String?,
+        fechaHoraInicio: DateTime.parse(datos['fecha_hora_inicio'] as String),
+        fechaHoraFin: DateTime.parse(datos['fecha_hora_fin'] as String),
+        aforoMaximo: datos['aforo_maximo'] as int,
+        estado: datos['estado'] as String,
+      );
+    });
+    ref.invalidate(clasesSemanaProvider);
+  }
+
+  Future<void> _editar() async {
+    final guardado = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => CrearClaseScreen.editar(claseExistente: _clase),
+      ),
+    );
+    if (guardado == true) await _recargarClase();
+  }
+
+  Future<void> _cambiarEstado({required bool cerrar}) async {
+    setState(() => _gestionando = true);
+    try {
+      await ref
+          .read(clasesRepositoryProvider)
+          .cambiarEstadoClase(claseId: widget.clase.id, cerrar: cerrar);
+      await _recargarClase();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              cerrar
+                  ? 'Clase cerrada: ya no admite reservas nuevas.'
+                  : 'Clase reabierta.',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se ha podido completar la acción.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _gestionando = false);
+    }
+  }
+
+  Future<void> _cancelar() async {
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Cancelar esta clase?'),
+        content: const Text(
+          'Se avisará a todos los apuntados y quedarán liberados de su '
+          'plaza. Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Volver'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cancelar la clase'),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true) return;
+
+    setState(() => _gestionando = true);
+    try {
+      final notificados = await ref
+          .read(clasesRepositoryProvider)
+          .cancelarClase(widget.clase.id);
+      ref.invalidate(clasesSemanaProvider);
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              notificados == 0
+                  ? 'Clase cancelada.'
+                  : notificados == 1
+                  ? 'Clase cancelada. Se ha avisado a 1 alumno.'
+                  : 'Clase cancelada. Se ha avisado a $notificados alumnos.',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se ha podido cancelar la clase.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _gestionando = false);
+    }
   }
 
   void _recargar() {
@@ -249,10 +369,61 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
   Widget build(BuildContext context) {
     final userId = ref.watch(currentUserIdProvider);
     final horario =
-        '${DateFormat.Hm().format(widget.clase.fechaHoraInicio.toLocal())} - ${DateFormat.Hm().format(widget.clase.fechaHoraFin.toLocal())}';
+        '${DateFormat.Hm().format(_clase.fechaHoraInicio.toLocal())} - ${DateFormat.Hm().format(_clase.fechaHoraFin.toLocal())}';
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.clase.titulo)),
+      appBar: AppBar(
+        title: Text(_clase.titulo),
+        actions: [
+          if (_gestionando)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            )
+          else if (!_clase.cancelada)
+            PopupMenuButton<_AccionClase>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (accion) {
+                switch (accion) {
+                  case _AccionClase.editar:
+                    _editar();
+                  case _AccionClase.cerrar:
+                    _cambiarEstado(cerrar: true);
+                  case _AccionClase.reabrir:
+                    _cambiarEstado(cerrar: false);
+                  case _AccionClase.cancelar:
+                    _cancelar();
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: _AccionClase.editar,
+                  child: Text('Editar clase'),
+                ),
+                PopupMenuItem(
+                  value: _clase.cerrada
+                      ? _AccionClase.reabrir
+                      : _AccionClase.cerrar,
+                  child: Text(
+                    _clase.cerrada
+                        ? 'Reabrir a nuevas reservas'
+                        : 'Cerrar a nuevas reservas',
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: _AccionClase.cancelar,
+                  child: Text('Cancelar la clase'),
+                ),
+              ],
+            ),
+        ],
+      ),
       body: FutureBuilder<ParticipantesClase>(
         future: _future,
         builder: (context, snapshot) {
@@ -292,11 +463,21 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${inscritos.length}/${widget.clase.aforoMaximo} confirmados · ${listaEspera.length} en espera',
+                      '${inscritos.length}/${_clase.aforoMaximo} confirmados · ${listaEspera.length} en espera',
                       style: Theme.of(
                         context,
                       ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
                     ),
+                    if (_clase.cerrada) ...[
+                      const SizedBox(height: 10),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: PastillaEstado.aviso(
+                          'Cerrada a nuevas reservas',
+                          icono: Icons.lock_outline,
+                        ),
+                      ),
+                    ],
                     // Cuántos hay que cobrar, sin tener que repasar la lista.
                     if (sinCuota > 0) ...[
                       const SizedBox(height: 10),
@@ -367,6 +548,8 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
     );
   }
 }
+
+enum _AccionClase { editar, cerrar, reabrir, cancelar }
 
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle({required this.title});

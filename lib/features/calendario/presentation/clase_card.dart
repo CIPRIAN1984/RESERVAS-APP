@@ -85,7 +85,11 @@ class ClaseCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (clase.tieneReservaActiva)
+                  if (clase.cancelada)
+                    const PastillaEstado.error('Cancelada')
+                  else if (clase.cerrada)
+                    const PastillaEstado.aviso('Cerrada')
+                  else if (clase.tieneReservaActiva)
                     clase.enListaEspera
                         ? const PastillaEstado.aviso(
                             'En espera',
@@ -213,6 +217,15 @@ class _Accion extends StatelessWidget {
           clase.enListaEspera
               ? 'Salir de la lista de espera'
               : 'Cancelar reserva',
+        ),
+      );
+    }
+
+    if (!clase.activa) {
+      return OutlinedButton(
+        onPressed: null,
+        child: Text(
+          clase.cancelada ? 'Clase cancelada' : 'Cerrada a nuevas reservas',
         ),
       );
     }
