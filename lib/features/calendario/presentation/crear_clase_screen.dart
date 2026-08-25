@@ -3,16 +3,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../application/clases_providers.dart';
+import '../data/clase_resumen.dart';
 
 class CrearClaseScreen extends ConsumerStatefulWidget {
   const CrearClaseScreen({
     required this.academiaId,
     required this.profesorId,
     super.key,
-  });
+  }) : claseExistente = null;
+
+  /// Modo edición: entra con los datos de una clase ya publicada. El
+  /// título, la fecha inicial y los campos se rellenan solos, y "Guardar"
+  /// llama a `editarClase` en vez de crear una fila nueva. No se ofrece
+  /// "clase periódica": eso solo tiene sentido al crear.
+  const CrearClaseScreen.editar({required this.claseExistente, super.key})
+    : academiaId = '',
+      profesorId = '';
 
   final String academiaId;
   final String profesorId;
+  final ClaseResumen? claseExistente;
 
   @override
   ConsumerState<CrearClaseScreen> createState() => _CrearClaseScreenState();
@@ -31,6 +41,24 @@ class _CrearClaseScreenState extends ConsumerState<CrearClaseScreen> {
   bool _periodica = false;
   bool _guardando = false;
   String? _error;
+
+  bool get _editando => widget.claseExistente != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final existente = widget.claseExistente;
+    if (existente != null) {
+      _tituloController.text = existente.titulo;
+      _descripcionController.text = existente.descripcion ?? '';
+      _aforoController.text = '${existente.aforoMaximo}';
+      final inicio = existente.fechaHoraInicio.toLocal();
+      final fin = existente.fechaHoraFin.toLocal();
+      _fecha = inicio;
+      _horaInicio = TimeOfDay(hour: inicio.hour, minute: inicio.minute);
+      _horaFin = TimeOfDay(hour: fin.hour, minute: fin.minute);
+    }
+  }
 
   @override
   void dispose() {
@@ -76,31 +104,45 @@ class _CrearClaseScreenState extends ConsumerState<CrearClaseScreen> {
       return;
     }
 
-    final repeticiones = _periodica
-        ? int.parse(_numeroSemanasController.text.trim())
-        : 1;
-
     setState(() {
       _guardando = true;
       _error = null;
     });
     try {
       final repo = ref.read(clasesRepositoryProvider);
-      for (var i = 0; i < repeticiones; i++) {
-        final desplazamiento = Duration(days: 7 * i);
-        await repo.crearClase(
-          academiaId: widget.academiaId,
-          profesorId: widget.profesorId,
+      if (_editando) {
+        await repo.editarClase(
+          claseId: widget.claseExistente!.id,
           titulo: _tituloController.text.trim(),
           descripcion: _descripcionController.text.trim(),
-          fechaHoraInicio: inicio.add(desplazamiento),
-          fechaHoraFin: fin.add(desplazamiento),
+          fechaHoraInicio: inicio,
+          fechaHoraFin: fin,
           aforoMaximo: int.parse(_aforoController.text.trim()),
         );
+      } else {
+        final repeticiones = _periodica
+            ? int.parse(_numeroSemanasController.text.trim())
+            : 1;
+        for (var i = 0; i < repeticiones; i++) {
+          final desplazamiento = Duration(days: 7 * i);
+          await repo.crearClase(
+            academiaId: widget.academiaId,
+            profesorId: widget.profesorId,
+            titulo: _tituloController.text.trim(),
+            descripcion: _descripcionController.text.trim(),
+            fechaHoraInicio: inicio.add(desplazamiento),
+            fechaHoraFin: fin.add(desplazamiento),
+            aforoMaximo: int.parse(_aforoController.text.trim()),
+          );
+        }
       }
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
-      setState(() => _error = 'No se ha podido crear la clase.');
+      setState(
+        () => _error = _editando
+            ? 'No se ha podido guardar los cambios.'
+            : 'No se ha podido crear la clase.',
+      );
     } finally {
       if (mounted) setState(() => _guardando = false);
     }
@@ -110,7 +152,7 @@ class _CrearClaseScreenState extends ConsumerState<CrearClaseScreen> {
   Widget build(BuildContext context) {
     final formatoFecha = DateFormat.yMMMMd('es_ES');
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear clase')),
+      appBar: AppBar(title: Text(_editando ? 'Editar clase' : 'Crear clase')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -165,17 +207,19 @@ class _CrearClaseScreenState extends ConsumerState<CrearClaseScreen> {
                         : null;
                   },
                 ),
-                const SizedBox(height: 8),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Clase periódica'),
-                  subtitle: const Text(
-                    'Repite esta clase cada semana en el mismo día y hora',
+                if (!_editando) ...[
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Clase periódica'),
+                    subtitle: const Text(
+                      'Repite esta clase cada semana en el mismo día y hora',
+                    ),
+                    value: _periodica,
+                    onChanged: (v) => setState(() => _periodica = v),
                   ),
-                  value: _periodica,
-                  onChanged: (v) => setState(() => _periodica = v),
-                ),
-                if (_periodica) ...[
+                ],
+                if (_periodica && !_editando) ...[
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _numeroSemanasController,
@@ -210,7 +254,11 @@ class _CrearClaseScreenState extends ConsumerState<CrearClaseScreen> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : Text(_periodica ? 'Crear clases' : 'Crear clase'),
+                      : Text(
+                          _editando
+                              ? 'Guardar cambios'
+                              : (_periodica ? 'Crear clases' : 'Crear clase'),
+                        ),
                 ),
               ],
             ),

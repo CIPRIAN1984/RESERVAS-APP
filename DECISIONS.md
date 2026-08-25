@@ -735,3 +735,62 @@ Ninguna de las dos cosas (cabeceras, migración) se ha aplicado a
 producción: cabeceras en `vercel.json` solo surten efecto en el próximo
 despliegue, y la migración de Storage queda pendiente de autorización como
 el resto de migraciones de este trabajo.
+
+## 2026-08-18 — Editar, cerrar y cancelar una clase ya publicada
+
+Primera fase de mejoras tras el piloto (Cipri, a partir de comparar con
+MAAT). Punto 1: el dueño no tenía forma de tocar una clase una vez creada.
+
+**Tres estados, no un booleano.** `clases.estado` es `activa` (por
+defecto) / `cerrada` / `cancelada`, decidido así con Cipri:
+
+- **Cerrada** — deja de admitir reservas nuevas, pero la clase sigue en
+  pie: quien ya tenía plaza la mantiene. Reversible, se puede reabrir.
+- **Cancelada** — terminal. Libera a todos los apuntados (inscritos y
+  lista de espera, pasan a `cancelado`) y les avisa por notificación push,
+  el mismo mecanismo de `notificaciones_outbox` que ya usa la promoción de
+  lista de espera. No se puede reabrir ni volver a cancelar.
+
+**Editar la hora avisa si hay gente apuntada** (decisión de Cipri): la RPC
+`editar_clase` compara la hora nueva con la antigua y, si cambia, encola
+una notificación para cada inscrito/en espera. Cambiar solo el título, la
+descripción o el aforo no notifica a nadie.
+
+**El aforo no se puede bajar de las plazas ya confirmadas** — evita que
+editar deje a alguien con reserva confirmada fuera de una clase que ya
+tiene menos sitio del que ocupa.
+
+**Cierre de un permiso que se había colado:** `clases` tenía UPDATE de
+tabla completa para `authenticated`, acotado solo por la RLS `clases_update`
+(que restringe la FILA — cualquier dueño/profesor de su academia — pero no
+la COLUMNA). Sin cerrarlo, un dueño podría poner `estado = 'cancelada'`
+con un UPDATE directo desde el cliente, saltándose el aviso a los alumnos
+y la liberación de sus plazas. Mismo patrón que ya se aplicó a
+`profiles`/`academias` en julio: `revoke update` de tabla completa +
+`grant update` solo de las columnas editables a mano
+(`titulo`, `descripcion`, `fecha_hora_inicio`, `fecha_hora_fin`,
+`aforo_maximo`). `estado`/`cancelada_at` solo cambian a través de las RPC.
+
+Probado en rojo/verde: quitando el `revoke`/`grant` de columnas, el test
+del UPDATE directo deja de lanzar excepción y descuadra las siguientes
+tres pruebas de la suite — confirma que la prueba mira donde debe.
+203 pruebas pgTAP en verde con el arreglo puesto.
+
+## 2026-08-21 — Se mantiene Stripe para cobros; queda pendiente añadir SEPA
+
+Cipri preguntó qué opciones había para el cobro de cuotas y pidió
+investigar todas antes de decidir. Comparadas Stripe (+ SEPA Direct
+Debit), GoCardless, Redsys, PayPal/Square/SumUp: la recomendación fue
+quedarse en Stripe —ya tiene Connect, webhooks y `suscripciones`
+implementados— y **añadir domiciliación bancaria SEPA como método de
+pago dentro del mismo Stripe**, en vez de solo tarjeta. En España el
+77,5% de los pagos recurrentes son por domiciliación, no tarjeta, y es
+lo que usan los gimnasios (probablemente también MAAT); además tiene
+menos comisión y muchos menos cobros fallidos que la tarjeta. GoCardless
+tiene comisión algo menor pero exigiría rehacer la integración entera
+por un ahorro de decenas de euros al mes a este volumen — no compensa.
+
+Cipri respondió **"de momento stripe"**: se queda con Stripe. No se ha
+pedido todavía añadir SEPA como método de pago — sigue siendo trabajo
+pendiente, sin empezar, y sigue en pie que no se conecta a Stripe real
+hasta que haya semanas en paralelo con MAAT.
