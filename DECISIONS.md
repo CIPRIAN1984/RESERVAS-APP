@@ -799,3 +799,22 @@ arista falsa).
 Verificado en rojo/verde: forzando `pendientes_confirmar` a `0` fijo en la
 migración, el test que espera `1` falla exactamente como se espera.
 Restaurado, 205 pruebas pgTAP en verde.
+
+## 2026-08-21 — Se mantiene Stripe para cobros; queda pendiente añadir SEPA
+
+Cipri preguntó qué opciones había para el cobro de cuotas y pidió
+investigar todas antes de decidir. Comparadas Stripe (+ SEPA Direct
+Debit), GoCardless, Redsys, PayPal/Square/SumUp: la recomendación fue
+quedarse en Stripe —ya tiene Connect, webhooks y `suscripciones`
+implementados— y **añadir domiciliación bancaria SEPA como método de
+pago dentro del mismo Stripe**, en vez de solo tarjeta. En España el
+77,5% de los pagos recurrentes son por domiciliación, no tarjeta, y es
+lo que usan los gimnasios (probablemente también MAAT); además tiene
+menos comisión y muchos menos cobros fallidos que la tarjeta. GoCardless
+tiene comisión algo menor pero exigiría rehacer la integración entera
+por un ahorro de decenas de euros al mes a este volumen — no compensa.
+
+Cipri respondió **"de momento stripe"**: se queda con Stripe. No se ha
+pedido todavía añadir SEPA como método de pago — sigue siendo trabajo
+pendiente, sin empezar, y sigue en pie que no se conecta a Stripe real
+hasta que haya semanas en paralelo con MAAT.
