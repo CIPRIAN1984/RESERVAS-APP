@@ -239,7 +239,8 @@ class PastillaEstado extends StatelessWidget {
 }
 
 /// Punto del color del cinturón. El blanco lleva borde para verse sobre
-/// fondo claro.
+/// fondo claro. Los mixtos de niños (`gris_blanco`, `amarillo_negro`…)
+/// llevan además una franja inferior del segundo color.
 class PuntoCinturon extends StatelessWidget {
   const PuntoCinturon(this.cinturon, {this.tamano = 18, super.key});
 
@@ -248,19 +249,35 @@ class PuntoCinturon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final necesitaBorde = AppColors.beltNeedsBorder(cinturon ?? 'blanco');
+    final valor = cinturon ?? 'blanco';
+    final necesitaBorde = AppColors.beltNeedsBorder(valor);
+    final mixto = AppColors.esCinturonMixto(valor);
     return Semantics(
       label: 'Cinturón ${cinturon ?? 'blanco'}',
       child: Container(
         width: tamano,
         height: tamano,
+        clipBehavior: mixto ? Clip.antiAlias : Clip.none,
         decoration: BoxDecoration(
-          color: AppColors.belt(cinturon),
+          color: mixto ? null : AppColors.belt(valor),
           shape: BoxShape.circle,
           border: necesitaBorde
               ? Border.all(color: AppColors.beltBorder)
               : null,
         ),
+        child: mixto
+            ? Column(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: ColoredBox(color: AppColors.belt(valor)),
+                  ),
+                  Expanded(
+                    child: ColoredBox(color: AppColors.franjaCinturon(valor)),
+                  ),
+                ],
+              )
+            : null,
       ),
     );
   }

@@ -48,6 +48,7 @@ Widget _app({
             Routes.perfil,
             Routes.herramientas,
             Routes.academia,
+            Routes.miembros,
             Routes.equipo,
             Routes.ajustesReservas,
             Routes.tarifas,
@@ -86,6 +87,8 @@ void main() {
   }
 
   group('la barra marca dónde estás', () {
+    // Orden de la barra en Gestor: Hoy(0), Herramientas(1), Miembros(2),
+    // Novedades(3), Academia(4).
     testWidgets('en Academia se marca Academia', (tester) async {
       await montar(
         tester,
@@ -93,7 +96,7 @@ void main() {
         modo: AppMode.gestor,
         ruta: Routes.academia,
       );
-      expect(_seleccionado(tester), 3);
+      expect(_seleccionado(tester), 4);
     });
 
     testWidgets('en Equipo se sigue marcando Academia, no Hoy', (tester) async {
@@ -103,7 +106,7 @@ void main() {
         modo: AppMode.gestor,
         ruta: Routes.equipo,
       );
-      expect(_seleccionado(tester), 3);
+      expect(_seleccionado(tester), 4);
     });
 
     testWidgets('en Tarifas se marca Herramientas', (tester) async {

@@ -799,6 +799,173 @@ arista falsa).
 Verificado en rojo/verde: forzando `pendientes_confirmar` a `0` fijo en la
 migración, el test que espera `1` falla exactamente como se espera.
 Restaurado, 205 pruebas pgTAP en verde.
+## 2026-08-19 — Primera versión de Miembros
+
+Cipri mandó capturas de MAAT y pidió una pantalla de Miembros para el
+panel del Dueño/Profesor: buscar por nombre, filtrar por cinturón, ver de
+un vistazo quién tiene la cuota al día. MAAT tiene bastante más: cuatro
+categorías de cuota (pagando/prueba/impagado/sin membresía), cinturones
+de niños, "listo para graduarse", filtro de inactividad. Preguntado si
+prefería todo eso de una vez o empezar sencillo, eligió **empezar
+sencillo**: esta versión es solo nombre, cinturón (solo adultos, que es
+lo único que hay en la base de datos) y cuota al día/sin cuota. El resto
+queda para otra tanda, cuando se decida qué datos nuevos hacen falta en
+la base de datos (`suscripciones` no tiene hoy estados de prueba ni
+pausada, y no existe ninguna noción de "listo para graduarse" ni de
+última asistencia — investigado antes de escribir una sola línea).
+
+**Sin migración.** Reutiliza `profiles` y `suscripciones` tal como están;
+el criterio de "cuota al día" es el mismo que ya usa
+`ClasesRepository._alumnosConCuotaAlDia` (activa, cobrada y dentro de
+fechas) — si aquí se relajara, Miembros diría "al día" de alguien a quien
+el servidor considera moroso.
+
+**No sustituye a `EquipoScreen`.** Equipo (alcanzable desde Academia) es
+para gestionar: cambiar de rol, cobrar en efectivo, retirar una cuota.
+Miembros es para *ver y encontrar* — un directorio, no un panel de
+acciones. La única acción que tiene es tocar a alguien sin cuota para
+cobrarle en el momento (`mostrarDarCuota`, la misma hoja que ya usan
+Equipo y la ficha de una clase), reutilizada tal cual.
+
+**Entra en la barra inferior de Gestor**, en el hueco que ya estaba
+reservado (`main_shell.dart` lo decía explícitamente desde julio):
+Hoy, Herramientas, **Miembros**, Novedades, Academia, más el cambio de
+modo — seis sitios en total para dueño/profesor. Verificado que cabe sin
+desbordar en 412 px con una captura de pantalla (no solo mirando el
+código): todas las etiquetas se leen, nada se solapa.
+
+Dos pruebas que fallaron por esto, arregladas correctamente (no
+enmascaradas): `test/shared/navegacion_test.dart` tenía el índice de
+"Academia" en la barra escrito a mano (era 3, pasa a 4 porque Miembros
+entra antes). No es una prueba rota por el cambio — es una prueba que
+hacía justo lo que tenía que hacer: avisar de que el orden cambió.
+
+Verificado: `flutter analyze` limpio, suite completa
+(`--exclude-tags=golden`) en 88/88, sin deriva de codegen. Rojo/verde de
+verdad: rompiendo el filtro de cinturón (`if (false)` en vez de comparar
+con el cinturón elegido), la prueba que espera que el filtro funcione
+falla; restaurado, verde.
+
+## 2026-08-20 — Cinturones de niños (sistema IBJJF) en Miembros
+
+Cipri preguntó qué faltaba para las cuatro cosas de Miembros que se
+quedaron fuera de la primera versión (prueba/pausada, cinturones de
+niños, listo para graduarse, inactividad). Primera de las cuatro:
+cinturones de niños — la más independiente de las otras tres, sin
+decisiones de negocio pendientes una vez confirmado el sistema (IBJJF,
+igual que la academia sigue ya).
+
+**Trece colores nuevos** en `profiles.cinturon`
+(`20260820202054_cinturones_ninos.sql`): blanco (compartido con el de
+adulto, mismo color de salida), gris-blanca, gris, gris-negra,
+amarilla-blanca, amarilla, amarilla-negra, naranja-blanca, naranja,
+naranja-negra, verde-blanca, verde, verde-negra. Solo amplía un `CHECK`
+de columna — no toca RLS ni permisos, así que no hace falta el patrón de
+`revoke`/`grant` de tabla, pero sí una prueba pgTAP de regresión: que los
+trece se acepten y que un color inventado se siga rechazando
+(`cinturones_ninos_test.sql`, plan de 15).
+
+**Los cinturones mixtos (`<base>_<franja>`) se resuelven sin tabla
+nueva.** `gris_blanco` no es una entrada más en `AppColors.beltColors`:
+`AppColors.belt()` corta por el `_` y usa el color base (`gris`); un
+`AppColors.franjaCinturon()` nuevo resuelve el segundo color reutilizando
+las mismas entradas de `blanco`/`negro` que ya existían. `PuntoCinturon`
+pinta una franja inferior cuando el cinturón es mixto (`ColoredBox`
+partido con `Expanded` dentro de un `Container` recortado en círculo), en
+vez del punto sólido de siempre — así lo describe la skill
+`diseno-i-plus`: "color base + franja inferior".
+
+El filtro de cinturón de Miembros pasa de una fila de pestañas a un botón
+que abre una hoja con dos secciones, **Adultos** y **Niños** — como en
+MAAT—, cada cinturón con su punto de color y su nombre en español. No hay
+una entrada "Blanco (Niños)" aparte: es el mismo color que el blanco de
+adulto, así que filtrar por "Blanco" ya trae a los dos.
+
+Verificado en rojo/verde en los dos lados:
+- SQL: quitando dos colores de la lista del `CHECK`, el bloque que los
+  inserta a los trece falla exactamente donde se esperaba; restaurado,
+  198/198 en verde.
+- Flutter: rompiendo `esCinturonMixto` para que devuelva siempre `false`,
+  la prueba que comprueba el color base y la franja de un mixto falla;
+  restaurado, verde. Suite completa (`--exclude-tags=golden`) en 90/90.
+
+Quedan pendientes, cada una con sus propias decisiones de Cipri ya
+tomadas mientras tanto (ver la conversación del 20/08): prueba (1 día),
+pausada (indefinida o con fecha), y listo para graduarse (solo cambio de
+color, no grados; cuenta desde la fecha de alta salvo que se actualice a
+mano; total acumulado de entrenos, no mínimo semanal estricto; niños a 6
+meses por cinturón, adultos a 2 años). Ninguna se ha empezado todavía.
+
+## 2026-08-21 — Ficha de alumno: progreso hacia el siguiente cinturón
+
+Cipri, tras probar el filtro de cinturón de Miembros: "los puedo filtrar
+por el cinturon pero no puedo entrar en cada perfil y ver cuanto han
+entrenando, proxima graducacion etc". Sobre las capturas de MAAT que
+había mandado antes (ficha con pestañas Resumen/Actividad/Promociones),
+confirmó por `AskUserQuestion` que de momento solo hace falta
+**Promociones** (el anillo de progreso y el botón de promover): el resto
+—teléfono, país, documentos, notas, gráficas de actividad— son datos que
+la base de datos no guarda hoy y quedan para otra tanda.
+
+**Nueva columna `profiles.fecha_inicio_cinturon`**
+(`20260821071211_promociones_cinturon.sql`), no nula, con `default now()`.
+Para quien ya estaba de alta, un `update` de una sola vez la pone a su
+`created_at` (backfill). Para cualquier alumno nuevo a partir de esta
+migración, el propio default ya es su fecha de alta — no hace falta tocar
+el trigger de registro. El futuro importador de MAAT deberá pasar la
+fecha de alta real de cada alumno al insertar, en vez de dejar el
+default (lo prueba `promociones_cinturon_test.sql`, insertando una fila
+con `fecha_inicio_cinturon` explícita y comprobando que se respeta).
+
+**RPC `promover_cinturon(alumno_id, nuevo_cinturon)`**, mismo patrón que
+`cambiar_rol_miembro`: `security definer`, exige Profesor/Dueño activo de
+la misma academia que el alumno, y el `CHECK` de `cinturon` ya rechaza
+cualquier color inventado. Cambia el cinturón **y** reinicia
+`fecha_inicio_cinturon` a `now()` — el contador de entrenos empieza de
+cero en el cinturón nuevo.
+
+**Regla de "cuánto falta", confirmada por Cipri el 20/08 (ver la entrada
+de cinturones de niños) y ahora implementada en
+`lib/features/miembros/domain/progreso_cinturon.dart`:** el ritmo exigido
+es 3 entrenos/semana; niños (con relación en `relaciones_familia`) 6
+meses por cinturón — igual para cada uno de los doce pasos IBJJF—;
+adultos 2 años por cinturón, igual para las cuatro transiciones
+(blanco→azul→morado→marrón→negro). Cuenta el total acumulado de
+asistencias desde `fecha_inicio_cinturon`, no un mínimo semanal estricto.
+"Es menor" se resuelve consultando `relaciones_familia` (por `child_id`),
+no `profiles.parent_id` — esa columna no existe en la base de datos; el
+campo del mismo nombre en el modelo `Profile` de Flutter nunca se ha
+rellenado porque no hay tal columna que seleccionar.
+
+**La ficha se abre tocando a un alumno con la cuota al día** en la lista
+de Miembros (antes esa fila no hacía nada). A quien no tiene cuota le
+sigue pasando lo de siempre: tocar abre el cobro en efectivo, no la
+ficha — son dos usos distintos del mismo hueco y no se pisan.
+
+El botón "Promover a un nuevo cinturón" **no está condicionado a que el
+anillo llegue al 100 %**: el profesor decide, el progreso es solo
+informativo (los grados intermedios de blanco los sigue llevando Cipri a
+mano). En el cinturón más alto que gestiona la app (negro en adultos,
+verde-negra en niños) no hay ni anillo ni botón — promover más allá de
+ahí es una decisión fuera de alcance que no estaba pedida.
+
+Verificado en rojo/verde en los dos lados:
+- SQL: quitando la comprobación de rol de `promover_cinturon` (`v_actor_rol
+  not in (...)` → `false`), la prueba que espera que un Alumno no pueda
+  promoverse deja de fallar como debía; restaurado, 206/206 en verde.
+- Flutter: la fracción de progreso, el CHECK de siguiente cinturón y el
+  diálogo de confirmación tienen sus propias pruebas unitarias y de
+  widget (`progreso_cinturon_test.dart`, `ficha_miembro_screen_test.dart`).
+  Suite completa (`--exclude-tags=golden`) en 103/103.
+
+Nota de arquitectura para quien toque `progresoCinturonProvider`: la
+clave del `family` lleva `fechaInicioCinturon` (el valor real, nulo o no)
+en vez de un `DateTime.now()` ya resuelto — así la clave es estable y
+comparable, y una prueba puede sobreescribir exactamente la misma
+instancia del provider que construye la pantalla. Meter `DateTime.now()`
+en la clave (el primer intento) hacía que ninguna prueba pudiera
+adivinar la instancia exacta a sobreescribir y la pantalla se quedaba
+cargando para siempre.
 
 ## 2026-08-21 — Se mantiene Stripe para cobros; queda pendiente añadir SEPA
 

@@ -13,6 +13,7 @@ import '../features/calendario/presentation/calendario_screen.dart';
 import '../features/configuracion_reservas/presentation/ajustes_reservas_screen.dart';
 import '../features/estadisticas/presentation/estadisticas_screen.dart';
 import '../features/equipo/presentation/equipo_screen.dart';
+import '../features/miembros/presentation/miembros_screen.dart';
 import '../features/novedades/presentation/novedades_screen.dart';
 import '../features/onboarding/presentation/login_screen.dart';
 import '../features/onboarding/presentation/olvide_contrasena_screen.dart';
@@ -67,10 +68,11 @@ const _rutasAcademia = {
   Routes.ajustesReservas,
   Routes.herramientas,
   Routes.academia,
+  Routes.miembros,
 };
 
 /// Destinos del modo Gestor: solo para quien lleva la academia.
-const _rutasGestor = {Routes.herramientas, Routes.academia};
+const _rutasGestor = {Routes.herramientas, Routes.academia, Routes.miembros};
 
 String _inicioPara(Profile profile) =>
     profile.isAdministrador ? Routes.admin : Routes.inicio;
@@ -220,6 +222,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const PantallaConTitulo(
               titulo: 'Academia',
               child: AcademiaScreen(),
+            ),
+          ),
+          GoRoute(
+            path: Routes.miembros,
+            builder: (context, state) => const PantallaConTitulo(
+              titulo: 'Miembros',
+              child: MiembrosScreen(),
             ),
           ),
           GoRoute(

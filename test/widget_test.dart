@@ -63,5 +63,30 @@ void main() {
       expect(AppColors.beltNeedsBorder('blanco'), isTrue);
       expect(AppColors.beltNeedsBorder('negro'), isFalse);
     });
+
+    test('los cuatro colores base de niño tienen su propio tono', () {
+      expect(AppColors.belt('gris'), const Color(0xFF9CA3AF));
+      expect(AppColors.belt('amarillo'), const Color(0xFFF5C518));
+      expect(AppColors.belt('naranja'), const Color(0xFFF97316));
+      expect(AppColors.belt('verde'), const Color(0xFF16A34A));
+    });
+
+    test('un cinturón mixto de niño resuelve el color base y la franja', () {
+      expect(AppColors.esCinturonMixto('amarillo_negro'), isTrue);
+      expect(AppColors.belt('amarillo_negro'), AppColors.belt('amarillo'));
+      expect(
+        AppColors.franjaCinturon('amarillo_negro'),
+        AppColors.belt('negro'),
+      );
+
+      expect(AppColors.esCinturonMixto('gris_blanco'), isTrue);
+      expect(AppColors.belt('gris_blanco'), AppColors.belt('gris'));
+      expect(AppColors.franjaCinturon('gris_blanco'), AppColors.belt('blanco'));
+    });
+
+    test('un cinturón sólido no se confunde con uno mixto', () {
+      expect(AppColors.esCinturonMixto('azul'), isFalse);
+      expect(AppColors.esCinturonMixto('verde'), isFalse);
+    });
   });
 }
