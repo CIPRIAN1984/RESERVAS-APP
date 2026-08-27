@@ -1,7 +1,7 @@
 -- Gestión de una clase ya publicada: editar, cerrar/reabrir, cancelar.
 -- Ver 20260818063921_gestionar_clase_publicada.sql.
 begin;
-select plan(20);
+select plan(22);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000e001', 'dueno-gestion@test.dev'),
@@ -222,6 +222,37 @@ select is(
   ),
   1,
   'Cambiar la hora avisa al único alumno apuntado'
+);
+
+-- 20-21. listar_clases_semana() cuenta a quien todavía no tiene la
+-- asistencia validada, para el botón «Confirmar todos» de la vista de
+-- día (ver 20260818071115_pendientes_confirmar_vista_dia.sql).
+select pg_temp.actuar_como('00000000-0000-0000-0000-00000000e001');
+select is(
+  (
+    select pendientes_confirmar from public.listar_clases_semana(
+      now(), now() + interval '3 days'
+    ) where id = '00000000-0000-0000-0000-00000000c502'
+  ),
+  1::bigint,
+  'El único inscrito sin validar cuenta como pendiente'
+);
+
+reset role;
+insert into public.asistencias (clase_id, alumno_id, validado_por) values (
+  '00000000-0000-0000-0000-00000000c502',
+  '00000000-0000-0000-0000-00000000e002',
+  '00000000-0000-0000-0000-00000000e001'
+);
+select pg_temp.actuar_como('00000000-0000-0000-0000-00000000e001');
+select is(
+  (
+    select pendientes_confirmar from public.listar_clases_semana(
+      now(), now() + interval '3 days'
+    ) where id = '00000000-0000-0000-0000-00000000c502'
+  ),
+  0::bigint,
+  'Validada la asistencia, ya no cuenta como pendiente'
 );
 
 select * from finish();

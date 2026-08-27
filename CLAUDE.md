@@ -82,7 +82,7 @@ export PATH=/opt/flutter/bin:$PATH
 - **Las suscripciones solo las activa el webhook de Stripe** con `service_role`. El alumno no puede auto-activarse.
 
 ### RPCs que usa la app
-`reservar_clase` · `cancelar_reserva` · `listar_clases_semana` · `ranking_mensual` · `cambiar_rol_miembro` · `aprobar_academia` · `rechazar_academia` · `resolver_cambio_escuela` · `listar_academias_aprobadas` · `registrar_device_token` · `generar_mis_clases_recurrentes`
+`reservar_clase` · `cancelar_reserva` · `listar_clases_semana` · `ranking_periodo` · `cambiar_rol_miembro` · `aprobar_academia` · `rechazar_academia` · `resolver_cambio_escuela` · `listar_academias_aprobadas` · `registrar_device_token` · `generar_mis_clases_recurrentes`
 
 ---
 

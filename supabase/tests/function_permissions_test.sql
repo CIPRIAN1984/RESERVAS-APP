@@ -1,6 +1,6 @@
 -- Regresiones de permisos de funciones expuestas por PostgREST.
 begin;
-select plan(14);
+select plan(16);
 
 -- 1-2. El alta puede listar academias; el resto de RPC no queda abierto.
 select ok(
@@ -110,7 +110,7 @@ select is(
       and p.proname in (
         'check_suscripcion_estado_transicion',
         'listar_clases_semana',
-        'ranking_mensual',
+        'ranking_periodo',
         'set_academia_id_desde_clase',
         'set_pedido_defaults',
         'set_prestamo_academia',
@@ -176,6 +176,28 @@ select is(
   (select allowed_mime_types from storage.buckets where id = 'avatars'),
   array['image/jpeg', 'image/png', 'image/webp'],
   'El bucket avatars solo admite jpeg, png y webp'
+);
+
+-- 15-16. `ranking_mensual` se sustituyó por `ranking_periodo` (ver
+-- 20260818073509_ranking_periodo.sql): la vieja no debe seguir viva como
+-- RPC huérfana, y la nueva debe estar donde antes estaba la vieja.
+select ok(
+  not exists (
+    select 1
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname = 'ranking_mensual'
+  ),
+  'ranking_mensual ya no existe: la sustituye ranking_periodo'
+);
+
+select ok(
+  has_function_privilege(
+    'authenticated',
+    'public.ranking_periodo(date,date)',
+    'EXECUTE'
+  ),
+  'Authenticated puede pedir el ranking por periodo'
 );
 
 select * from finish();

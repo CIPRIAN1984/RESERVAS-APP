@@ -776,6 +776,29 @@ del UPDATE directo deja de lanzar excepción y descuadra las siguientes
 tres pruebas de la suite — confirma que la prueba mira donde debe.
 203 pruebas pgTAP en verde con el arreglo puesto.
 
+## 2026-08-18 — «Confirmar todos» también desde la vista de día
+
+Primera fase de mejoras tras el piloto, punto 2. El botón ya existía
+dentro de `ClaseDetalleScreen`; Cipri lo quiere también en la tarjeta de
+cada clase de la vista de día («Hoy»), sin tener que entrar en cada una.
+
+**Se manda a todos los inscritos, no solo a los pendientes.** Calcular
+«quién falta por validar» exigiría traer la lista de asistencias además
+de la de inscritos — dos consultas por confirmación en vez de una. Como
+`marcarAsistenciaEnBloque` ya hace un `upsert` con `ignoreDuplicates`, dar
+de alta a alguien ya validado no hace nada: es más simple mandarlos todos
+y dejar que el propio `upsert` descarte los que sobran, en vez de calcular
+la diferencia en el cliente.
+
+**`listar_clases_semana()` sí necesita saber cuántos faltan**, para que la
+tarjeta decida si mostrar el botón y con qué número, sin una consulta
+aparte por tarjeta — construido sobre la misma RPC que el punto 1 (este PR
+depende de aquel: mismo cambio de columna en la misma función, no una
+arista falsa).
+
+Verificado en rojo/verde: forzando `pendientes_confirmar` a `0` fijo en la
+migración, el test que espera `1` falla exactamente como se espera.
+Restaurado, 205 pruebas pgTAP en verde.
 ## 2026-08-19 — Primera versión de Miembros
 
 Cipri mandó capturas de MAAT y pidió una pantalla de Miembros para el
@@ -962,3 +985,217 @@ Cipri respondió **"de momento stripe"**: se queda con Stripe. No se ha
 pedido todavía añadir SEPA como método de pago — sigue siendo trabajo
 pendiente, sin empezar, y sigue en pie que no se conecta a Stripe real
 hasta que haya semanas en paralelo con MAAT.
+
+## 2026-08-18 — Los alumnos ven quién más está apuntado a una clase
+
+Cipri lo pedía tal cual lo tienen en MAAT: "los alumnos me dicen que
+quieren ver quien estan apuntados en las clases". Preguntado qué datos
+enseñar, eligió **nombre, foto y cinturón** — no la opción mínima
+(nombre y foto) que se le proponía.
+
+**Sin migración ni cambio de permisos.** Las políticas RLS que ya existen
+(`inscripciones_select`, `profiles_select`) dejan leer a cualquier
+miembro de la academia — no solo al dueño o al profesor — las filas de
+`inscripciones` y `profiles` de su propia academia. Un alumno ya podía
+consultar esto por API; solo faltaba la pantalla. No hace falta pgTAP
+nuevo porque no se toca ningún permiso: la prueba que existe (`test/
+features/calendario/companeros_clase_test.dart`) es de Flutter.
+
+**`listarCompaneros` es una consulta nueva, no reutiliza
+`listarParticipantes`.** Esa otra trae también si cada alumno tiene la
+cuota al día (mirando `suscripciones`), y eso es un dato de pago que un
+compañero no debe ver. La nueva solo pide `alumno_id` +
+`profiles(nombre, apellidos, foto_url, cinturon)`, filtrada a
+`estado = 'inscrito'` — la lista de espera no se enseña a los
+compañeros, no aporta nada verla.
+
+Se toca la tarjeta de clase en modo Entrenamiento: tocar la clase (no el
+botón de reservar/cancelar, que sigue teniendo su propio toque) abre una
+hoja inferior con la lista. Verificado en rojo/verde quitando el `onTap`
+de `calendario_screen.dart`: las dos pruebas que esperan ver la lista
+fallan correctamente por no encontrar el texto; restaurado, las tres
+pruebas nuevas pasan y el resto de la suite (`flutter test test/app
+test/core test/shared test/features --exclude-tags=golden`, igual que
+CI) sigue en verde.
+
+Los fallos de `test/golden_archived/` al correr `flutter test test/golden
+--tags=golden` son previos a este cambio (confirmado con `git stash`
+sobre el mismo comando) — esa carpeta ya está excluida a propósito del
+paso de pruebas unitarias en CI, pero el paso de imágenes doradas la
+recoge igualmente porque `test/golden` es prefijo de `test/golden_
+archived`. No se toca en este PR: es un tema aparte de la infraestructura
+de pruebas, no de esta funcionalidad.
+
+## 2026-08-18 — La lista de compañeros se descontrolaba con muchos apuntados
+
+Cipri probó la vista previa con una clase real de 40 alumnos: la hoja
+inferior se veía "desproporcionada" e "imposible" de usar.
+
+Causa real, medida con una prueba de Flutter (no a ojo): la lista de
+`companeros_clase_sheet.dart` usaba `shrinkWrap: true` sin ningún límite
+de alto, dentro de un `Flexible` que le dejaba crecer todo lo que hiciera
+falta. Con 40 filas, la lista llegaba a ocupar 764 de los 900 px de
+pantalla de prueba — casi toda la hoja, dejando apenas título y hueco
+para cerrar.
+
+Arreglo: la lista va ahora dentro de un `ConstrainedBox` con
+`maxHeight: MediaQuery.of(context).size.height * 0.5`. Con pocos
+apuntados la hoja sigue compacta (el límite no se nota); con muchos, la
+lista se para en la mitad de la pantalla y se desplaza ella sola, en vez
+de tragarse la hoja entera.
+
+**Verificado en rojo/verde de verdad:** añadida una prueba que mide con
+`tester.getSize()` el alto real de la lista con 40 apuntados y espera que
+no pase de 450 px (la mitad de los 900 de la prueba). Contra el código
+sin arreglar dio 764 px —prueba en rojo, con el número real que veía
+Cipri—; con el arreglo, verde.
+
+## 2026-08-18 — La hoja de compañeros pasa a `DraggableScrollableSheet`
+
+El arreglo anterior (`ConstrainedBox` a la mitad de la pantalla) seguía
+sin convencer: Cipri lo probó otra vez y lo describió como "inestable,
+brusco y nada fino", y "sigue siendo grande". El problema no era ya que
+reventara —eso ya estaba arreglado—, sino cómo se abría: con
+`shrinkWrap` calculando el alto exacto del contenido, la hoja saltaba de
+golpe a su tamaño final en la propia animación de apertura, y ese tamaño
+era siempre medio móvil aunque hicieran falta menos apuntados.
+
+Se sustituye por `DraggableScrollableSheet`: abre a un tamaño inicial
+más modesto (40 % de la pantalla) con una animación continua, sin el
+salto de recalcular el alto intrínseco a mitad de apertura, y se puede
+estirar arrastrando hasta el 85 % si hace falta ver más gente sin soltar
+el dedo — el gesto nativo que ya se espera de una hoja así, en vez de un
+tamaño fijo impuesto. Con pocos apuntados sigue sin ocupar de más: el
+80/85 % es un tope, no un tamaño por defecto.
+
+El fondo de la hoja pasa a pintarlo el propio `Container` (con las
+esquinas redondeadas solo arriba) en vez de Material, con
+`backgroundColor: Colors.transparent` en `showModalBottomSheet`: sin eso
+asomaban las esquinas cuadradas de Material por detrás de las
+redondeadas de la hoja.
+
+Verificado igual que el arreglo anterior: la prueba que mide el alto de
+la lista con 40 apuntados se mantiene (`Key('lista_companeros')`, tope de
+450 px sobre una pantalla de prueba de 900). Rompiendo el rango
+(`initialChildSize`/`minChildSize`/`maxChildSize` casi al 100 %) la
+prueba vuelve a fallar con 810 px; restaurado, verde. El resto de la
+suite (`flutter test test/app test/core test/shared test/features
+--exclude-tags=golden`, igual que CI) sigue en 88/88.
+
+## 2026-08-18 — Los compañeros de clase van en pantalla propia, no en hoja
+
+Cipri mandó dos capturas de MAAT: en el calendario del día hay un botón
+"Confirmar todos" en la propia tarjeta (eso ya lo tenemos, punto 2), y los
+apuntados a una clase se ven **al entrar en la clase**, en una pantalla
+propia con lista de asistentes — no antes, desde el calendario. Su
+mensaje textual: "no se ven desde la vista diaria, solo cuando abres la
+clase". La hoja inferior (`DraggableScrollableSheet`, arreglo del punto
+anterior) no encajaba con eso por diseño, no solo por sensación: abría
+directamente desde la tarjeta del día, que es justo lo que pidió que no
+pasara.
+
+Se sustituye `companeros_clase_sheet.dart` por
+`companeros_clase_screen.dart`: una pantalla `Scaffold` normal con
+`AppBar`, mismo patrón que ya usa `ClaseDetalleScreen` para el dueño/
+profesor. Tocar la tarjeta en modo Entrenamiento navega con
+`Navigator.push` en vez de abrir una hoja. Efecto colateral bueno: al ser
+una pantalla completa, la lista ya no necesita ningún límite de alto
+artificial —el problema de fondo de las dos vueltas anteriores—; una
+`ListView` normal en una pantalla llena se comporta como cualquier otra
+lista larga de la app.
+
+Se mantienen los mismos datos (nombre, foto, cinturón; nada de pago) y el
+mismo repositorio (`listarCompaneros`), solo cambia la presentación.
+
+Verificado: `flutter analyze` limpio, sin deriva de codegen, suite
+completa en 88/88. Rojo/verde de verdad quitando el `onTap` que navega a
+la pantalla nueva: 3 de las 4 pruebas del archivo fallan correctamente
+(no encuentran el título de la pantalla nueva ni a los compañeros);
+restaurado, verde.
+
+## 2026-08-18 — Ranking por mes, año o desde siempre
+
+Cipri pidió mejorar el Ranking mirando MAAT: poder filtrar por mes, año o
+histórico. Con `AskUserQuestion` se le presentaron dos alcances —solo el
+filtro, o además una pestaña de gráficas de actividad como en MAAT— y
+eligió el primero: **solo el filtro**, sin gráficas nuevas.
+
+**Se sustituye `ranking_mensual` por `ranking_periodo`, no se añade al
+lado.** La RPC vieja solo admitía un mes concreto; la nueva recibe
+`p_desde`/`p_hasta` (`date`, ambos opcionales) y filtra por rango abierto:
+nulo por un lado significa sin límite por ese lado. Los tres casos que
+pidió Cipri son el mismo código con fechas distintas calculadas en
+Flutter:
+
+- **Mes**: primer y último día del mes en curso.
+- **Año**: 1 de enero a 31 de diciembre del año en curso.
+- **Siempre**: `p_desde`/`p_hasta` los dos nulos.
+
+Mantener las dos funciones habría dejado `ranking_mensual` como RPC
+huérfana (nada la llama ya desde Flutter) — superficie de permisos sin
+uso, justo lo que la revisión de seguridad de julio fue cerrando. Se
+borra en la misma migración que crea la nueva
+(`20260818073509_ranking_periodo.sql`), y `function_permissions_test.sql`
+ahora comprueba explícitamente que `ranking_mensual` ya no existe.
+
+**Sigue incluyendo a los alumnos con 0 asistencias en el rango** —
+propiedad que ya tenía `ranking_mensual` y que hacía falta conservar: cada
+alumno tiene que ver su posición real, aunque sea la última.
+
+**Verificado en rojo/verde, dos veces:**
+- pgTAP (`supabase/tests/ranking_periodo_test.sql`, plan de 7): rompiendo
+  el filtro de fecha (`and true` en vez de comparar con `p_desde`/
+  `p_hasta`), 3 de 7 pruebas fallan con el recuento sin filtrar; restaurado,
+  192/192 en verde en toda la suite.
+- Flutter (`test/features/estadisticas/ranking_periodo_test.dart`):
+  rompiendo el cálculo del último día del mes (`ahora.month, 28` en vez de
+  `ahora.month + 1, 0`), la prueba del rango por defecto falla comparando
+  contra el 31; restaurado, verde.
+
+La pestaña usa `PestanasPildora`, un componente del sistema de diseño que
+ya existía en el repositorio sin ningún sitio que lo usara todavía.
+
+El antetítulo de `TituloPantalla` se renderiza en mayúsculas
+(`.toUpperCase()` interno, como ya pasaba con `PastillaEstado` — ver PR de
+gestión de clases). Una prueba buscaba `'Histórico'` tal cual y fallaba
+por eso, no por ningún fallo de lógica; se corrigió la prueba, no el
+widget.
+## 2026-08-18 — Deshacer una asistencia confirmada por error
+
+Tras probar «confirmar todos» (punto 2 de esta tanda), Cipri pidió poder
+deshacer una confirmación suelta: *"puede que le doy a confirmar a todos
+y me doy cuenta que a uno no quiero confirmarlo, quiero tener la
+opción"*.
+
+**No había ninguna forma de hacerlo, ni con RLS perfecta.** `asistencias`
+solo tenía `GRANT INSERT` para `authenticated` — sin `GRANT DELETE` de
+tabla, ninguna política de fila habría servido de nada (la misma lección
+de julio con las columnas de Stripe, aplicada aquí a nivel de tabla).
+Migración `20260818193559_deshacer_asistencia.sql`: añade el `GRANT
+DELETE` y una política `asistencias_delete` con el mismo alcance que ya
+usa `asistencias_insert` (profesor/dueño de la propia academia) — a
+propósito **sin** restringir a "quien la validó": si el dueño marcó por
+error y el profesor lo ve después, tiene que poder deshacerlo igual.
+
+En la pantalla de la clase, la marca verde de un alumno ya confirmado
+pasa a ser tocable: deshace justo esa asistencia, sin afectar a las
+demás ni pedir confirmación aparte (es una acción de un toque, tan fácil
+de deshacer como de repetir — a diferencia de «confirmar todos», que sí
+avisa antes por tocar a mucha gente de golpe).
+
+Verificado en rojo/verde en los dos lados:
+- pgTAP (`supabase/tests/deshacer_asistencia_test.sql`, plan de 4):
+  rompiendo la condición de rol de la política (`and false` en vez de
+  comprobar profesor/dueño), la prueba de que el Profesor puede deshacer
+  una asistencia falla correctamente; restaurado, 187/187 en verde.
+- Flutter (`test/features/calendario/deshacer_asistencia_test.dart`):
+  quitando el `onPressed` del icono, la prueba que espera ver el cambio
+  falla; restaurado, verde. Suite completa
+  (`--exclude-tags=golden`) en 86/86.
+
+**Aplicada a producción** junto con las migraciones de los puntos 1, 2 y
+4 de esta tanda (edición/cierre/cancelación de clase, confirmar todos
+desde el día, ranking por periodo) — con luz verde explícita de Cipri
+tras pedir dos veces las mismas funciones y no verlas, porque las cuatro
+vistas previas de Vercel comparten la misma base de datos real y las
+migraciones nunca se aplican solas.
