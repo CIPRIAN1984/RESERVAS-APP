@@ -91,6 +91,66 @@ class ClasesRepository {
     return (generadas as int?) ?? 0;
   }
 
+  /// Vuelve a pedir los datos propios de una clase (título, horario, aforo,
+  /// estado) tras editarla/cerrarla/reabrirla, sin depender de que la
+  /// pantalla de detalle reciba de nuevo el listado completo del día.
+  Future<Map<String, dynamic>> obtenerClase(String claseId) async {
+    return await _client
+        .from('clases')
+        .select(
+          'titulo, descripcion, fecha_hora_inicio, fecha_hora_fin, '
+          'aforo_maximo, estado',
+        )
+        .eq('id', claseId)
+        .single();
+  }
+
+  /// Edita una clase ya publicada. Si cambia la hora, la RPC avisa por push
+  /// a quienes ya tenían plaza o estaban en la lista de espera.
+  Future<void> editarClase({
+    required String claseId,
+    required String titulo,
+    String? descripcion,
+    required DateTime fechaHoraInicio,
+    required DateTime fechaHoraFin,
+    required int aforoMaximo,
+  }) async {
+    await _client.rpc(
+      'editar_clase',
+      params: {
+        'p_clase_id': claseId,
+        'p_titulo': titulo,
+        'p_descripcion': descripcion,
+        'p_fecha_hora_inicio': fechaHoraInicio.toUtc().toIso8601String(),
+        'p_fecha_hora_fin': fechaHoraFin.toUtc().toIso8601String(),
+        'p_aforo_maximo': aforoMaximo,
+      },
+    );
+  }
+
+  /// Cierra (deja de admitir reservas nuevas, reversible) o reabre una
+  /// clase.
+  Future<void> cambiarEstadoClase({
+    required String claseId,
+    required bool cerrar,
+  }) async {
+    await _client.rpc(
+      'cambiar_estado_clase',
+      params: {'p_clase_id': claseId, 'p_cerrar': cerrar},
+    );
+  }
+
+  /// Cancela la clase de forma terminal: libera a todos los apuntados
+  /// (inscritos y lista de espera) y les avisa por notificación push.
+  /// Devuelve cuántos alumnos se han visto afectados.
+  Future<int> cancelarClase(String claseId) async {
+    final notificados = await _client.rpc(
+      'cancelar_clase',
+      params: {'p_clase_id': claseId},
+    );
+    return (notificados as int?) ?? 0;
+  }
+
   Future<String> unirse({required String claseId}) async {
     final estado = await _client.rpc(
       'reservar_clase',
@@ -185,6 +245,56 @@ class ClasesRepository {
 
   Future<List<InscritoAlumno>> listarInscritos(String claseId) async {
     return (await listarParticipantes(claseId)).inscritos;
+  }
+
+  /// Quién más viene a esta clase, para que los propios alumnos se vean
+  /// entre ellos.
+  ///
+  /// A propósito **no** reutiliza [listarParticipantes]: esa consulta trae
+  /// también si cada uno tiene la cuota al día (mirando `suscripciones`), un
+  /// dato de pago que un compañero no debe ver. Aquí solo se piden nombre,
+  /// foto y cinturón —lo que Cipri decidió que se enseña— y solo los
+  /// confirmados (`inscrito`), no la lista de espera: a un compañero no le
+  /// aporta ver quién está pendiente de plaza.
+  Future<List<InscritoAlumno>> listarCompaneros(String claseId) async {
+    final filas =
+        await _client
+                .from('inscripciones')
+                .select(
+                  'alumno_id, alumno:profiles(nombre, apellidos, foto_url, cinturon)',
+                )
+                .eq('clase_id', claseId)
+                .eq('estado', 'inscrito')
+                .order('created_at')
+            as List;
+
+    return filas
+        .cast<Map<String, dynamic>>()
+        .map(
+          (row) => InscritoAlumno.fromInscripcionJson(
+            row,
+            asistenciaValidada: false,
+          ),
+        )
+        .toList();
+  }
+
+  /// Solo los IDs de quien tiene plaza confirmada, para "Confirmar todos"
+  /// desde la tarjeta de la vista de día — no hace falta el nombre, la
+  /// foto ni el cinturón para eso, así que no reutiliza
+  /// `listarParticipantes`.
+  Future<List<String>> listarAlumnosInscritos(String claseId) async {
+    final rows =
+        await _client
+                .from('inscripciones')
+                .select('alumno_id')
+                .eq('clase_id', claseId)
+                .eq('estado', 'inscrito')
+            as List;
+    return rows
+        .cast<Map<String, dynamic>>()
+        .map((row) => row['alumno_id'] as String)
+        .toList();
   }
 
   Future<void> marcarAsistencia({

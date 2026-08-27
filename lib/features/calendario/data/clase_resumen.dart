@@ -21,6 +21,8 @@ abstract class ClaseResumen with _$ClaseResumen {
     @JsonKey(name: 'profesor_nombre') required String profesorNombre,
     @JsonKey(name: 'inscritos_count') required int inscritosCount,
     @JsonKey(name: 'mi_estado') String? miEstado,
+    @Default('activa') String estado,
+    @JsonKey(name: 'pendientes_confirmar') @Default(0) int pendientesConfirmar,
   }) = _ClaseResumen;
 
   factory ClaseResumen.fromJson(Map<String, dynamic> json) =>
@@ -30,4 +32,8 @@ abstract class ClaseResumen with _$ClaseResumen {
   bool get enListaEspera => miEstado == 'espera';
   bool get tieneReservaActiva => estoyInscrito || enListaEspera;
   bool get aforoCompleto => inscritosCount >= aforoMaximo;
+
+  bool get activa => estado == 'activa';
+  bool get cerrada => estado == 'cerrada';
+  bool get cancelada => estado == 'cancelada';
 }

@@ -15,11 +15,11 @@ Cipri **no es desarrollador**: él aprueba y prueba; lo técnico lo decides tú.
 
 ## 1. Empezar siempre desde la rama base actualizada
 
-La rama por defecto del repositorio es **`claude/app-setup-github-nohews`** (nombre heredado; es la "main" real).
+La rama que despliega a producción es **`production`**. (`claude/app-setup-github-nohews` fue la base real hasta agosto de 2026; quedó abandonada cuando GitHub/Vercel pasaron a desplegar desde `production` sin que esta skill se actualizara — varios PR de esa época se abrieron contra la rama equivocada. Confírmalo con `git ls-remote origin` o mirando desde qué rama despliega Vercel si alguna vez vuelve a haber duda.)
 
 ```bash
-git fetch origin claude/app-setup-github-nohews
-git checkout -B <rama-nueva> origin/claude/app-setup-github-nohews
+git fetch origin production
+git checkout -B <rama-nueva> origin/production
 ```
 
 ⚠️ Los PR se fusionan con **squash**: el commit de tu rama desaparece y aparece otro nuevo con el mismo contenido. Si sigues trabajando sobre una rama vieja, git ve dos commits distintos con los mismos cambios y **provoca conflictos**. Rama nueva desde la base actualizada, siempre.
