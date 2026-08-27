@@ -776,6 +776,30 @@ del UPDATE directo deja de lanzar excepción y descuadra las siguientes
 tres pruebas de la suite — confirma que la prueba mira donde debe.
 203 pruebas pgTAP en verde con el arreglo puesto.
 
+## 2026-08-18 — «Confirmar todos» también desde la vista de día
+
+Primera fase de mejoras tras el piloto, punto 2. El botón ya existía
+dentro de `ClaseDetalleScreen`; Cipri lo quiere también en la tarjeta de
+cada clase de la vista de día («Hoy»), sin tener que entrar en cada una.
+
+**Se manda a todos los inscritos, no solo a los pendientes.** Calcular
+«quién falta por validar» exigiría traer la lista de asistencias además
+de la de inscritos — dos consultas por confirmación en vez de una. Como
+`marcarAsistenciaEnBloque` ya hace un `upsert` con `ignoreDuplicates`, dar
+de alta a alguien ya validado no hace nada: es más simple mandarlos todos
+y dejar que el propio `upsert` descarte los que sobran, en vez de calcular
+la diferencia en el cliente.
+
+**`listar_clases_semana()` sí necesita saber cuántos faltan**, para que la
+tarjeta decida si mostrar el botón y con qué número, sin una consulta
+aparte por tarjeta — construido sobre la misma RPC que el punto 1 (este PR
+depende de aquel: mismo cambio de columna en la misma función, no una
+arista falsa).
+
+Verificado en rojo/verde: forzando `pendientes_confirmar` a `0` fijo en la
+migración, el test que espera `1` falla exactamente como se espera.
+Restaurado, 205 pruebas pgTAP en verde.
+
 ## 2026-08-21 — Se mantiene Stripe para cobros; queda pendiente añadir SEPA
 
 Cipri preguntó qué opciones había para el cobro de cuotas y pidió
