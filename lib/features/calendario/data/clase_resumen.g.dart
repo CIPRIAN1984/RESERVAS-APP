@@ -19,6 +19,7 @@ _ClaseResumen _$ClaseResumenFromJson(Map<String, dynamic> json) =>
       inscritosCount: (json['inscritos_count'] as num).toInt(),
       miEstado: json['mi_estado'] as String?,
       estado: json['estado'] as String? ?? 'activa',
+      pendientesConfirmar: (json['pendientes_confirmar'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$ClaseResumenToJson(_ClaseResumen instance) =>
@@ -34,4 +35,5 @@ Map<String, dynamic> _$ClaseResumenToJson(_ClaseResumen instance) =>
       'inscritos_count': instance.inscritosCount,
       'mi_estado': instance.miEstado,
       'estado': instance.estado,
+      'pendientes_confirmar': instance.pendientesConfirmar,
     };
