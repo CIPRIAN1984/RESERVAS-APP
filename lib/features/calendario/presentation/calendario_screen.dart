@@ -11,6 +11,7 @@ import '../application/clases_providers.dart';
 import '../data/clase_resumen.dart';
 import 'clase_card.dart';
 import 'clase_detalle_screen.dart';
+import 'companeros_clase_screen.dart';
 import 'crear_clase_screen.dart';
 
 class CalendarioScreen extends ConsumerStatefulWidget {
@@ -77,6 +78,60 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     }
   }
 
+  /// Confirmar todos desde la propia tarjeta del día, sin entrar en el
+  /// detalle de la clase (el mismo botón ya existía dentro de
+  /// `ClaseDetalleScreen`; esto lo trae también a la vista de día).
+  Future<void> _confirmarTodos(ClaseResumen clase) async {
+    final userId = ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar la clase entera'),
+        content: Text(
+          clase.pendientesConfirmar == 1
+              ? 'Se confirma la asistencia de 1 alumno.'
+              : 'Se confirma la asistencia de ${clase.pendientesConfirmar} alumnos.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Confirmar todos'),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true) return;
+
+    setState(() => _accionEnCursoClaseId = clase.id);
+    try {
+      final repo = ref.read(clasesRepositoryProvider);
+      // Se manda a todos los inscritos, no solo a los pendientes: al
+      // subir de golpe (upsert con ignoreDuplicates), a quien ya estaba
+      // validado no le pasa nada.
+      final alumnoIds = await repo.listarAlumnosInscritos(clase.id);
+      await repo.marcarAsistenciaEnBloque(
+        claseId: clase.id,
+        alumnoIds: alumnoIds,
+        validadoPor: userId,
+      );
+      ref.invalidate(clasesSemanaProvider);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se ha podido confirmar la clase.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _accionEnCursoClaseId = null);
+    }
+  }
+
   String _mensajeError(Object e) {
     final texto = e.toString();
     if (texto.contains('Aforo completo')) {
@@ -94,6 +149,9 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     }
     if (texto.contains('clases futuras')) {
       return 'Esta clase ya ha comenzado.';
+    }
+    if (texto.contains('no admite nuevas reservas')) {
+      return 'Esta clase está cerrada y no admite nuevas reservas.';
     }
     return 'No se ha podido completar la acción.';
   }
@@ -194,16 +252,28 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                     if (gestionando) {
                       return ClaseCard(
                         clase: clase,
+                        confirmandoTodos: cargando,
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => ClaseDetalleScreen(clase: clase),
                           ),
                         ),
+                        onConfirmarTodos: clase.cancelada
+                            ? null
+                            : () => _confirmarTodos(clase),
                       );
                     }
                     return ClaseCard(
                       clase: clase,
                       loadingAccion: cargando,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => CompanerosClaseScreen(
+                            clase: clase,
+                            repositorio: ref.read(clasesRepositoryProvider),
+                          ),
+                        ),
+                      ),
                       onUnirse: userId == null ? null : () => _unirse(clase),
                       onBorrarse: userId == null
                           ? null

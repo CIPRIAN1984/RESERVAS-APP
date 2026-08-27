@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ClaseResumen {
 
- String get id; String get titulo; String? get descripcion;@JsonKey(name: 'fecha_hora_inicio') DateTime get fechaHoraInicio;@JsonKey(name: 'fecha_hora_fin') DateTime get fechaHoraFin;@JsonKey(name: 'aforo_maximo') int get aforoMaximo;@JsonKey(name: 'profesor_id') String get profesorId;@JsonKey(name: 'profesor_nombre') String get profesorNombre;@JsonKey(name: 'inscritos_count') int get inscritosCount;@JsonKey(name: 'mi_estado') String? get miEstado;
+ String get id; String get titulo; String? get descripcion;@JsonKey(name: 'fecha_hora_inicio') DateTime get fechaHoraInicio;@JsonKey(name: 'fecha_hora_fin') DateTime get fechaHoraFin;@JsonKey(name: 'aforo_maximo') int get aforoMaximo;@JsonKey(name: 'profesor_id') String get profesorId;@JsonKey(name: 'profesor_nombre') String get profesorNombre;@JsonKey(name: 'inscritos_count') int get inscritosCount;@JsonKey(name: 'mi_estado') String? get miEstado; String get estado;@JsonKey(name: 'pendientes_confirmar') int get pendientesConfirmar;
 /// Create a copy of ClaseResumen
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ClaseResumenCopyWith<ClaseResumen> get copyWith => _$ClaseResumenCopyWithImpl<C
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClaseResumen&&(identical(other.id, id) || other.id == id)&&(identical(other.titulo, titulo) || other.titulo == titulo)&&(identical(other.descripcion, descripcion) || other.descripcion == descripcion)&&(identical(other.fechaHoraInicio, fechaHoraInicio) || other.fechaHoraInicio == fechaHoraInicio)&&(identical(other.fechaHoraFin, fechaHoraFin) || other.fechaHoraFin == fechaHoraFin)&&(identical(other.aforoMaximo, aforoMaximo) || other.aforoMaximo == aforoMaximo)&&(identical(other.profesorId, profesorId) || other.profesorId == profesorId)&&(identical(other.profesorNombre, profesorNombre) || other.profesorNombre == profesorNombre)&&(identical(other.inscritosCount, inscritosCount) || other.inscritosCount == inscritosCount)&&(identical(other.miEstado, miEstado) || other.miEstado == miEstado));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClaseResumen&&(identical(other.id, id) || other.id == id)&&(identical(other.titulo, titulo) || other.titulo == titulo)&&(identical(other.descripcion, descripcion) || other.descripcion == descripcion)&&(identical(other.fechaHoraInicio, fechaHoraInicio) || other.fechaHoraInicio == fechaHoraInicio)&&(identical(other.fechaHoraFin, fechaHoraFin) || other.fechaHoraFin == fechaHoraFin)&&(identical(other.aforoMaximo, aforoMaximo) || other.aforoMaximo == aforoMaximo)&&(identical(other.profesorId, profesorId) || other.profesorId == profesorId)&&(identical(other.profesorNombre, profesorNombre) || other.profesorNombre == profesorNombre)&&(identical(other.inscritosCount, inscritosCount) || other.inscritosCount == inscritosCount)&&(identical(other.miEstado, miEstado) || other.miEstado == miEstado)&&(identical(other.estado, estado) || other.estado == estado)&&(identical(other.pendientesConfirmar, pendientesConfirmar) || other.pendientesConfirmar == pendientesConfirmar));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,titulo,descripcion,fechaHoraInicio,fechaHoraFin,aforoMaximo,profesorId,profesorNombre,inscritosCount,miEstado);
+int get hashCode => Object.hash(runtimeType,id,titulo,descripcion,fechaHoraInicio,fechaHoraFin,aforoMaximo,profesorId,profesorNombre,inscritosCount,miEstado,estado,pendientesConfirmar);
 
 @override
 String toString() {
-  return 'ClaseResumen(id: $id, titulo: $titulo, descripcion: $descripcion, fechaHoraInicio: $fechaHoraInicio, fechaHoraFin: $fechaHoraFin, aforoMaximo: $aforoMaximo, profesorId: $profesorId, profesorNombre: $profesorNombre, inscritosCount: $inscritosCount, miEstado: $miEstado)';
+  return 'ClaseResumen(id: $id, titulo: $titulo, descripcion: $descripcion, fechaHoraInicio: $fechaHoraInicio, fechaHoraFin: $fechaHoraFin, aforoMaximo: $aforoMaximo, profesorId: $profesorId, profesorNombre: $profesorNombre, inscritosCount: $inscritosCount, miEstado: $miEstado, estado: $estado, pendientesConfirmar: $pendientesConfirmar)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ClaseResumenCopyWith<$Res>  {
   factory $ClaseResumenCopyWith(ClaseResumen value, $Res Function(ClaseResumen) _then) = _$ClaseResumenCopyWithImpl;
 @useResult
 $Res call({
- String id, String titulo, String? descripcion,@JsonKey(name: 'fecha_hora_inicio') DateTime fechaHoraInicio,@JsonKey(name: 'fecha_hora_fin') DateTime fechaHoraFin,@JsonKey(name: 'aforo_maximo') int aforoMaximo,@JsonKey(name: 'profesor_id') String profesorId,@JsonKey(name: 'profesor_nombre') String profesorNombre,@JsonKey(name: 'inscritos_count') int inscritosCount,@JsonKey(name: 'mi_estado') String? miEstado
+ String id, String titulo, String? descripcion,@JsonKey(name: 'fecha_hora_inicio') DateTime fechaHoraInicio,@JsonKey(name: 'fecha_hora_fin') DateTime fechaHoraFin,@JsonKey(name: 'aforo_maximo') int aforoMaximo,@JsonKey(name: 'profesor_id') String profesorId,@JsonKey(name: 'profesor_nombre') String profesorNombre,@JsonKey(name: 'inscritos_count') int inscritosCount,@JsonKey(name: 'mi_estado') String? miEstado, String estado,@JsonKey(name: 'pendientes_confirmar') int pendientesConfirmar
 });
 
 
@@ -65,7 +65,7 @@ class _$ClaseResumenCopyWithImpl<$Res>
 
 /// Create a copy of ClaseResumen
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? titulo = null,Object? descripcion = freezed,Object? fechaHoraInicio = null,Object? fechaHoraFin = null,Object? aforoMaximo = null,Object? profesorId = null,Object? profesorNombre = null,Object? inscritosCount = null,Object? miEstado = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? titulo = null,Object? descripcion = freezed,Object? fechaHoraInicio = null,Object? fechaHoraFin = null,Object? aforoMaximo = null,Object? profesorId = null,Object? profesorNombre = null,Object? inscritosCount = null,Object? miEstado = freezed,Object? estado = null,Object? pendientesConfirmar = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,titulo: null == titulo ? _self.titulo : titulo // ignore: cast_nullable_to_non_nullable
@@ -77,7 +77,9 @@ as int,profesorId: null == profesorId ? _self.profesorId : profesorId // ignore:
 as String,profesorNombre: null == profesorNombre ? _self.profesorNombre : profesorNombre // ignore: cast_nullable_to_non_nullable
 as String,inscritosCount: null == inscritosCount ? _self.inscritosCount : inscritosCount // ignore: cast_nullable_to_non_nullable
 as int,miEstado: freezed == miEstado ? _self.miEstado : miEstado // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,estado: null == estado ? _self.estado : estado // ignore: cast_nullable_to_non_nullable
+as String,pendientesConfirmar: null == pendientesConfirmar ? _self.pendientesConfirmar : pendientesConfirmar // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -162,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String titulo,  String? descripcion, @JsonKey(name: 'fecha_hora_inicio')  DateTime fechaHoraInicio, @JsonKey(name: 'fecha_hora_fin')  DateTime fechaHoraFin, @JsonKey(name: 'aforo_maximo')  int aforoMaximo, @JsonKey(name: 'profesor_id')  String profesorId, @JsonKey(name: 'profesor_nombre')  String profesorNombre, @JsonKey(name: 'inscritos_count')  int inscritosCount, @JsonKey(name: 'mi_estado')  String? miEstado)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String titulo,  String? descripcion, @JsonKey(name: 'fecha_hora_inicio')  DateTime fechaHoraInicio, @JsonKey(name: 'fecha_hora_fin')  DateTime fechaHoraFin, @JsonKey(name: 'aforo_maximo')  int aforoMaximo, @JsonKey(name: 'profesor_id')  String profesorId, @JsonKey(name: 'profesor_nombre')  String profesorNombre, @JsonKey(name: 'inscritos_count')  int inscritosCount, @JsonKey(name: 'mi_estado')  String? miEstado,  String estado, @JsonKey(name: 'pendientes_confirmar')  int pendientesConfirmar)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ClaseResumen() when $default != null:
-return $default(_that.id,_that.titulo,_that.descripcion,_that.fechaHoraInicio,_that.fechaHoraFin,_that.aforoMaximo,_that.profesorId,_that.profesorNombre,_that.inscritosCount,_that.miEstado);case _:
+return $default(_that.id,_that.titulo,_that.descripcion,_that.fechaHoraInicio,_that.fechaHoraFin,_that.aforoMaximo,_that.profesorId,_that.profesorNombre,_that.inscritosCount,_that.miEstado,_that.estado,_that.pendientesConfirmar);case _:
   return orElse();
 
 }
@@ -183,10 +185,10 @@ return $default(_that.id,_that.titulo,_that.descripcion,_that.fechaHoraInicio,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String titulo,  String? descripcion, @JsonKey(name: 'fecha_hora_inicio')  DateTime fechaHoraInicio, @JsonKey(name: 'fecha_hora_fin')  DateTime fechaHoraFin, @JsonKey(name: 'aforo_maximo')  int aforoMaximo, @JsonKey(name: 'profesor_id')  String profesorId, @JsonKey(name: 'profesor_nombre')  String profesorNombre, @JsonKey(name: 'inscritos_count')  int inscritosCount, @JsonKey(name: 'mi_estado')  String? miEstado)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String titulo,  String? descripcion, @JsonKey(name: 'fecha_hora_inicio')  DateTime fechaHoraInicio, @JsonKey(name: 'fecha_hora_fin')  DateTime fechaHoraFin, @JsonKey(name: 'aforo_maximo')  int aforoMaximo, @JsonKey(name: 'profesor_id')  String profesorId, @JsonKey(name: 'profesor_nombre')  String profesorNombre, @JsonKey(name: 'inscritos_count')  int inscritosCount, @JsonKey(name: 'mi_estado')  String? miEstado,  String estado, @JsonKey(name: 'pendientes_confirmar')  int pendientesConfirmar)  $default,) {final _that = this;
 switch (_that) {
 case _ClaseResumen():
-return $default(_that.id,_that.titulo,_that.descripcion,_that.fechaHoraInicio,_that.fechaHoraFin,_that.aforoMaximo,_that.profesorId,_that.profesorNombre,_that.inscritosCount,_that.miEstado);case _:
+return $default(_that.id,_that.titulo,_that.descripcion,_that.fechaHoraInicio,_that.fechaHoraFin,_that.aforoMaximo,_that.profesorId,_that.profesorNombre,_that.inscritosCount,_that.miEstado,_that.estado,_that.pendientesConfirmar);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +205,10 @@ return $default(_that.id,_that.titulo,_that.descripcion,_that.fechaHoraInicio,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String titulo,  String? descripcion, @JsonKey(name: 'fecha_hora_inicio')  DateTime fechaHoraInicio, @JsonKey(name: 'fecha_hora_fin')  DateTime fechaHoraFin, @JsonKey(name: 'aforo_maximo')  int aforoMaximo, @JsonKey(name: 'profesor_id')  String profesorId, @JsonKey(name: 'profesor_nombre')  String profesorNombre, @JsonKey(name: 'inscritos_count')  int inscritosCount, @JsonKey(name: 'mi_estado')  String? miEstado)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String titulo,  String? descripcion, @JsonKey(name: 'fecha_hora_inicio')  DateTime fechaHoraInicio, @JsonKey(name: 'fecha_hora_fin')  DateTime fechaHoraFin, @JsonKey(name: 'aforo_maximo')  int aforoMaximo, @JsonKey(name: 'profesor_id')  String profesorId, @JsonKey(name: 'profesor_nombre')  String profesorNombre, @JsonKey(name: 'inscritos_count')  int inscritosCount, @JsonKey(name: 'mi_estado')  String? miEstado,  String estado, @JsonKey(name: 'pendientes_confirmar')  int pendientesConfirmar)?  $default,) {final _that = this;
 switch (_that) {
 case _ClaseResumen() when $default != null:
-return $default(_that.id,_that.titulo,_that.descripcion,_that.fechaHoraInicio,_that.fechaHoraFin,_that.aforoMaximo,_that.profesorId,_that.profesorNombre,_that.inscritosCount,_that.miEstado);case _:
+return $default(_that.id,_that.titulo,_that.descripcion,_that.fechaHoraInicio,_that.fechaHoraFin,_that.aforoMaximo,_that.profesorId,_that.profesorNombre,_that.inscritosCount,_that.miEstado,_that.estado,_that.pendientesConfirmar);case _:
   return null;
 
 }
@@ -218,7 +220,7 @@ return $default(_that.id,_that.titulo,_that.descripcion,_that.fechaHoraInicio,_t
 @JsonSerializable()
 
 class _ClaseResumen extends ClaseResumen {
-  const _ClaseResumen({required this.id, required this.titulo, this.descripcion, @JsonKey(name: 'fecha_hora_inicio') required this.fechaHoraInicio, @JsonKey(name: 'fecha_hora_fin') required this.fechaHoraFin, @JsonKey(name: 'aforo_maximo') required this.aforoMaximo, @JsonKey(name: 'profesor_id') required this.profesorId, @JsonKey(name: 'profesor_nombre') required this.profesorNombre, @JsonKey(name: 'inscritos_count') required this.inscritosCount, @JsonKey(name: 'mi_estado') this.miEstado}): super._();
+  const _ClaseResumen({required this.id, required this.titulo, this.descripcion, @JsonKey(name: 'fecha_hora_inicio') required this.fechaHoraInicio, @JsonKey(name: 'fecha_hora_fin') required this.fechaHoraFin, @JsonKey(name: 'aforo_maximo') required this.aforoMaximo, @JsonKey(name: 'profesor_id') required this.profesorId, @JsonKey(name: 'profesor_nombre') required this.profesorNombre, @JsonKey(name: 'inscritos_count') required this.inscritosCount, @JsonKey(name: 'mi_estado') this.miEstado, this.estado = 'activa', @JsonKey(name: 'pendientes_confirmar') this.pendientesConfirmar = 0}): super._();
   factory _ClaseResumen.fromJson(Map<String, dynamic> json) => _$ClaseResumenFromJson(json);
 
 @override final  String id;
@@ -231,6 +233,8 @@ class _ClaseResumen extends ClaseResumen {
 @override@JsonKey(name: 'profesor_nombre') final  String profesorNombre;
 @override@JsonKey(name: 'inscritos_count') final  int inscritosCount;
 @override@JsonKey(name: 'mi_estado') final  String? miEstado;
+@override@JsonKey() final  String estado;
+@override@JsonKey(name: 'pendientes_confirmar') final  int pendientesConfirmar;
 
 /// Create a copy of ClaseResumen
 /// with the given fields replaced by the non-null parameter values.
@@ -245,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ClaseResumen&&(identical(other.id, id) || other.id == id)&&(identical(other.titulo, titulo) || other.titulo == titulo)&&(identical(other.descripcion, descripcion) || other.descripcion == descripcion)&&(identical(other.fechaHoraInicio, fechaHoraInicio) || other.fechaHoraInicio == fechaHoraInicio)&&(identical(other.fechaHoraFin, fechaHoraFin) || other.fechaHoraFin == fechaHoraFin)&&(identical(other.aforoMaximo, aforoMaximo) || other.aforoMaximo == aforoMaximo)&&(identical(other.profesorId, profesorId) || other.profesorId == profesorId)&&(identical(other.profesorNombre, profesorNombre) || other.profesorNombre == profesorNombre)&&(identical(other.inscritosCount, inscritosCount) || other.inscritosCount == inscritosCount)&&(identical(other.miEstado, miEstado) || other.miEstado == miEstado));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ClaseResumen&&(identical(other.id, id) || other.id == id)&&(identical(other.titulo, titulo) || other.titulo == titulo)&&(identical(other.descripcion, descripcion) || other.descripcion == descripcion)&&(identical(other.fechaHoraInicio, fechaHoraInicio) || other.fechaHoraInicio == fechaHoraInicio)&&(identical(other.fechaHoraFin, fechaHoraFin) || other.fechaHoraFin == fechaHoraFin)&&(identical(other.aforoMaximo, aforoMaximo) || other.aforoMaximo == aforoMaximo)&&(identical(other.profesorId, profesorId) || other.profesorId == profesorId)&&(identical(other.profesorNombre, profesorNombre) || other.profesorNombre == profesorNombre)&&(identical(other.inscritosCount, inscritosCount) || other.inscritosCount == inscritosCount)&&(identical(other.miEstado, miEstado) || other.miEstado == miEstado)&&(identical(other.estado, estado) || other.estado == estado)&&(identical(other.pendientesConfirmar, pendientesConfirmar) || other.pendientesConfirmar == pendientesConfirmar));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,titulo,descripcion,fechaHoraInicio,fechaHoraFin,aforoMaximo,profesorId,profesorNombre,inscritosCount,miEstado);
+int get hashCode => Object.hash(runtimeType,id,titulo,descripcion,fechaHoraInicio,fechaHoraFin,aforoMaximo,profesorId,profesorNombre,inscritosCount,miEstado,estado,pendientesConfirmar);
 
 @override
 String toString() {
-  return 'ClaseResumen(id: $id, titulo: $titulo, descripcion: $descripcion, fechaHoraInicio: $fechaHoraInicio, fechaHoraFin: $fechaHoraFin, aforoMaximo: $aforoMaximo, profesorId: $profesorId, profesorNombre: $profesorNombre, inscritosCount: $inscritosCount, miEstado: $miEstado)';
+  return 'ClaseResumen(id: $id, titulo: $titulo, descripcion: $descripcion, fechaHoraInicio: $fechaHoraInicio, fechaHoraFin: $fechaHoraFin, aforoMaximo: $aforoMaximo, profesorId: $profesorId, profesorNombre: $profesorNombre, inscritosCount: $inscritosCount, miEstado: $miEstado, estado: $estado, pendientesConfirmar: $pendientesConfirmar)';
 }
 
 
@@ -265,7 +269,7 @@ abstract mixin class _$ClaseResumenCopyWith<$Res> implements $ClaseResumenCopyWi
   factory _$ClaseResumenCopyWith(_ClaseResumen value, $Res Function(_ClaseResumen) _then) = __$ClaseResumenCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String titulo, String? descripcion,@JsonKey(name: 'fecha_hora_inicio') DateTime fechaHoraInicio,@JsonKey(name: 'fecha_hora_fin') DateTime fechaHoraFin,@JsonKey(name: 'aforo_maximo') int aforoMaximo,@JsonKey(name: 'profesor_id') String profesorId,@JsonKey(name: 'profesor_nombre') String profesorNombre,@JsonKey(name: 'inscritos_count') int inscritosCount,@JsonKey(name: 'mi_estado') String? miEstado
+ String id, String titulo, String? descripcion,@JsonKey(name: 'fecha_hora_inicio') DateTime fechaHoraInicio,@JsonKey(name: 'fecha_hora_fin') DateTime fechaHoraFin,@JsonKey(name: 'aforo_maximo') int aforoMaximo,@JsonKey(name: 'profesor_id') String profesorId,@JsonKey(name: 'profesor_nombre') String profesorNombre,@JsonKey(name: 'inscritos_count') int inscritosCount,@JsonKey(name: 'mi_estado') String? miEstado, String estado,@JsonKey(name: 'pendientes_confirmar') int pendientesConfirmar
 });
 
 
@@ -282,7 +286,7 @@ class __$ClaseResumenCopyWithImpl<$Res>
 
 /// Create a copy of ClaseResumen
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? titulo = null,Object? descripcion = freezed,Object? fechaHoraInicio = null,Object? fechaHoraFin = null,Object? aforoMaximo = null,Object? profesorId = null,Object? profesorNombre = null,Object? inscritosCount = null,Object? miEstado = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? titulo = null,Object? descripcion = freezed,Object? fechaHoraInicio = null,Object? fechaHoraFin = null,Object? aforoMaximo = null,Object? profesorId = null,Object? profesorNombre = null,Object? inscritosCount = null,Object? miEstado = freezed,Object? estado = null,Object? pendientesConfirmar = null,}) {
   return _then(_ClaseResumen(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,titulo: null == titulo ? _self.titulo : titulo // ignore: cast_nullable_to_non_nullable
@@ -294,7 +298,9 @@ as int,profesorId: null == profesorId ? _self.profesorId : profesorId // ignore:
 as String,profesorNombre: null == profesorNombre ? _self.profesorNombre : profesorNombre // ignore: cast_nullable_to_non_nullable
 as String,inscritosCount: null == inscritosCount ? _self.inscritosCount : inscritosCount // ignore: cast_nullable_to_non_nullable
 as int,miEstado: freezed == miEstado ? _self.miEstado : miEstado // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,estado: null == estado ? _self.estado : estado // ignore: cast_nullable_to_non_nullable
+as String,pendientesConfirmar: null == pendientesConfirmar ? _self.pendientesConfirmar : pendientesConfirmar // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
