@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../app/app_mode.dart';
 import '../../../app/theme/color_tokens.dart';
@@ -100,6 +101,8 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
               );
             }
             final enProceso = suscripcion.estado == 'pendiente_pago';
+            final enPrueba = suscripcion.estado == 'prueba';
+            final pausada = suscripcion.estado == 'pausada';
             return Card(
               color: AppColors.ink.withValues(alpha: 0.12),
               child: Padding(
@@ -107,9 +110,18 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      suscripcion.tarifaNombre ?? 'Tarifa',
-                      style: Theme.of(context).textTheme.titleMedium,
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          suscripcion.tarifaNombre ?? 'Tarifa',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        if (enPrueba) const PastillaEstado.info('Prueba'),
+                        if (pausada) const PastillaEstado.aviso('Pausada'),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -120,6 +132,26 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                       const SizedBox(height: 8),
                       Text(
                         'Pago en proceso...',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.subtle,
+                        ),
+                      ),
+                    ] else if (enPrueba) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        suscripcion.fechaFin == null
+                            ? 'Puedes reservar mientras dure la prueba.'
+                            : 'Puedes reservar hasta el '
+                                  '${DateFormat("d 'de' MMMM, HH:mm", 'es_ES').format(suscripcion.fechaFin!.toLocal())}.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.subtle,
+                        ),
+                      ),
+                    ] else if (pausada) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'No puedes reservar mientras esté pausada. Habla '
+                        'con tu academia para reanudarla.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.subtle,
                         ),
@@ -166,6 +198,7 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
           ),
           data: (tarifas) {
             final actualId = suscripcionAsync.value?.tarifaId;
+            final actualEstado = suscripcionAsync.value?.estado;
             if (tarifas.isEmpty) {
               return Text(
                 'Tu academia todavía no tiene tarifas publicadas.',
@@ -218,9 +251,17 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                           // desde Equipo) mientras Stripe siga congelado: ver
                           // FREEZE.md. Aquí solo se enseña si es la tuya.
                           if (tarifa.id == actualId)
-                            const Align(
+                            Align(
                               alignment: Alignment.centerLeft,
-                              child: PastillaEstado.exito('Tu cuota'),
+                              child: switch (actualEstado) {
+                                'prueba' => const PastillaEstado.info(
+                                  'Tu prueba',
+                                ),
+                                'pausada' => const PastillaEstado.aviso(
+                                  'Pausada',
+                                ),
+                                _ => const PastillaEstado.exito('Tu cuota'),
+                              },
                             ),
                         ],
                       ),

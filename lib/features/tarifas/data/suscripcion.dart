@@ -14,6 +14,7 @@ abstract class Suscripcion with _$Suscripcion {
     required String estado,
     required String paymentStatus,
     required DateTime fechaInicio,
+    DateTime? fechaFin,
   }) = _Suscripcion;
 
   /// Parses a row from a select with a `tarifa:tarifas(nombre, precio, periodicidad)` embed.
@@ -29,6 +30,9 @@ abstract class Suscripcion with _$Suscripcion {
       estado: row['estado'] as String,
       paymentStatus: row['payment_status'] as String? ?? 'pending',
       fechaInicio: DateTime.parse(row['fecha_inicio'] as String),
+      fechaFin: row['fecha_fin'] == null
+          ? null
+          : DateTime.parse(row['fecha_fin'] as String),
     );
   }
 }

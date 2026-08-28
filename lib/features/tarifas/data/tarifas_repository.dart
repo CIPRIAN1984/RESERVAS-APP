@@ -73,7 +73,7 @@ class TarifasRepository {
         .from('suscripciones')
         .select('*, tarifa:tarifas(nombre, precio, periodicidad)')
         .eq('alumno_id', alumnoId)
-        .inFilter('estado', ['activa', 'pendiente_pago'])
+        .inFilter('estado', ['activa', 'pendiente_pago', 'prueba', 'pausada'])
         .maybeSingle();
     if (row == null) return null;
     return Suscripcion.fromRow(row);

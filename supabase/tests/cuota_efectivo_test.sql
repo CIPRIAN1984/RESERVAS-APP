@@ -67,7 +67,7 @@ $$;
 select ok(
   not has_function_privilege(
     'anon',
-    'public.activar_cuota_efectivo(uuid,uuid,timestamptz)',
+    'public.activar_cuota_efectivo(uuid,uuid,timestamptz,boolean)',
     'EXECUTE'
   ),
   'Sin iniciar sesión no se puede alcanzar la función'
@@ -76,7 +76,7 @@ select ok(
 select ok(
   has_function_privilege(
     'authenticated',
-    'public.activar_cuota_efectivo(uuid,uuid,timestamptz)',
+    'public.activar_cuota_efectivo(uuid,uuid,timestamptz,boolean)',
     'EXECUTE'
   ),
   'Quien ha iniciado sesión la alcanza; el rol se valida en el servidor'

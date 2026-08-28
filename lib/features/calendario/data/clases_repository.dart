@@ -221,9 +221,9 @@ class ClasesRepository {
   /// Quién de estos alumnos tiene la cuota al día.
   ///
   /// Las condiciones son **las mismas** que comprueba `reservar_clase` en el
-  /// servidor: activa, cobrada y dentro de fechas. Si aquí se relajaran, la
-  /// lista de la clase diría «al corriente» de alguien a quien el servidor
-  /// considera moroso.
+  /// servidor: activa (o en prueba), cobrada y dentro de fechas. Si aquí se
+  /// relajaran, la lista de la clase diría «al corriente» de alguien a
+  /// quien el servidor considera moroso.
   Future<Set<String>> _alumnosConCuotaAlDia(List<String> alumnoIds) async {
     if (alumnoIds.isEmpty) return const {};
     final ahora = DateTime.now().toUtc().toIso8601String();
@@ -232,7 +232,7 @@ class ClasesRepository {
                 .from('suscripciones')
                 .select('alumno_id')
                 .inFilter('alumno_id', alumnoIds)
-                .eq('estado', 'activa')
+                .inFilter('estado', ['activa', 'prueba'])
                 .eq('payment_status', 'active')
                 .lte('fecha_inicio', ahora)
                 .or('fecha_fin.is.null,fecha_fin.gt.$ahora')

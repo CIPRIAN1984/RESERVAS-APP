@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Suscripcion {
 
- String get id; String get alumnoId; String get tarifaId; String? get tarifaNombre; num? get tarifaPrecio; String? get tarifaPeriodicidad; String get estado; String get paymentStatus; DateTime get fechaInicio;
+ String get id; String get alumnoId; String get tarifaId; String? get tarifaNombre; num? get tarifaPrecio; String? get tarifaPeriodicidad; String get estado; String get paymentStatus; DateTime get fechaInicio; DateTime? get fechaFin;
 /// Create a copy of Suscripcion
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $SuscripcionCopyWith<Suscripcion> get copyWith => _$SuscripcionCopyWithImpl<Susc
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Suscripcion&&(identical(other.id, id) || other.id == id)&&(identical(other.alumnoId, alumnoId) || other.alumnoId == alumnoId)&&(identical(other.tarifaId, tarifaId) || other.tarifaId == tarifaId)&&(identical(other.tarifaNombre, tarifaNombre) || other.tarifaNombre == tarifaNombre)&&(identical(other.tarifaPrecio, tarifaPrecio) || other.tarifaPrecio == tarifaPrecio)&&(identical(other.tarifaPeriodicidad, tarifaPeriodicidad) || other.tarifaPeriodicidad == tarifaPeriodicidad)&&(identical(other.estado, estado) || other.estado == estado)&&(identical(other.paymentStatus, paymentStatus) || other.paymentStatus == paymentStatus)&&(identical(other.fechaInicio, fechaInicio) || other.fechaInicio == fechaInicio));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Suscripcion&&(identical(other.id, id) || other.id == id)&&(identical(other.alumnoId, alumnoId) || other.alumnoId == alumnoId)&&(identical(other.tarifaId, tarifaId) || other.tarifaId == tarifaId)&&(identical(other.tarifaNombre, tarifaNombre) || other.tarifaNombre == tarifaNombre)&&(identical(other.tarifaPrecio, tarifaPrecio) || other.tarifaPrecio == tarifaPrecio)&&(identical(other.tarifaPeriodicidad, tarifaPeriodicidad) || other.tarifaPeriodicidad == tarifaPeriodicidad)&&(identical(other.estado, estado) || other.estado == estado)&&(identical(other.paymentStatus, paymentStatus) || other.paymentStatus == paymentStatus)&&(identical(other.fechaInicio, fechaInicio) || other.fechaInicio == fechaInicio)&&(identical(other.fechaFin, fechaFin) || other.fechaFin == fechaFin));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,alumnoId,tarifaId,tarifaNombre,tarifaPrecio,tarifaPeriodicidad,estado,paymentStatus,fechaInicio);
+int get hashCode => Object.hash(runtimeType,id,alumnoId,tarifaId,tarifaNombre,tarifaPrecio,tarifaPeriodicidad,estado,paymentStatus,fechaInicio,fechaFin);
 
 @override
 String toString() {
-  return 'Suscripcion(id: $id, alumnoId: $alumnoId, tarifaId: $tarifaId, tarifaNombre: $tarifaNombre, tarifaPrecio: $tarifaPrecio, tarifaPeriodicidad: $tarifaPeriodicidad, estado: $estado, paymentStatus: $paymentStatus, fechaInicio: $fechaInicio)';
+  return 'Suscripcion(id: $id, alumnoId: $alumnoId, tarifaId: $tarifaId, tarifaNombre: $tarifaNombre, tarifaPrecio: $tarifaPrecio, tarifaPeriodicidad: $tarifaPeriodicidad, estado: $estado, paymentStatus: $paymentStatus, fechaInicio: $fechaInicio, fechaFin: $fechaFin)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $SuscripcionCopyWith<$Res>  {
   factory $SuscripcionCopyWith(Suscripcion value, $Res Function(Suscripcion) _then) = _$SuscripcionCopyWithImpl;
 @useResult
 $Res call({
- String id, String alumnoId, String tarifaId, String? tarifaNombre, num? tarifaPrecio, String? tarifaPeriodicidad, String estado, String paymentStatus, DateTime fechaInicio
+ String id, String alumnoId, String tarifaId, String? tarifaNombre, num? tarifaPrecio, String? tarifaPeriodicidad, String estado, String paymentStatus, DateTime fechaInicio, DateTime? fechaFin
 });
 
 
@@ -62,7 +62,7 @@ class _$SuscripcionCopyWithImpl<$Res>
 
 /// Create a copy of Suscripcion
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? alumnoId = null,Object? tarifaId = null,Object? tarifaNombre = freezed,Object? tarifaPrecio = freezed,Object? tarifaPeriodicidad = freezed,Object? estado = null,Object? paymentStatus = null,Object? fechaInicio = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? alumnoId = null,Object? tarifaId = null,Object? tarifaNombre = freezed,Object? tarifaPrecio = freezed,Object? tarifaPeriodicidad = freezed,Object? estado = null,Object? paymentStatus = null,Object? fechaInicio = null,Object? fechaFin = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,alumnoId: null == alumnoId ? _self.alumnoId : alumnoId // ignore: cast_nullable_to_non_nullable
@@ -73,7 +73,8 @@ as num?,tarifaPeriodicidad: freezed == tarifaPeriodicidad ? _self.tarifaPeriodic
 as String?,estado: null == estado ? _self.estado : estado // ignore: cast_nullable_to_non_nullable
 as String,paymentStatus: null == paymentStatus ? _self.paymentStatus : paymentStatus // ignore: cast_nullable_to_non_nullable
 as String,fechaInicio: null == fechaInicio ? _self.fechaInicio : fechaInicio // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,fechaFin: freezed == fechaFin ? _self.fechaFin : fechaFin // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -158,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String alumnoId,  String tarifaId,  String? tarifaNombre,  num? tarifaPrecio,  String? tarifaPeriodicidad,  String estado,  String paymentStatus,  DateTime fechaInicio)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String alumnoId,  String tarifaId,  String? tarifaNombre,  num? tarifaPrecio,  String? tarifaPeriodicidad,  String estado,  String paymentStatus,  DateTime fechaInicio,  DateTime? fechaFin)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Suscripcion() when $default != null:
-return $default(_that.id,_that.alumnoId,_that.tarifaId,_that.tarifaNombre,_that.tarifaPrecio,_that.tarifaPeriodicidad,_that.estado,_that.paymentStatus,_that.fechaInicio);case _:
+return $default(_that.id,_that.alumnoId,_that.tarifaId,_that.tarifaNombre,_that.tarifaPrecio,_that.tarifaPeriodicidad,_that.estado,_that.paymentStatus,_that.fechaInicio,_that.fechaFin);case _:
   return orElse();
 
 }
@@ -179,10 +180,10 @@ return $default(_that.id,_that.alumnoId,_that.tarifaId,_that.tarifaNombre,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String alumnoId,  String tarifaId,  String? tarifaNombre,  num? tarifaPrecio,  String? tarifaPeriodicidad,  String estado,  String paymentStatus,  DateTime fechaInicio)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String alumnoId,  String tarifaId,  String? tarifaNombre,  num? tarifaPrecio,  String? tarifaPeriodicidad,  String estado,  String paymentStatus,  DateTime fechaInicio,  DateTime? fechaFin)  $default,) {final _that = this;
 switch (_that) {
 case _Suscripcion():
-return $default(_that.id,_that.alumnoId,_that.tarifaId,_that.tarifaNombre,_that.tarifaPrecio,_that.tarifaPeriodicidad,_that.estado,_that.paymentStatus,_that.fechaInicio);case _:
+return $default(_that.id,_that.alumnoId,_that.tarifaId,_that.tarifaNombre,_that.tarifaPrecio,_that.tarifaPeriodicidad,_that.estado,_that.paymentStatus,_that.fechaInicio,_that.fechaFin);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +200,10 @@ return $default(_that.id,_that.alumnoId,_that.tarifaId,_that.tarifaNombre,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String alumnoId,  String tarifaId,  String? tarifaNombre,  num? tarifaPrecio,  String? tarifaPeriodicidad,  String estado,  String paymentStatus,  DateTime fechaInicio)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String alumnoId,  String tarifaId,  String? tarifaNombre,  num? tarifaPrecio,  String? tarifaPeriodicidad,  String estado,  String paymentStatus,  DateTime fechaInicio,  DateTime? fechaFin)?  $default,) {final _that = this;
 switch (_that) {
 case _Suscripcion() when $default != null:
-return $default(_that.id,_that.alumnoId,_that.tarifaId,_that.tarifaNombre,_that.tarifaPrecio,_that.tarifaPeriodicidad,_that.estado,_that.paymentStatus,_that.fechaInicio);case _:
+return $default(_that.id,_that.alumnoId,_that.tarifaId,_that.tarifaNombre,_that.tarifaPrecio,_that.tarifaPeriodicidad,_that.estado,_that.paymentStatus,_that.fechaInicio,_that.fechaFin);case _:
   return null;
 
 }
@@ -214,7 +215,7 @@ return $default(_that.id,_that.alumnoId,_that.tarifaId,_that.tarifaNombre,_that.
 
 
 class _Suscripcion implements Suscripcion {
-  const _Suscripcion({required this.id, required this.alumnoId, required this.tarifaId, this.tarifaNombre, this.tarifaPrecio, this.tarifaPeriodicidad, required this.estado, required this.paymentStatus, required this.fechaInicio});
+  const _Suscripcion({required this.id, required this.alumnoId, required this.tarifaId, this.tarifaNombre, this.tarifaPrecio, this.tarifaPeriodicidad, required this.estado, required this.paymentStatus, required this.fechaInicio, this.fechaFin});
   
 
 @override final  String id;
@@ -226,6 +227,7 @@ class _Suscripcion implements Suscripcion {
 @override final  String estado;
 @override final  String paymentStatus;
 @override final  DateTime fechaInicio;
+@override final  DateTime? fechaFin;
 
 /// Create a copy of Suscripcion
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +239,16 @@ _$SuscripcionCopyWith<_Suscripcion> get copyWith => __$SuscripcionCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Suscripcion&&(identical(other.id, id) || other.id == id)&&(identical(other.alumnoId, alumnoId) || other.alumnoId == alumnoId)&&(identical(other.tarifaId, tarifaId) || other.tarifaId == tarifaId)&&(identical(other.tarifaNombre, tarifaNombre) || other.tarifaNombre == tarifaNombre)&&(identical(other.tarifaPrecio, tarifaPrecio) || other.tarifaPrecio == tarifaPrecio)&&(identical(other.tarifaPeriodicidad, tarifaPeriodicidad) || other.tarifaPeriodicidad == tarifaPeriodicidad)&&(identical(other.estado, estado) || other.estado == estado)&&(identical(other.paymentStatus, paymentStatus) || other.paymentStatus == paymentStatus)&&(identical(other.fechaInicio, fechaInicio) || other.fechaInicio == fechaInicio));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Suscripcion&&(identical(other.id, id) || other.id == id)&&(identical(other.alumnoId, alumnoId) || other.alumnoId == alumnoId)&&(identical(other.tarifaId, tarifaId) || other.tarifaId == tarifaId)&&(identical(other.tarifaNombre, tarifaNombre) || other.tarifaNombre == tarifaNombre)&&(identical(other.tarifaPrecio, tarifaPrecio) || other.tarifaPrecio == tarifaPrecio)&&(identical(other.tarifaPeriodicidad, tarifaPeriodicidad) || other.tarifaPeriodicidad == tarifaPeriodicidad)&&(identical(other.estado, estado) || other.estado == estado)&&(identical(other.paymentStatus, paymentStatus) || other.paymentStatus == paymentStatus)&&(identical(other.fechaInicio, fechaInicio) || other.fechaInicio == fechaInicio)&&(identical(other.fechaFin, fechaFin) || other.fechaFin == fechaFin));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,alumnoId,tarifaId,tarifaNombre,tarifaPrecio,tarifaPeriodicidad,estado,paymentStatus,fechaInicio);
+int get hashCode => Object.hash(runtimeType,id,alumnoId,tarifaId,tarifaNombre,tarifaPrecio,tarifaPeriodicidad,estado,paymentStatus,fechaInicio,fechaFin);
 
 @override
 String toString() {
-  return 'Suscripcion(id: $id, alumnoId: $alumnoId, tarifaId: $tarifaId, tarifaNombre: $tarifaNombre, tarifaPrecio: $tarifaPrecio, tarifaPeriodicidad: $tarifaPeriodicidad, estado: $estado, paymentStatus: $paymentStatus, fechaInicio: $fechaInicio)';
+  return 'Suscripcion(id: $id, alumnoId: $alumnoId, tarifaId: $tarifaId, tarifaNombre: $tarifaNombre, tarifaPrecio: $tarifaPrecio, tarifaPeriodicidad: $tarifaPeriodicidad, estado: $estado, paymentStatus: $paymentStatus, fechaInicio: $fechaInicio, fechaFin: $fechaFin)';
 }
 
 
@@ -257,7 +259,7 @@ abstract mixin class _$SuscripcionCopyWith<$Res> implements $SuscripcionCopyWith
   factory _$SuscripcionCopyWith(_Suscripcion value, $Res Function(_Suscripcion) _then) = __$SuscripcionCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String alumnoId, String tarifaId, String? tarifaNombre, num? tarifaPrecio, String? tarifaPeriodicidad, String estado, String paymentStatus, DateTime fechaInicio
+ String id, String alumnoId, String tarifaId, String? tarifaNombre, num? tarifaPrecio, String? tarifaPeriodicidad, String estado, String paymentStatus, DateTime fechaInicio, DateTime? fechaFin
 });
 
 
@@ -274,7 +276,7 @@ class __$SuscripcionCopyWithImpl<$Res>
 
 /// Create a copy of Suscripcion
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? alumnoId = null,Object? tarifaId = null,Object? tarifaNombre = freezed,Object? tarifaPrecio = freezed,Object? tarifaPeriodicidad = freezed,Object? estado = null,Object? paymentStatus = null,Object? fechaInicio = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? alumnoId = null,Object? tarifaId = null,Object? tarifaNombre = freezed,Object? tarifaPrecio = freezed,Object? tarifaPeriodicidad = freezed,Object? estado = null,Object? paymentStatus = null,Object? fechaInicio = null,Object? fechaFin = freezed,}) {
   return _then(_Suscripcion(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,alumnoId: null == alumnoId ? _self.alumnoId : alumnoId // ignore: cast_nullable_to_non_nullable
@@ -285,7 +287,8 @@ as num?,tarifaPeriodicidad: freezed == tarifaPeriodicidad ? _self.tarifaPeriodic
 as String?,estado: null == estado ? _self.estado : estado // ignore: cast_nullable_to_non_nullable
 as String,paymentStatus: null == paymentStatus ? _self.paymentStatus : paymentStatus // ignore: cast_nullable_to_non_nullable
 as String,fechaInicio: null == fechaInicio ? _self.fechaInicio : fechaInicio // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,fechaFin: freezed == fechaFin ? _self.fechaFin : fechaFin // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
