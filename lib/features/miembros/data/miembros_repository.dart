@@ -22,10 +22,10 @@ class MiembrosRepository {
   }
 
   /// Quién tiene la cuota al día, con **las mismas condiciones** que
-  /// comprueba `reservar_clase` en el servidor: activa, cobrada y dentro de
-  /// fechas. Si aquí se relajaran, Miembros diría «al día» de alguien a
-  /// quien el servidor considera moroso — el mismo criterio que ya usa
-  /// `ClasesRepository._alumnosConCuotaAlDia`.
+  /// comprueba `reservar_clase` en el servidor: activa o en prueba, cobrada
+  /// y dentro de fechas. Si aquí se relajaran, Miembros diría «al día» de
+  /// alguien a quien el servidor considera moroso — el mismo criterio que
+  /// ya usa `ClasesRepository._alumnosConCuotaAlDia`.
   Future<Set<String>> alumnosConCuotaAlDia(String academiaId) async {
     final ahora = DateTime.now().toUtc().toIso8601String();
     final rows =
@@ -33,7 +33,7 @@ class MiembrosRepository {
                 .from('suscripciones')
                 .select('alumno_id')
                 .eq('academia_id', academiaId)
-                .eq('estado', 'activa')
+                .inFilter('estado', ['activa', 'prueba'])
                 .eq('payment_status', 'active')
                 .lte('fecha_inicio', ahora)
                 .or('fecha_fin.is.null,fecha_fin.gt.$ahora')

@@ -24,7 +24,7 @@ final miembrosEquipoProvider = FutureProvider.autoDispose<List<Profile>>((
 /// fila de la lista sería lento y machacaría la base de datos con 166 alumnos.
 final cuotasActivasProvider =
     FutureProvider.autoDispose<
-      Map<String, ({String id, String tarifa, bool efectivo})>
+      Map<String, ({String id, String tarifa, bool efectivo, String estado})>
     >((ref) async {
       final profile = await ref.watch(currentProfileProvider.future);
       final academiaId = profile?.academiaId;

@@ -1199,3 +1199,93 @@ desde el día, ranking por periodo) — con luz verde explícita de Cipri
 tras pedir dos veces las mismas funciones y no verlas, porque las cuatro
 vistas previas de Vercel comparten la misma base de datos real y las
 migraciones nunca se aplican solas.
+
+## 2026-08-27 — Prueba (1 día) y tarifa Pausada
+
+Siguiente punto confirmado por Cipri tras la tanda de Stripe: dos estados
+nuevos de `suscripciones`, con las reglas que había fijado antes.
+
+- **Prueba**: el Dueño deja a un alumno probar **exactamente 1 día**, sin
+  cobrarle todavía. Cuenta como cuota al reservar, igual que una activa
+  (así el alumno vive la reserva real, no una simulación), y caduca ella
+  sola a las 24 horas — nadie tiene que acordarse de cerrarla.
+- **Pausada**: el Dueño congela una cuota que ya existía (baja temporal,
+  lesión...). Mientras dure, **no** cuenta para reservar — es justo lo
+  contrario de la prueba, y es lo que distingue "pausada" de "sigue
+  cobrando pero no viene". Admite dos modos: indefinida (hasta que el
+  Dueño la reanude a mano) o con fecha, y entonces se reanuda ella sola.
+
+Migración `20260827120000_prueba_y_pausada.sql`:
+- `suscripciones_estado_check` y el índice único
+  `suscripciones_activa_unica_idx` amplían la lista de estados «en curso»
+  con `prueba` y `pausada` — sigue habiendo como mucho una cuota viva por
+  alumno, prueba y pausa incluidas.
+- `activar_cuota_efectivo` gana un parámetro `p_prueba` en vez de crear
+  una función aparte: es el mismo camino (Dueño, en efectivo, cierra la
+  cuota anterior), solo cambia a qué estado y fecha de fin aterriza. Como
+  `create or replace` con una lista de parámetros distinta crea una
+  función *nueva* en Postgres en vez de sustituir la anterior, hubo que
+  borrar antes la de 3 argumentos explícitamente — si no, se habrían
+  quedado las dos conviviendo, una de ellas fantasma.
+- `pausar_cuota_efectivo` / `reanudar_cuota_efectivo`, nuevas: mismo
+  patrón de permisos que `desactivar_cuota_efectivo` (solo Dueño, solo
+  cuotas en efectivo — las de Stripe se gestionan desde Stripe).
+- `expirar_pruebas_y_pausas()`, job de `pg_cron` cada 15 minutos (mismo
+  patrón que `expirar_pagos_pendientes`): expira las pruebas caducadas y
+  reanuda solas las pausas con fecha ya cumplida.
+- `reservar_clase` amplía su condición de cuota a `estado in ('activa',
+  'prueba')` — a propósito **sin** incluir `'pausada'`.
+
+**Error real cazado durante la propia verificación, no en producción:**
+al escribir `reservar_clase` de nuevo dentro de esta migración partí de
+una copia antigua de la función (la de `reservar_sin_cuota`, del 30 de
+julio) en vez de la versión vigente. Eso habría borrado silenciosamente
+dos comprobaciones añadidas después: que la clase no esté cerrada
+(`20260818063921_gestionar_clase_publicada.sql`) y el tope de clases
+incluidas en la tarifa (`20260818063921` también, vía
+`clases_restantes`). Lo delató la propia suite de pgTAP —
+`gestion_clase_test.sql` y `tarifas_por_clases_test.sql` empezaron a
+fallar en cuanto apliqué la migración— y no un despliegue real, porque
+toda migración de este proyecto se prueba en local antes de acercarse a
+producción. Corregido partiendo de la versión buena antes de seguir.
+
+Como los permisos de columna de `suscripciones` no cambian (sigue
+concedido solo `estado` a `authenticated`, el resto vía las funciones
+`security definer`), no hacía falta tocar ningún `revoke`/`grant` de
+tabla.
+
+**Verificado en rojo/verde:**
+- pgTAP (`supabase/tests/prueba_pausada_test.sql`, plan de 23, más el
+  ajuste de firma en `cuota_efectivo_test.sql`): quitando `'prueba'` de
+  la condición de `reservar_clase`, la prueba "con la prueba en marcha sí
+  se puede reservar" falla correctamente con "Debes tener una cuota
+  activa..."; restaurada, 264/264 en verde en toda la suite (antes 241).
+- Flutter (`test/features/equipo/cuota_equipo_test.dart`, seis pruebas
+  nuevas): las cuatro pastillas de estado (Sin cuota / Prueba / Pausada /
+  Al día-Efectivo) y qué acciones ofrece el menú según el estado —
+  "Iniciar prueba" solo sin cuota, "Pausar"/"Reanudar" solo con cuota en
+  efectivo y en el estado que toca. Suite completa
+  (`--exclude-tags=golden`) en 127/127.
+
+En el lado de Flutter: `EquipoRepository` gana `iniciarPrueba`,
+`pausarCuota`, `reanudarCuota`; `cuotasActivas` amplía su filtro y ahora
+devuelve también `estado`. Dos hojas nuevas en `features/equipo/
+presentation`: `iniciar_prueba_sheet.dart` (elegir tarifa, sin selector
+de duración — la prueba es siempre 1 día) y `pausar_cuota_sheet.dart`
+(indefinida o con fecha, con `showDatePicker` para la segunda). Van en
+Equipo y no en Miembros, seguido el reparto ya decidido: Miembros es
+para ver, Equipo es para gestionar.
+
+`TarifasRepository.suscripcionActiva`, `ClasesRepository.
+_alumnosConCuotaAlDia` y `MiembrosRepository.alumnosConCuotaAlDia`
+amplían su condición para incluir `'prueba'` junto a `'activa'` — tienen
+que seguir mirando exactamente lo mismo que `reservar_clase` en el
+servidor, o Miembros/la lista de la clase dirían «al día» de alguien a
+quien el servidor no dejaría reservar (o al revés). La vista "Mi cuota"
+del propio alumno (`tarifas_screen.dart`) distingue ahora sus cuatro
+estados con las pastillas correspondientes, y esconde el botón "Cancelar
+suscripción" en prueba/pausada (no hay nada que cancelar en Stripe: esas
+cuotas las gestiona el Dueño desde Equipo).
+
+**Sin aplicar todavía a producción.** Pendiente de la autorización de
+Cipri para esta migración en concreto.

@@ -7,6 +7,8 @@ import '../../../core/utils/error_messages.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../application/equipo_providers.dart';
 import 'dar_cuota_sheet.dart';
+import 'iniciar_prueba_sheet.dart';
+import 'pausar_cuota_sheet.dart';
 
 class EquipoScreen extends ConsumerStatefulWidget {
   const EquipoScreen({super.key});
@@ -80,6 +82,54 @@ class _EquipoScreenState extends ConsumerState<EquipoScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Cuota registrada para ${alumno.nombre}.')),
       );
+    }
+  }
+
+  Future<void> _iniciarPrueba(Profile alumno) async {
+    final hecho = await mostrarIniciarPrueba(context, alumno);
+    if (hecho && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Prueba de 1 día iniciada para ${alumno.nombre}.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _pausarCuota(Profile alumno, String suscripcionId) async {
+    final hecho = await mostrarPausarCuota(context, alumno, suscripcionId);
+    if (hecho && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Cuota de ${alumno.nombre} pausada.')),
+      );
+    }
+  }
+
+  Future<void> _reanudarCuota(Profile alumno, String suscripcionId) async {
+    setState(() => _actualizandoId = alumno.id);
+    try {
+      await ref.read(equipoRepositoryProvider).reanudarCuota(suscripcionId);
+      ref.invalidate(cuotasActivasProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Cuota de ${alumno.nombre} reanudada.')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              mensajeErrorAmigable(
+                error,
+                generico: 'No se ha podido reanudar la cuota.',
+              ),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _actualizandoId = null);
     }
   }
 
@@ -227,12 +277,16 @@ class _EquipoScreenState extends ConsumerState<EquipoScreen> {
                             ),
                             // Solo el Alumno necesita cuota para reservar.
                             if (miembro.isAlumno)
-                              if (cuota == null)
-                                const PastillaEstado.error('Sin cuota')
-                              else
-                                PastillaEstado.exito(
-                                  cuota.efectivo ? 'Efectivo' : 'Al corriente',
+                              switch (cuota?.estado) {
+                                null => const PastillaEstado.error('Sin cuota'),
+                                'prueba' => const PastillaEstado.info('Prueba'),
+                                'pausada' => const PastillaEstado.aviso(
+                                  'Pausada',
                                 ),
+                                _ => PastillaEstado.exito(
+                                  cuota!.efectivo ? 'Efectivo' : 'Al corriente',
+                                ),
+                              },
                           ],
                         ),
                         trailing: actualizando
@@ -250,6 +304,21 @@ class _EquipoScreenState extends ConsumerState<EquipoScreen> {
                                 habilitado: _actualizandoId == null,
                                 onCambiarRol: () => _cambiarRol(miembro),
                                 onDarCuota: () => _darCuota(miembro),
+                                onIniciarPrueba: cuota == null
+                                    ? () => _iniciarPrueba(miembro)
+                                    : null,
+                                onPausarCuota:
+                                    cuota != null &&
+                                        cuota.efectivo &&
+                                        cuota.estado == 'activa'
+                                    ? () => _pausarCuota(miembro, cuota.id)
+                                    : null,
+                                onReanudarCuota:
+                                    cuota != null &&
+                                        cuota.efectivo &&
+                                        cuota.estado == 'pausada'
+                                    ? () => _reanudarCuota(miembro, cuota.id)
+                                    : null,
                                 onRetirarCuota: cuota != null && cuota.efectivo
                                     ? () => _retirarCuota(miembro, cuota.id)
                                     : null,
@@ -291,14 +360,20 @@ class _MenuMiembro extends StatelessWidget {
     required this.habilitado,
     required this.onCambiarRol,
     required this.onDarCuota,
+    required this.onIniciarPrueba,
+    required this.onPausarCuota,
+    required this.onReanudarCuota,
     required this.onRetirarCuota,
   });
 
   final Profile miembro;
-  final ({String id, String tarifa, bool efectivo})? cuota;
+  final ({String id, String tarifa, bool efectivo, String estado})? cuota;
   final bool habilitado;
   final VoidCallback onCambiarRol;
   final VoidCallback onDarCuota;
+  final VoidCallback? onIniciarPrueba;
+  final VoidCallback? onPausarCuota;
+  final VoidCallback? onReanudarCuota;
   final VoidCallback? onRetirarCuota;
 
   @override
@@ -318,6 +393,21 @@ class _MenuMiembro extends StatelessWidget {
           PopupMenuItem(
             value: onDarCuota,
             child: Text(cuota == null ? 'Registrar cobro' : 'Renovar cuota'),
+          ),
+        if (onIniciarPrueba != null)
+          PopupMenuItem(
+            value: onIniciarPrueba,
+            child: const Text('Iniciar prueba (1 día)'),
+          ),
+        if (onPausarCuota != null)
+          PopupMenuItem(
+            value: onPausarCuota,
+            child: const Text('Pausar cuota'),
+          ),
+        if (onReanudarCuota != null)
+          PopupMenuItem(
+            value: onReanudarCuota,
+            child: const Text('Reanudar cuota'),
           ),
         if (onRetirarCuota != null)
           PopupMenuItem(

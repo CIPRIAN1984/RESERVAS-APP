@@ -54,6 +54,22 @@ class EquipoRepository {
     );
   }
 
+  /// Deja probar 1 día sin cobrar todavía. Caduca sola: no hace falta
+  /// retirarla a mano si el alumno no sigue.
+  Future<void> iniciarPrueba({
+    required String alumnoId,
+    required String tarifaId,
+  }) async {
+    await _client.rpc(
+      'activar_cuota_efectivo',
+      params: {
+        'p_alumno_id': alumnoId,
+        'p_tarifa_id': tarifaId,
+        'p_prueba': true,
+      },
+    );
+  }
+
   Future<void> retirarCuotaEfectivo(String suscripcionId) async {
     await _client.rpc(
       'desactivar_cuota_efectivo',
@@ -61,16 +77,43 @@ class EquipoRepository {
     );
   }
 
-  /// Cuotas activas de la academia, por alumno, para saber quién está al
-  /// corriente sin pedir una consulta por cada fila de la lista.
-  Future<Map<String, ({String id, String tarifa, bool efectivo})>>
+  /// Congela una cuota activa. Sin [hasta] queda pausada hasta que se
+  /// reanude a mano; con fecha, se reanuda ella sola.
+  Future<void> pausarCuota({
+    required String suscripcionId,
+    DateTime? hasta,
+  }) async {
+    await _client.rpc(
+      'pausar_cuota_efectivo',
+      params: {
+        'p_suscripcion_id': suscripcionId,
+        'p_fecha_fin': hasta?.toUtc().toIso8601String(),
+      },
+    );
+  }
+
+  Future<void> reanudarCuota(String suscripcionId) async {
+    await _client.rpc(
+      'reanudar_cuota_efectivo',
+      params: {'p_suscripcion_id': suscripcionId},
+    );
+  }
+
+  /// Cuotas en curso de la academia (al día, en prueba o pausadas), por
+  /// alumno, para saber de un vistazo sin pedir una consulta por cada fila
+  /// de la lista.
+  Future<
+    Map<String, ({String id, String tarifa, bool efectivo, String estado})>
+  >
   cuotasActivas(String academiaId) async {
     final rows =
         await _client
                 .from('suscripciones')
-                .select('id, alumno_id, proveedor_pago, tarifa:tarifas(nombre)')
+                .select(
+                  'id, alumno_id, proveedor_pago, estado, tarifa:tarifas(nombre)',
+                )
                 .eq('academia_id', academiaId)
-                .eq('estado', 'activa')
+                .inFilter('estado', ['activa', 'prueba', 'pausada'])
                 .eq('payment_status', 'active')
             as List;
 
@@ -82,6 +125,7 @@ class EquipoRepository {
               (row['tarifa'] as Map<String, dynamic>?)?['nombre'] as String? ??
               'Cuota',
           efectivo: row['proveedor_pago'] == 'efectivo',
+          estado: row['estado'] as String,
         ),
     };
   }
