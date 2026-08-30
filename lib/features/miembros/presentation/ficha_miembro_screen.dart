@@ -6,7 +6,8 @@ import '../../../core/models/profile.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../application/miembros_providers.dart';
-import 'miembros_screen.dart' show etiquetaCinturon;
+import 'miembros_screen.dart'
+    show esInactivo, etiquetaCinturon, etiquetaInactividad;
 
 /// Ficha de un alumno: cuánto lleva entrenando en su cinturón actual y
 /// cuánto le falta para el siguiente — lo que Cipri pidió mirando la
@@ -77,6 +78,12 @@ class FichaMiembroScreen extends ConsumerWidget {
         fechaInicioCinturon: alumno.fechaInicioCinturon,
       )),
     );
+    // Misma consulta que ya pide la lista de Miembros (una por academia,
+    // no una por ficha): si se llega aquí desde la lista, el provider ya
+    // está en caché y esto no repite ningún viaje al servidor.
+    final ultima = ref
+        .watch(ultimaAsistenciaMiembrosProvider)
+        .value?[alumno.id];
 
     return Scaffold(
       appBar: AppBar(title: Text(alumno.nombreCompleto)),
@@ -95,6 +102,13 @@ class FichaMiembroScreen extends ConsumerWidget {
                 _TarjetaRango(
                   actual: alumno.cinturon ?? 'blanco',
                   proximo: progreso.proximoCinturon,
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: esInactivo(ultima)
+                      ? PastillaEstado.aviso(etiquetaInactividad(ultima))
+                      : PastillaEstado.exito(etiquetaInactividad(ultima)),
                 ),
                 const SizedBox(height: 20),
                 if (progreso.proximoCinturon == null)

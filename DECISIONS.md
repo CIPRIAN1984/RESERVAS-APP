@@ -1287,5 +1287,70 @@ estados con las pastillas correspondientes, y esconde el botón "Cancelar
 suscripción" en prueba/pausada (no hay nada que cancelar en Stripe: esas
 cuotas las gestiona el Dueño desde Equipo).
 
+**Aplicada a producción y PR fusionado el 28/08/2026**, con el "luz
+verde" explícito de Cipri. El CI de GitHub Actions seguía en rojo por el
+mismo problema de cuota/infraestructura que el #51 (jobs sin runner
+asignado, 404 en logs); se verificó todo en local antes de tocar nada
+real y se avisó a Cipri para que revise Settings → Actions cuando pueda.
+
+## 2026-08-30 — Inactividad en Miembros: quién lleva tiempo sin entrenar
+
+Último punto de la lista de Miembros que dependía de datos que antes no
+se consultaban (el propio comentario de cabecera de la pantalla lo
+apuntaba desde julio). Cipri pidió seguir con esto tras dar luz verde a
+Prueba/Pausada, sin más detalle de reglas — así que la decisión de
+producto de "a partir de cuántos días se considera inactivo" la he
+tomado yo con un valor razonable, dejada por escrito para que sea fácil
+de corregir si no encaja:
+
+**14 días sin entrenar = inactivo.** Es la constante `diasInactividad`
+en `miembros_screen.dart`, un único número. Con un deporte que se
+entrena 2-3 veces por semana, dos semanas de ausencia ya destaca sin ser
+tan corto como para marcar a alguien que solo ha tenido una semana
+floja. Si Cipri prefiere otro número, es un cambio de una línea.
+
+Quien nunca ha tenido ninguna asistencia registrada cuenta también como
+inactivo (pastilla "Nunca ha venido"), a propósito sin distinguir "recién
+llegado que aún no ha venido" de "veterano que ha dejado de venir": no
+hay ningún dato de fecha de alta que permita diferenciarlos hoy, y
+añadirlo solo para este matiz habría sido una migración nueva para un
+caso de borde que Cipri no ha pedido.
+
+**Base de datos** (`supabase/migrations/20260830090000_inactividad_miembros.sql`):
+nueva función `ultima_asistencia_por_alumno()`, mismo patrón que
+`ranking_periodo` (`language sql stable`, sin `security definer` — RLS
+de `asistencias` ya limita a la propia academia, la función solo evita
+traer todo el historial de asistencias al cliente para quedarse con una
+fecha por alumno). Agrupa por alumno y se queda con el `max(fecha)`;
+excluye a quien no es Alumno (un Profesor o Dueño que entrena con ellos
+no debe cambiar ninguna estadística de "quién ha dejado de venir").
+
+**Flutter:** `MiembrosRepository.ultimaAsistenciaPorAlumno()` (una sola
+consulta para toda la academia, mismo patrón que `alumnosConCuotaAlDia`)
+y el provider `ultimaAsistenciaMiembrosProvider`. En Miembros: una
+tercera tarjeta de resumen ("Inactivos", pastilla ámbar) junto a "Al
+día"/"Sin cuota", y una pastilla de inactividad en la fila de cada
+alumno cuando corresponde (`Wrap` de dos pastillas, mismo patrón que ya
+usa Equipo para combinar varias). En la ficha del alumno, una pastilla
+con la misma etiqueta ("Hace X días" / "Nunca ha venido"), en verde si
+está al día o en ámbar si está inactivo.
+
+Al pasar de dos tarjetas de resumen a tres, "INACTIVOS" dejó de caber a
+su tamaño natural en un móvil de 412 px — desbordaba por unos 8 px. Se
+envuelve la pastilla en un `FittedBox` dentro de `_TarjetaResumen` en vez
+de acortar el texto: así cualquier etiqueta futura, más larga o más
+corta, se ajusta sola sin volver a romperse.
+
+**Verificado en rojo/verde:**
+- pgTAP (`supabase/tests/inactividad_miembros_test.sql`, plan de 5):
+  cambiando `max(a.fecha)` por `min(a.fecha)`, la prueba de que se queda
+  con la asistencia más reciente (no la más antigua) falla correctamente;
+  restaurado, 269/269 en verde en toda la suite (antes 264).
+- Flutter (`test/features/miembros/miembros_screen_test.dart`, tres
+  pruebas nuevas): nunca ha venido → pastilla "Nunca ha venido"; entrenó
+  hace poco → sin pastilla de inactividad; entrenó hace mucho → pastilla
+  "Hace N días" y cuenta bien en el resumen. Suite completa
+  (`--exclude-tags=golden`) en 130/130.
+
 **Sin aplicar todavía a producción.** Pendiente de la autorización de
 Cipri para esta migración en concreto.
