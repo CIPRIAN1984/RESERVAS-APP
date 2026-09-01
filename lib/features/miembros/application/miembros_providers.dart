@@ -30,6 +30,18 @@ final cuotaAlDiaMiembrosProvider = FutureProvider.autoDispose<Set<String>>((
   return ref.watch(miembrosRepositoryProvider).alumnosConCuotaAlDia(academiaId);
 });
 
+/// Cuándo entrenó cada alumno por última vez, para marcar en Miembros a
+/// quien lleva tiempo sin venir. Una sola consulta para toda la academia,
+/// igual que [cuotaAlDiaMiembrosProvider].
+final ultimaAsistenciaMiembrosProvider =
+    FutureProvider.autoDispose<Map<String, DateTime>>((ref) async {
+      final academiaId = (await ref.watch(
+        currentProfileProvider.future,
+      ))?.academiaId;
+      if (academiaId == null) return const {};
+      return ref.watch(miembrosRepositoryProvider).ultimaAsistenciaPorAlumno();
+    });
+
 /// Progreso de un alumno hacia su siguiente cinturón — para la ficha de
 /// Miembros. La clave lleva su cinturón y fecha de inicio (en vez de solo
 /// el id) para que un cambio de cualquiera de los dos recalcule sin

@@ -12,10 +12,9 @@ import 'package:itaca/features/miembros/presentation/miembros_screen.dart';
 import 'package:itaca/features/tarifas/application/tarifas_providers.dart';
 
 /// Cipri pidió una pantalla de Miembros como la de MAAT: buscar por nombre,
-/// filtrar por cinturón (incluidos los trece de niños del sistema IBJJF) y
-/// ver de un vistazo quién tiene la cuota al día. Lo que exige datos que la
-/// base de datos todavía no tiene (prueba/pausada, listo para graduarse,
-/// inactividad) queda para una tanda futura, decidida con él.
+/// filtrar por cinturón (incluidos los trece de niños del sistema IBJJF),
+/// ver de un vistazo quién tiene la cuota al día y quién lleva tiempo sin
+/// entrenar. "Listo para graduarse" queda para una tanda futura.
 
 Profile _alumno({
   required String id,
@@ -31,43 +30,49 @@ Profile _alumno({
   estado: 'activo',
 );
 
-Widget _app({required List<Profile> alumnos, required Set<String> alDia}) =>
-    ProviderScope(
-      overrides: [
-        currentUserIdProvider.overrideWithValue('d1'),
-        currentProfileProvider.overrideWith(
-          (ref) async => Profile(
-            id: 'd1',
-            academiaId: 'a1',
-            rol: 'dueño',
-            nombre: 'Dueño',
-            estado: 'activo',
-          ),
-        ),
-        alumnosMiembrosProvider.overrideWith((ref) async => alumnos),
-        cuotaAlDiaMiembrosProvider.overrideWith((ref) async => alDia),
-        // Para cuando se toca a quien no tiene cuota: la hoja de cobro en
-        // efectivo necesita las tarifas para renderizarse sin quedarse
-        // cargando para siempre.
-        tarifasProvider(true).overrideWith((ref) async => const []),
-        for (final alumno in alumnos)
-          progresoCinturonProvider((
-            alumnoId: alumno.id,
-            cinturon: alumno.cinturon,
-            fechaInicioCinturon: alumno.fechaInicioCinturon,
-          )).overrideWith(
-            (ref) async => const ProgresoCinturon(
-              asistencias: 0,
-              requeridas: 78,
-              proximoCinturon: 'gris_blanco',
-            ),
-          ),
-      ],
-      child: MaterialApp(
-        theme: AppTheme.light,
-        home: const Scaffold(body: MiembrosScreen()),
+Widget _app({
+  required List<Profile> alumnos,
+  required Set<String> alDia,
+  Map<String, DateTime> ultimaAsistencia = const {},
+}) => ProviderScope(
+  overrides: [
+    currentUserIdProvider.overrideWithValue('d1'),
+    currentProfileProvider.overrideWith(
+      (ref) async => Profile(
+        id: 'd1',
+        academiaId: 'a1',
+        rol: 'dueño',
+        nombre: 'Dueño',
+        estado: 'activo',
       ),
-    );
+    ),
+    alumnosMiembrosProvider.overrideWith((ref) async => alumnos),
+    cuotaAlDiaMiembrosProvider.overrideWith((ref) async => alDia),
+    ultimaAsistenciaMiembrosProvider.overrideWith(
+      (ref) async => ultimaAsistencia,
+    ),
+    // Para cuando se toca a quien no tiene cuota: la hoja de cobro en
+    // efectivo necesita las tarifas para renderizarse sin quedarse
+    // cargando para siempre.
+    tarifasProvider(true).overrideWith((ref) async => const []),
+    for (final alumno in alumnos)
+      progresoCinturonProvider((
+        alumnoId: alumno.id,
+        cinturon: alumno.cinturon,
+        fechaInicioCinturon: alumno.fechaInicioCinturon,
+      )).overrideWith(
+        (ref) async => const ProgresoCinturon(
+          asistencias: 0,
+          requeridas: 78,
+          proximoCinturon: 'gris_blanco',
+        ),
+      ),
+  ],
+  child: MaterialApp(
+    theme: AppTheme.light,
+    home: const Scaffold(body: MiembrosScreen()),
+  ),
+);
 
 void main() {
   testWidgets('enseña a todos los alumnos con su estado de cuota', (
@@ -229,6 +234,68 @@ void main() {
       reason: 'La ficha del alumno se abre con su progreso de cinturón.',
     );
   });
+
+  testWidgets(
+    'quien no tiene ninguna asistencia se marca como que nunca ha venido',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(412, 900));
+      await tester.pumpWidget(
+        _app(
+          alumnos: [_alumno(id: 'a1', nombre: 'Ana', cinturon: 'azul')],
+          alDia: {'a1'},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('NUNCA HA VENIDO'), findsOneWidget);
+    },
+  );
+
+  testWidgets('quien entrenó hace poco no se marca como inactivo', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 900));
+    await tester.pumpWidget(
+      _app(
+        alumnos: [_alumno(id: 'a1', nombre: 'Ana', cinturon: 'azul')],
+        alDia: {'a1'},
+        ultimaAsistencia: {
+          'a1': DateTime.now().subtract(const Duration(days: 2)),
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('NUNCA HA VENIDO'), findsNothing);
+    expect(find.textContaining('DÍAS'), findsNothing);
+  });
+
+  testWidgets(
+    'quien lleva muchos días sin entrenar se marca como inactivo, en el resumen y en su fila',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(412, 900));
+      await tester.pumpWidget(
+        _app(
+          alumnos: [
+            _alumno(id: 'a1', nombre: 'Ana', cinturon: 'azul'),
+            _alumno(id: 'a2', nombre: 'Beto', cinturon: 'blanco'),
+          ],
+          alDia: {'a1', 'a2'},
+          ultimaAsistencia: {
+            'a1': DateTime.now().subtract(const Duration(days: 2)),
+            'a2': DateTime.now().subtract(const Duration(days: 30)),
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('HACE 30 DÍAS'), findsOneWidget);
+      // Contadores: Al día 2, Sin cuota 0, Inactivos 1 (solo Beto).
+      expect(find.text('2'), findsOneWidget);
+      expect(find.text('0'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'tocar a quien no tiene cuota sigue abriendo el cobro en efectivo, no la ficha',

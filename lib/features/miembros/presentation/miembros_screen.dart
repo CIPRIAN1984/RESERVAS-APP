@@ -10,9 +10,12 @@ import '../application/miembros_providers.dart';
 import 'ficha_miembro_screen.dart';
 
 /// Alumnos de la academia, buscables y filtrables por cinturón — lo que
-/// pidió Cipri mirando MAAT. Cuota al día/sin cuota ya está; lo que exige
-/// datos que la base de datos todavía no tiene (prueba/pausada, listo para
-/// graduarse, inactividad) queda para una tanda futura.
+/// pidió Cipri mirando MAAT. La pastilla de cuota sigue siendo binaria
+/// (al día/sin cuota) a propósito: quien está en prueba o pausada ya
+/// cuenta bien en uno u otro lado (ver `alumnosConCuotaAlDia`), y el
+/// detalle de los cuatro estados es cosa de gestionar, que vive en
+/// Equipo. "Listo para graduarse" queda para una tanda futura;
+/// inactividad ya está.
 const _etiquetasCinturon = {
   'blanco': 'Blanco',
   'azul': 'Azul',
@@ -54,6 +57,26 @@ const _cinturonesNinos = [
 
 String etiquetaCinturon(String cinturon) =>
     _etiquetasCinturon[cinturon] ?? cinturon;
+
+/// A partir de cuántos días sin entrenar se marca a un alumno como
+/// inactivo. Es un número de producto, no técnico — 14 días es un primer
+/// valor razonable (una ausencia de dos semanas ya destaca en un deporte
+/// que se entrena 2-3 veces por semana); si a Cipri no le encaja, es un
+/// único número que cambiar aquí.
+const diasInactividad = 14;
+
+/// `null` en el mapa de última asistencia = nunca ha venido a clase, que
+/// cuenta como inactivo igual que llevar muchos días sin aparecer.
+bool esInactivo(DateTime? ultimaAsistencia) {
+  if (ultimaAsistencia == null) return true;
+  return DateTime.now().difference(ultimaAsistencia).inDays >= diasInactividad;
+}
+
+String etiquetaInactividad(DateTime? ultimaAsistencia) {
+  if (ultimaAsistencia == null) return 'Nunca ha venido';
+  final dias = DateTime.now().difference(ultimaAsistencia).inDays;
+  return dias == 1 ? 'Hace 1 día' : 'Hace $dias días';
+}
 
 class MiembrosScreen extends ConsumerStatefulWidget {
   const MiembrosScreen({super.key});
@@ -102,6 +125,8 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
   Widget build(BuildContext context) {
     final alumnosAsync = ref.watch(alumnosMiembrosProvider);
     final cuotaAlDia = ref.watch(cuotaAlDiaMiembrosProvider).value ?? const {};
+    final ultimaAsistencia =
+        ref.watch(ultimaAsistenciaMiembrosProvider).value ?? const {};
 
     return Column(
       children: [
@@ -154,6 +179,9 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
               final alDia = alumnos
                   .where((a) => cuotaAlDia.contains(a.id))
                   .length;
+              final inactivos = alumnos
+                  .where((a) => esInactivo(ultimaAsistencia[a.id]))
+                  .length;
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -168,11 +196,18 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                             pastilla: const PastillaEstado.exito('Al día'),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: _TarjetaResumen(
                             numero: alumnos.length - alDia,
                             pastilla: const PastillaEstado.error('Sin cuota'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _TarjetaResumen(
+                            numero: inactivos,
+                            pastilla: const PastillaEstado.aviso('Inactivos'),
                           ),
                         ),
                       ],
@@ -194,14 +229,29 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                         itemBuilder: (context, index) {
                           final alumno = visibles[index];
                           final tieneCuota = cuotaAlDia.contains(alumno.id);
+                          final ultima = ultimaAsistencia[alumno.id];
+                          final inactivo = esInactivo(ultima);
                           return TarjetaFila(
                             titulo: alumno.nombreCompleto,
                             detalle: alumno.cinturon == null
                                 ? null
                                 : 'Cinturón ${etiquetaCinturon(alumno.cinturon!)}',
-                            estado: tieneCuota
-                                ? const PastillaEstado.exito('Al día')
-                                : const PastillaEstado.error('Sin cuota'),
+                            // Wrap y no Row: con nombres largos o pantallas
+                            // estrechas, dos pastillas se salían por la
+                            // derecha (mismo motivo que en Equipo).
+                            estado: Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              children: [
+                                tieneCuota
+                                    ? const PastillaEstado.exito('Al día')
+                                    : const PastillaEstado.error('Sin cuota'),
+                                if (inactivo)
+                                  PastillaEstado.aviso(
+                                    etiquetaInactividad(ultima),
+                                  ),
+                              ],
+                            ),
                             onTap: tieneCuota
                                 ? () => _abrirFicha(alumno)
                                 : () => _darCuota(alumno),
@@ -367,12 +417,15 @@ class _TarjetaResumen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
         child: Column(
           children: [
             Text('$numero', style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 6),
-            pastilla,
+            // Con tres tarjetas por fila (antes eran dos) una pastilla larga
+            // como «INACTIVOS» ya no cabe a su tamaño natural en un móvil
+            // estrecho; se encoge en vez de desbordar.
+            FittedBox(child: pastilla),
           ],
         ),
       ),

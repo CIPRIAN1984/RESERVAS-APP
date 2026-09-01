@@ -44,6 +44,22 @@ class MiembrosRepository {
         .toSet();
   }
 
+  /// Cuándo entrenó cada alumno por última vez, indexado por alumno.
+  ///
+  /// Quien no aparece en el mapa no tiene ninguna asistencia registrada —
+  /// nunca ha venido a clase. La RPC ya limita el resultado a la propia
+  /// academia (`current_academia_id()`) y solo cuenta a quien tiene rol
+  /// Alumno, no al Profesor o Dueño que entrena con ellos.
+  Future<Map<String, DateTime>> ultimaAsistenciaPorAlumno() async {
+    final rows = await _client.rpc('ultima_asistencia_por_alumno') as List;
+    return {
+      for (final row in rows.cast<Map<String, dynamic>>())
+        row['alumno_id'] as String: DateTime.parse(
+          row['ultima_asistencia'] as String,
+        ),
+    };
+  }
+
   /// `true` si el alumno tiene un padre/tutor registrado — es un menor, así
   /// que su progresión de cinturón sigue la escala infantil (ver
   /// `progreso_cinturon.dart`). RLS de `relaciones_familia` ya limita esta
