@@ -14,8 +14,8 @@ import 'ficha_miembro_screen.dart';
 /// (al día/sin cuota) a propósito: quien está en prueba o pausada ya
 /// cuenta bien en uno u otro lado (ver `alumnosConCuotaAlDia`), y el
 /// detalle de los cuatro estados es cosa de gestionar, que vive en
-/// Equipo. "Listo para graduarse" queda para una tanda futura;
-/// inactividad ya está.
+/// Equipo. Con inactividad y listo para graduarse, ya está todo lo que
+/// se pidió para esta pantalla.
 const _etiquetasCinturon = {
   'blanco': 'Blanco',
   'azul': 'Azul',
@@ -127,6 +127,8 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
     final cuotaAlDia = ref.watch(cuotaAlDiaMiembrosProvider).value ?? const {};
     final ultimaAsistencia =
         ref.watch(ultimaAsistenciaMiembrosProvider).value ?? const {};
+    final listosParaGraduarse =
+        ref.watch(graduacionMiembrosProvider).value ?? const {};
 
     return Column(
       children: [
@@ -182,33 +184,57 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
               final inactivos = alumnos
                   .where((a) => esInactivo(ultimaAsistencia[a.id]))
                   .length;
+              final listos = alumnos
+                  .where((a) => listosParaGraduarse.contains(a.id))
+                  .length;
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Dos filas de dos: con cuatro tarjetas ya no caben a lo
+                  // ancho en un móvil de 412 px sin encogerse demasiado.
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    child: Row(
+                    child: Column(
                       children: [
-                        Expanded(
-                          child: _TarjetaResumen(
-                            numero: alDia,
-                            pastilla: const PastillaEstado.exito('Al día'),
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _TarjetaResumen(
+                                numero: alDia,
+                                pastilla: const PastillaEstado.exito('Al día'),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _TarjetaResumen(
+                                numero: alumnos.length - alDia,
+                                pastilla: const PastillaEstado.error(
+                                  'Sin cuota',
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _TarjetaResumen(
-                            numero: alumnos.length - alDia,
-                            pastilla: const PastillaEstado.error('Sin cuota'),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _TarjetaResumen(
-                            numero: inactivos,
-                            pastilla: const PastillaEstado.aviso('Inactivos'),
-                          ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _TarjetaResumen(
+                                numero: inactivos,
+                                pastilla: const PastillaEstado.aviso(
+                                  'Inactivos',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _TarjetaResumen(
+                                numero: listos,
+                                pastilla: const PastillaEstado.exito('Listos'),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -231,13 +257,14 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                           final tieneCuota = cuotaAlDia.contains(alumno.id);
                           final ultima = ultimaAsistencia[alumno.id];
                           final inactivo = esInactivo(ultima);
+                          final listo = listosParaGraduarse.contains(alumno.id);
                           return TarjetaFila(
                             titulo: alumno.nombreCompleto,
                             detalle: alumno.cinturon == null
                                 ? null
                                 : 'Cinturón ${etiquetaCinturon(alumno.cinturon!)}',
                             // Wrap y no Row: con nombres largos o pantallas
-                            // estrechas, dos pastillas se salían por la
+                            // estrechas, varias pastillas se salían por la
                             // derecha (mismo motivo que en Equipo).
                             estado: Wrap(
                               spacing: 8,
@@ -249,6 +276,10 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                                 if (inactivo)
                                   PastillaEstado.aviso(
                                     etiquetaInactividad(ultima),
+                                  ),
+                                if (listo)
+                                  const PastillaEstado.exito(
+                                    'Listo para graduarse',
                                   ),
                               ],
                             ),

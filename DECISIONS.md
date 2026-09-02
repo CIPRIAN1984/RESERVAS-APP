@@ -1352,5 +1352,69 @@ corta, se ajusta sola sin volver a romperse.
   "Hace N días" y cuenta bien en el resumen. Suite completa
   (`--exclude-tags=golden`) en 130/130.
 
+**Aplicada a producción y PR fusionado el 30/08/2026**, tras confirmar
+Cipri que 14 días le parecía bien ("me parece bien 14 dias. aplica la
+migracion y fusiona"). El mismo problema de cuota/infraestructura de
+GitHub Actions seguía activo dos días después del #52 (jobs sin runner,
+404 en logs); se avisó de nuevo en el PR y se siguió adelante con la
+verificación local, que era la misma evidencia que ya había servido la
+vez anterior.
+
+## 2026-09-01 — Listo para graduarse en Miembros
+
+Último punto de la lista original de Miembros ("buscar por nombre,
+filtrar por cinturón, cuota al día, prueba/pausada, inactividad, listo
+para graduarse"). Cipri pidió seguir con él tras
+inactividad, sin más detalle de reglas — el cálculo de "cuántos entrenos
+hacen falta" ya estaba decidido y en producción desde la ficha del
+alumno (`progreso_cinturon.dart`, agosto 2026: 3 entrenos/semana de
+media, el reloj arranca en la fecha de alta o la última promoción, 78
+entrenos para un cinturón de niño, 312 para uno de adulto). Esta tanda
+no cambia esas reglas, solo las hace visibles en la lista de Miembros
+sin tener que entrar en la ficha de cada alumno uno a uno.
+
+**Base de datos** (`supabase/migrations/20260901090000_listo_para_graduarse.sql`):
+nueva función `progreso_graduacion_alumnos()`, mismo patrón que
+`ultima_asistencia_por_alumno` y `ranking_periodo` (`language sql
+stable`, sin `security definer`). A propósito **no** repite las reglas
+de negocio en SQL (eso seguiría viviendo solo en Dart, con riesgo de
+que las dos copias se desincronicen); se limita a traer, en un único
+viaje para toda la academia, los dos datos en bruto que hacen falta
+para aplicar esas reglas en el cliente: cuántos entrenos lleva cada
+alumno desde `fecha_inicio_cinturon` (no desde siempre: un entreno de
+antes de la última promoción no debe contar para la siguiente) y si es
+menor de edad. `Set<String> alumno.listoParaGraduarse` se sigue
+calculando en Dart con las funciones de `progreso_cinturon.dart` de
+siempre, solo que ahora en bucle sobre el resultado de la RPC en vez de
+una consulta por alumno — con 166 alumnos, una por fila habría sido
+lenta.
+
+**Flutter:** `ProgresoCinturon` gana un getter `listoParaGraduarse`
+(`asistencias >= requeridas`, y solo si hay próximo cinturón). No cambia
+en nada el botón "Promover a un nuevo cinturón" de la ficha, que sigue
+disponible siempre que haya próximo cinturón: esto es una señal, no una
+puerta — el Profesor/Dueño puede seguir promoviendo antes de tiempo si
+lo decide (un alumno especialmente bueno, por ejemplo). En Miembros: la
+fila de resumen pasa de tres tarjetas en una línea a **cuatro en una
+cuadrícula de 2×2** (Al día/Sin cuota arriba, Inactivos/Listos abajo) —
+con cuatro ya no cabían a lo ancho en un móvil de 412 px sin apretarse
+demasiado, y así queda con más aire que forzando una fila más estrecha.
+Cada fila de alumno gana una tercera pastilla posible ("Listo para
+graduarse", verde) en el mismo `Wrap` que ya combina cuota e
+inactividad. La ficha del alumno también la enseña, junto a la de
+inactividad.
+
+**Verificado en rojo/verde:**
+- pgTAP (`supabase/tests/listo_para_graduarse_test.sql`, plan de 6):
+  quitando el filtro de fecha (`and true` en vez de comparar con
+  `fecha_inicio_cinturon`), la prueba de que un entreno de antes de
+  promocionar no cuenta falla correctamente (pasa de 2 a 3 asistencias);
+  restaurado, 275/275 en verde en toda la suite (antes 269).
+- Flutter (`test/features/miembros/progreso_cinturon_test.dart` +
+  `miembros_screen_test.dart`, pruebas nuevas): el límite exacto
+  (311 no está listo, 312 sí), que sin próximo cinturón nunca se marca
+  como listo, y que la pastilla y el contador aparecen bien en la
+  pantalla. Suite completa (`--exclude-tags=golden`) en 133/133.
+
 **Sin aplicar todavía a producción.** Pendiente de la autorización de
 Cipri para esta migración en concreto.

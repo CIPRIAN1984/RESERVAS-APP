@@ -104,11 +104,16 @@ class FichaMiembroScreen extends ConsumerWidget {
                   proximo: progreso.proximoCinturon,
                 ),
                 const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: esInactivo(ultima)
-                      ? PastillaEstado.aviso(etiquetaInactividad(ultima))
-                      : PastillaEstado.exito(etiquetaInactividad(ultima)),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    esInactivo(ultima)
+                        ? PastillaEstado.aviso(etiquetaInactividad(ultima))
+                        : PastillaEstado.exito(etiquetaInactividad(ultima)),
+                    if (progreso.listoParaGraduarse)
+                      const PastillaEstado.exito('Listo para graduarse'),
+                  ],
                 ),
                 const SizedBox(height: 20),
                 if (progreso.proximoCinturon == null)
