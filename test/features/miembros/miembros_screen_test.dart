@@ -151,6 +151,43 @@ void main() {
     expect(find.text('Azul'), findsOneWidget);
   });
 
+  testWidgets(
+    'sin cinturón asignado cuenta como blanco al filtrar, igual que en la ficha',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(412, 900));
+      await tester.pumpWidget(
+        _app(
+          alumnos: [
+            _alumno(id: 'a1', nombre: 'Ana', cinturon: 'azul'),
+            // Sin cinturon: dato en blanco, como un alumno recién dado de
+            // alta al que todavía no se le ha puesto ninguno.
+            _alumno(id: 'a2', nombre: 'Beto'),
+          ],
+          alDia: const {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Cinturón Blanco'),
+        findsOneWidget,
+        reason: 'Sin dato, la fila ya lo muestra como Blanco.',
+      );
+
+      await tester.tap(find.text('Cinturón'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('BLANCO'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Beto Ejemplo'),
+        findsOneWidget,
+        reason: 'Sin cinturón asignado, filtrar por "Blanco" debe incluirlo.',
+      );
+      expect(find.text('Ana Ejemplo'), findsNothing);
+    },
+  );
+
   testWidgets('un cinturón de niño también se puede filtrar', (tester) async {
     await tester.binding.setSurfaceSize(const Size(412, 900));
     await tester.pumpWidget(

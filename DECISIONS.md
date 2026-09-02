@@ -1418,3 +1418,47 @@ inactividad.
 
 **Sin aplicar todavía a producción.** Pendiente de la autorización de
 Cipri para esta migración en concreto.
+
+## 2026-09-02 — Promover siempre es decisión del Dueño; arreglo del filtro de cinturón
+
+Cipri probó la vista previa del PR de "Listo para graduarse" y dejó dos
+cosas claras:
+
+1. **"Quiero promover a los alumnos cuando quiera sin depender de si ha
+   cumplido o ha pasado de las clases requeridas... yo tengo la última
+   palabra, lo demás es solo como guía."** Esto **ya era así** — no ha
+   hecho falta ningún cambio de código. El botón "Promover a un nuevo
+   cinturón" de la ficha nunca ha comprobado cuántos entrenos lleva el
+   alumno (ver `promover_cinturon` en `20260821071211_promociones_cinturon.sql`:
+   no hay ninguna condición de asistencias, solo que quien promueve sea
+   Profesor/Dueño de la academia). La pastilla "Listo para graduarse" es
+   y sigue siendo solo un aviso, nunca una puerta. **Decisión que queda
+   fijada por escrito para no romperla sin querer en el futuro**: el
+   número de entrenos es una guía para Cipri, nunca un requisito que
+   bloquee el botón ni la RPC.
+
+2. **Fallo real, encontrado por Cipri**: filtrar Miembros por cinturón
+   no enseñaba a nadie sin cinturón asignado, **ni siquiera al filtrar
+   por "Blanco"** — que es justo el cinturón que le correspondería por
+   defecto. La ficha del alumno y el cálculo de progreso ya trataban
+   "sin dato" como blanco (`actual ?? 'blanco'`, en
+   `progreso_cinturon.dart` desde julio), pero el filtro de la lista
+   comparaba el dato en bruto (`a.cinturon != _cinturonElegido`), sin
+   ese mismo respaldo — un alumno recién dado de alta, sin cinturón
+   puesto todavía, no aparecía nunca al filtrar por nada, ni por
+   "Blanco". Con casi ningún alumno real graduado todavía, esto hacía
+   que el filtro pareciera no funcionar en absoluto ("solo los veo en
+   Todos"). Corregido en `miembros_screen.dart`: el filtro y el texto
+   de la fila ahora tratan "sin cinturón" como blanco, igual que el
+   resto de la app.
+
+**Verificado en rojo/verde:** deshaciendo el respaldo a blanco en el
+filtro, la prueba nueva "sin cinturón asignado cuenta como blanco al
+filtrar" falla correctamente (Beto, sin cinturón, desaparece al filtrar
+por "Blanco"); restaurado, 134/134 en verde en toda la suite Flutter
+(antes 133). No toca nada de base de datos — no hace falta migración.
+
+Va en la misma rama/PR que "Listo para graduarse" (`claude/listo-para-graduarse`,
+#54): es un arreglo pequeño, sin migración, descubierto probando esa
+misma vista previa, y así Cipri solo tiene que volver a mirar un enlace
+en vez de dos.

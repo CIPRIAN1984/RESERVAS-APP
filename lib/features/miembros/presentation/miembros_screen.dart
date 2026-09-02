@@ -163,8 +163,12 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
             ),
             data: (alumnos) {
               final visibles = alumnos.where((a) {
+                // Sin cinturón asignado cuenta como blanco (igual que en la
+                // ficha y en el progreso hacia el siguiente): si no, nadie
+                // sin dato se veía nunca al filtrar por "Blanco", ni
+                // siquiera quienes sí lo son.
                 if (_cinturonElegido != null &&
-                    a.cinturon != _cinturonElegido) {
+                    (a.cinturon ?? 'blanco') != _cinturonElegido) {
                   return false;
                 }
                 if (_busqueda.isEmpty) return true;
@@ -260,9 +264,9 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                           final listo = listosParaGraduarse.contains(alumno.id);
                           return TarjetaFila(
                             titulo: alumno.nombreCompleto,
-                            detalle: alumno.cinturon == null
-                                ? null
-                                : 'Cinturón ${etiquetaCinturon(alumno.cinturon!)}',
+                            detalle:
+                                'Cinturón '
+                                '${etiquetaCinturon(alumno.cinturon ?? 'blanco')}',
                             // Wrap y no Row: con nombres largos o pantallas
                             // estrechas, varias pastillas se salían por la
                             // derecha (mismo motivo que en Equipo).
