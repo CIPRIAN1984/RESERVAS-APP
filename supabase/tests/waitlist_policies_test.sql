@@ -437,7 +437,7 @@ select is(
 -- no ejecutado aquí. Esta prueba solo confirma que el bloqueo sigue en la
 -- definición de la función, para que nadie lo quite sin darse cuenta.
 select ok(
-  pg_get_functiondef('public.cancelar_reserva(uuid)'::regprocedure)
+  pg_get_functiondef('public.cancelar_reserva(uuid,uuid)'::regprocedure)
     like '%for update of i, c%',
   'cancelar_reserva sigue bloqueando la fila de la clase (base de la seguridad ante concurrencia)'
 );

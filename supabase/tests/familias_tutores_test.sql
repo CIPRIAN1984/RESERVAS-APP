@@ -85,29 +85,20 @@ select ok(
 -- Validar function crear_perfil_hijo
 -- ============================================================
 
-select has_function('public'::name, 'crear_perfil_hijo'::name,
-  array['uuid', 'uuid', 'text', 'text', 'text'],
-  'Función crear_perfil_hijo existe con signatures correctas');
+-- `crear_perfil_hijo` se borró el 03/09/2026: no podía funcionar nunca
+-- (insertaba un perfil con uuid nuevo contra una clave foránea que exigía
+-- una cuenta). La sustituye `crear_hijo`, que se prueba a fondo en
+-- `familias_v2_test.sql`.
+select hasnt_function('public'::name, 'crear_perfil_hijo'::name,
+  'La función rota crear_perfil_hijo ya no existe');
 
--- La función es SECURITY DEFINER y no comprueba quién llama: solo la puerta
--- es segura si nadie externo puede invocarla directamente. La Edge Function
--- usa service_role, que no pasa por estos grants.
-select ok(
-  not has_function_privilege(
-    'anon',
-    'public.crear_perfil_hijo(uuid, uuid, text, text, text)',
-    'EXECUTE'
-  ),
-  'Anon no puede crear perfiles de hijo directamente'
-);
+select has_function('public'::name, 'crear_hijo'::name,
+  array['text', 'text', 'text'],
+  'La sustituye crear_hijo, que sí puede crear un menor sin cuenta');
 
 select ok(
-  not has_function_privilege(
-    'authenticated',
-    'public.crear_perfil_hijo(uuid, uuid, text, text, text)',
-    'EXECUTE'
-  ),
-  'Authenticated tampoco: debe pasar por la Edge Function'
+  not has_function_privilege('anon', 'public.crear_hijo(text, text, text)', 'EXECUTE'),
+  'Anon no puede crear perfiles de hijo'
 );
 
 -- ============================================================
