@@ -72,4 +72,10 @@ class ProgresoCinturon {
     final valor = asistencias / requeridas;
     return valor > 1 ? 1 : valor;
   }
+
+  /// Ya cumple los entrenos que hacen falta para el siguiente cinturón.
+  /// No obliga a promover: el Dueño/Profesor sigue decidiendo cuándo, esto
+  /// solo se lo señala.
+  bool get listoParaGraduarse =>
+      proximoCinturon != null && asistencias >= requeridas;
 }

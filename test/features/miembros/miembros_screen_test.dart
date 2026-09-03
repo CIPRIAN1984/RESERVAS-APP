@@ -13,8 +13,8 @@ import 'package:itaca/features/tarifas/application/tarifas_providers.dart';
 
 /// Cipri pidió una pantalla de Miembros como la de MAAT: buscar por nombre,
 /// filtrar por cinturón (incluidos los trece de niños del sistema IBJJF),
-/// ver de un vistazo quién tiene la cuota al día y quién lleva tiempo sin
-/// entrenar. "Listo para graduarse" queda para una tanda futura.
+/// ver de un vistazo quién tiene la cuota al día, quién lleva tiempo sin
+/// entrenar y quién ya está listo para graduarse.
 
 Profile _alumno({
   required String id,
@@ -34,6 +34,7 @@ Widget _app({
   required List<Profile> alumnos,
   required Set<String> alDia,
   Map<String, DateTime> ultimaAsistencia = const {},
+  Set<String> listosParaGraduarse = const {},
 }) => ProviderScope(
   overrides: [
     currentUserIdProvider.overrideWithValue('d1'),
@@ -51,6 +52,7 @@ Widget _app({
     ultimaAsistenciaMiembrosProvider.overrideWith(
       (ref) async => ultimaAsistencia,
     ),
+    graduacionMiembrosProvider.overrideWith((ref) async => listosParaGraduarse),
     // Para cuando se toca a quien no tiene cuota: la hoja de cobro en
     // efectivo necesita las tarifas para renderizarse sin quedarse
     // cargando para siempre.
@@ -148,6 +150,43 @@ void main() {
     // El botón pasa a mostrar el cinturón elegido.
     expect(find.text('Azul'), findsOneWidget);
   });
+
+  testWidgets(
+    'sin cinturón asignado cuenta como blanco al filtrar, igual que en la ficha',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(412, 900));
+      await tester.pumpWidget(
+        _app(
+          alumnos: [
+            _alumno(id: 'a1', nombre: 'Ana', cinturon: 'azul'),
+            // Sin cinturon: dato en blanco, como un alumno recién dado de
+            // alta al que todavía no se le ha puesto ninguno.
+            _alumno(id: 'a2', nombre: 'Beto'),
+          ],
+          alDia: const {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Cinturón Blanco'),
+        findsOneWidget,
+        reason: 'Sin dato, la fila ya lo muestra como Blanco.',
+      );
+
+      await tester.tap(find.text('Cinturón'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('BLANCO'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Beto Ejemplo'),
+        findsOneWidget,
+        reason: 'Sin cinturón asignado, filtrar por "Blanco" debe incluirlo.',
+      );
+      expect(find.text('Ana Ejemplo'), findsNothing);
+    },
+  );
 
   testWidgets('un cinturón de niño también se puede filtrar', (tester) async {
     await tester.binding.setSurfaceSize(const Size(412, 900));
@@ -290,9 +329,32 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('HACE 30 DÍAS'), findsOneWidget);
-      // Contadores: Al día 2, Sin cuota 0, Inactivos 1 (solo Beto).
+      // Contadores: Al día 2, Sin cuota 0, Inactivos 1 (solo Beto), Listos 0.
       expect(find.text('2'), findsOneWidget);
-      expect(find.text('0'), findsOneWidget);
+      expect(find.text('0'), findsNWidgets(2));
+      expect(find.text('1'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'quien ya cumple los entrenos se marca como listo para graduarse, en el resumen y en su fila',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(412, 900));
+      await tester.pumpWidget(
+        _app(
+          alumnos: [
+            _alumno(id: 'a1', nombre: 'Ana', cinturon: 'azul'),
+            _alumno(id: 'a2', nombre: 'Beto', cinturon: 'blanco'),
+          ],
+          alDia: {'a1', 'a2'},
+          listosParaGraduarse: {'a1'},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('LISTO PARA GRADUARSE'), findsOneWidget);
+      // Contadores: Al día 2, Sin cuota 0, Inactivos 2 (nadie tiene fecha de
+      // última asistencia en este escenario), Listos 1 (solo Ana).
       expect(find.text('1'), findsOneWidget);
     },
   );

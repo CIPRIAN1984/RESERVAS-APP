@@ -75,6 +75,24 @@ class MiembrosRepository {
     return rows.isNotEmpty;
   }
 
+  /// Cuántos entrenos lleva cada alumno desde que empezó su cinturón
+  /// actual, y si es menor de edad — los dos datos en bruto que hacen
+  /// falta para saber quién está listo para graduarse, para toda la
+  /// academia en un único viaje (ver `progreso_graduacion_alumnos`; la
+  /// misma cuenta que hace [contarAsistenciasDesde] + [esMenor] uno a uno,
+  /// pero de golpe: con 166 alumnos, una consulta por fila sería lenta).
+  Future<Map<String, ({int asistencias, bool esMenor})>>
+  progresoGraduacionAlumnos() async {
+    final rows = await _client.rpc('progreso_graduacion_alumnos') as List;
+    return {
+      for (final row in rows.cast<Map<String, dynamic>>())
+        row['alumno_id'] as String: (
+          asistencias: (row['asistencias'] as num).toInt(),
+          esMenor: row['es_menor'] as bool,
+        ),
+    };
+  }
+
   /// Entrenos acumulados desde [desde] — para el progreso hacia el
   /// siguiente cinturón.
   Future<int> contarAsistenciasDesde(String alumnoId, DateTime desde) async {

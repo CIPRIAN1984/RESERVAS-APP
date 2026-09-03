@@ -68,5 +68,29 @@ void main() {
       );
       expect(progreso.fraccion, isNull);
     });
+
+    test('listo para graduarse en cuanto llega al mínimo, no antes', () {
+      const antes = ProgresoCinturon(
+        asistencias: 311,
+        requeridas: 312,
+        proximoCinturon: 'azul',
+      );
+      const justo = ProgresoCinturon(
+        asistencias: 312,
+        requeridas: 312,
+        proximoCinturon: 'azul',
+      );
+      expect(antes.listoParaGraduarse, isFalse);
+      expect(justo.listoParaGraduarse, isTrue);
+    });
+
+    test('sin próximo cinturón nunca está "listo para graduarse"', () {
+      const progreso = ProgresoCinturon(
+        asistencias: 900,
+        requeridas: 312,
+        proximoCinturon: null,
+      );
+      expect(progreso.listoParaGraduarse, isFalse);
+    });
   });
 }

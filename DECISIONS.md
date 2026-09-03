@@ -1352,5 +1352,186 @@ corta, se ajusta sola sin volver a romperse.
   "Hace N días" y cuenta bien en el resumen. Suite completa
   (`--exclude-tags=golden`) en 130/130.
 
+**Aplicada a producción y PR fusionado el 30/08/2026**, tras confirmar
+Cipri que 14 días le parecía bien ("me parece bien 14 dias. aplica la
+migracion y fusiona"). El mismo problema de cuota/infraestructura de
+GitHub Actions seguía activo dos días después del #52 (jobs sin runner,
+404 en logs); se avisó de nuevo en el PR y se siguió adelante con la
+verificación local, que era la misma evidencia que ya había servido la
+vez anterior.
+
+## 2026-09-01 — Listo para graduarse en Miembros
+
+Último punto de la lista original de Miembros ("buscar por nombre,
+filtrar por cinturón, cuota al día, prueba/pausada, inactividad, listo
+para graduarse"). Cipri pidió seguir con él tras
+inactividad, sin más detalle de reglas — el cálculo de "cuántos entrenos
+hacen falta" ya estaba decidido y en producción desde la ficha del
+alumno (`progreso_cinturon.dart`, agosto 2026: 3 entrenos/semana de
+media, el reloj arranca en la fecha de alta o la última promoción, 78
+entrenos para un cinturón de niño, 312 para uno de adulto). Esta tanda
+no cambia esas reglas, solo las hace visibles en la lista de Miembros
+sin tener que entrar en la ficha de cada alumno uno a uno.
+
+**Base de datos** (`supabase/migrations/20260901090000_listo_para_graduarse.sql`):
+nueva función `progreso_graduacion_alumnos()`, mismo patrón que
+`ultima_asistencia_por_alumno` y `ranking_periodo` (`language sql
+stable`, sin `security definer`). A propósito **no** repite las reglas
+de negocio en SQL (eso seguiría viviendo solo en Dart, con riesgo de
+que las dos copias se desincronicen); se limita a traer, en un único
+viaje para toda la academia, los dos datos en bruto que hacen falta
+para aplicar esas reglas en el cliente: cuántos entrenos lleva cada
+alumno desde `fecha_inicio_cinturon` (no desde siempre: un entreno de
+antes de la última promoción no debe contar para la siguiente) y si es
+menor de edad. `Set<String> alumno.listoParaGraduarse` se sigue
+calculando en Dart con las funciones de `progreso_cinturon.dart` de
+siempre, solo que ahora en bucle sobre el resultado de la RPC en vez de
+una consulta por alumno — con 166 alumnos, una por fila habría sido
+lenta.
+
+**Flutter:** `ProgresoCinturon` gana un getter `listoParaGraduarse`
+(`asistencias >= requeridas`, y solo si hay próximo cinturón). No cambia
+en nada el botón "Promover a un nuevo cinturón" de la ficha, que sigue
+disponible siempre que haya próximo cinturón: esto es una señal, no una
+puerta — el Profesor/Dueño puede seguir promoviendo antes de tiempo si
+lo decide (un alumno especialmente bueno, por ejemplo). En Miembros: la
+fila de resumen pasa de tres tarjetas en una línea a **cuatro en una
+cuadrícula de 2×2** (Al día/Sin cuota arriba, Inactivos/Listos abajo) —
+con cuatro ya no cabían a lo ancho en un móvil de 412 px sin apretarse
+demasiado, y así queda con más aire que forzando una fila más estrecha.
+Cada fila de alumno gana una tercera pastilla posible ("Listo para
+graduarse", verde) en el mismo `Wrap` que ya combina cuota e
+inactividad. La ficha del alumno también la enseña, junto a la de
+inactividad.
+
+**Verificado en rojo/verde:**
+- pgTAP (`supabase/tests/listo_para_graduarse_test.sql`, plan de 6):
+  quitando el filtro de fecha (`and true` en vez de comparar con
+  `fecha_inicio_cinturon`), la prueba de que un entreno de antes de
+  promocionar no cuenta falla correctamente (pasa de 2 a 3 asistencias);
+  restaurado, 275/275 en verde en toda la suite (antes 269).
+- Flutter (`test/features/miembros/progreso_cinturon_test.dart` +
+  `miembros_screen_test.dart`, pruebas nuevas): el límite exacto
+  (311 no está listo, 312 sí), que sin próximo cinturón nunca se marca
+  como listo, y que la pastilla y el contador aparecen bien en la
+  pantalla. Suite completa (`--exclude-tags=golden`) en 133/133.
+
 **Sin aplicar todavía a producción.** Pendiente de la autorización de
 Cipri para esta migración en concreto.
+
+## 2026-09-02 — Promover siempre es decisión del Dueño; arreglo del filtro de cinturón
+
+Cipri probó la vista previa del PR de "Listo para graduarse" y dejó dos
+cosas claras:
+
+1. **"Quiero promover a los alumnos cuando quiera sin depender de si ha
+   cumplido o ha pasado de las clases requeridas... yo tengo la última
+   palabra, lo demás es solo como guía."** Esto **ya era así** — no ha
+   hecho falta ningún cambio de código. El botón "Promover a un nuevo
+   cinturón" de la ficha nunca ha comprobado cuántos entrenos lleva el
+   alumno (ver `promover_cinturon` en `20260821071211_promociones_cinturon.sql`:
+   no hay ninguna condición de asistencias, solo que quien promueve sea
+   Profesor/Dueño de la academia). La pastilla "Listo para graduarse" es
+   y sigue siendo solo un aviso, nunca una puerta. **Decisión que queda
+   fijada por escrito para no romperla sin querer en el futuro**: el
+   número de entrenos es una guía para Cipri, nunca un requisito que
+   bloquee el botón ni la RPC.
+
+2. **Fallo real, encontrado por Cipri**: filtrar Miembros por cinturón
+   no enseñaba a nadie sin cinturón asignado, **ni siquiera al filtrar
+   por "Blanco"** — que es justo el cinturón que le correspondería por
+   defecto. La ficha del alumno y el cálculo de progreso ya trataban
+   "sin dato" como blanco (`actual ?? 'blanco'`, en
+   `progreso_cinturon.dart` desde julio), pero el filtro de la lista
+   comparaba el dato en bruto (`a.cinturon != _cinturonElegido`), sin
+   ese mismo respaldo — un alumno recién dado de alta, sin cinturón
+   puesto todavía, no aparecía nunca al filtrar por nada, ni por
+   "Blanco". Con casi ningún alumno real graduado todavía, esto hacía
+   que el filtro pareciera no funcionar en absoluto ("solo los veo en
+   Todos"). Corregido en `miembros_screen.dart`: el filtro y el texto
+   de la fila ahora tratan "sin cinturón" como blanco, igual que el
+   resto de la app.
+
+**Verificado en rojo/verde:** deshaciendo el respaldo a blanco en el
+filtro, la prueba nueva "sin cinturón asignado cuenta como blanco al
+filtrar" falla correctamente (Beto, sin cinturón, desaparece al filtrar
+por "Blanco"); restaurado, 134/134 en verde en toda la suite Flutter
+(antes 133). No toca nada de base de datos — no hace falta migración.
+
+Va en la misma rama/PR que "Listo para graduarse" (`claude/listo-para-graduarse`,
+#54): es un arreglo pequeño, sin migración, descubierto probando esa
+misma vista previa, y así Cipri solo tiene que volver a mirar un enlace
+en vez de dos.
+
+## 2026-09-02 — El diálogo de promover dejaba la app congelada (fallo grave)
+
+Cipri: *"no funciona nada, ni promover ni filtrar por cinturón, activos o
+al día... en ninguna parte, ni en producción, ni en móvil"*. Mandó tres
+capturas del móvil y ahí estaba todo: al confirmar la promoción, **se
+cerraba la ficha del alumno por detrás y el diálogo se quedaba pegado en
+pantalla**, encima de la lista de Miembros.
+
+**Causa.** En `ficha_miembro_screen.dart`, el diálogo de confirmación se
+construía con `builder: (_) => AlertDialog(...)` — descartando el
+contexto del propio diálogo — y sus botones llamaban a
+`Navigator.of(context).pop(...)` con el contexto de **la pantalla**, no
+el del diálogo. En la app real hay dos navegadores: el raíz y el anidado
+del armazón de la barra inferior. `showDialog` monta el diálogo en el
+**raíz**; `Navigator.of(contextoDePantalla)` resuelve al **anidado**. Así
+que cada pulsación cerraba la ficha en vez del diálogo, el `await
+showDialog` no devolvía nunca su respuesta, y la promoción no se
+ejecutaba jamás.
+
+**Por qué parecía que fallaba todo.** Un diálogo pegado bloquea la
+pantalla entera con su barrera modal: con él encima no se puede tocar el
+filtro de cinturón, ni las tarjetas del resumen, ni nada. Un solo fallo
+explicaba los cuatro síntomas que reportó.
+
+**Por qué no lo cazó ninguna prueba.** La prueba que ya existía montaba
+la ficha como `home:` de un `MaterialApp` pelado — **un único
+navegador**, donde equivocarse de contexto da exactamente igual. Pasaba
+por el motivo equivocado, que es justo lo que advierte §9.3 de
+CLAUDE.md. La prueba nueva monta la ficha dentro de un `Navigator`
+anidado, como en la app de verdad.
+
+**Verificado en rojo/verde:** con el contexto equivocado de vuelta, la
+prueba nueva falla con `Expected: ['a1->azul'] / Actual: []` (la
+promoción no llega al servidor) mientras la prueba antigua sigue en
+verde — la demostración de que la vieja no servía. Restaurado el
+arreglo, 135/135 en verde.
+
+**Lección para futuros diálogos y hojas:** en esta app, dentro de
+`showDialog`/`showModalBottomSheet` hay que usar **siempre** el contexto
+que da el `builder`, nunca el de la pantalla. Se revisaron los otros seis
+diálogos de la app (`equipo_screen`, `calendario_screen`,
+`clase_detalle_screen`, `perfil_screen`) y todos usan ya
+`builder: (context)`, que sombrea el de fuera y por eso están bien. Este
+era el único con `builder: (_)`.
+
+## 2026-09-03 — El job de pgTAP levanta solo la base de datos
+
+El check `supabase` del CI falló en el PR #54 con las migraciones ya
+aplicadas correctamente y sin llegar a ejecutar ni una prueba:
+
+```
+supabase_edge_runtime_itaca_app container logs:
+Bus error (core dumped)
+Error status 503
+```
+
+Se cayó el contenedor del *edge runtime* al pasar los health checks —
+nada que ver con el cambio del PR, que no tocaba ni una línea de SQL
+(solo Dart y documentación), y con el mismo check en verde el día
+anterior con esas mismas migraciones. No tengo permiso para relanzar
+jobs (`403` al intentarlo), así que en vez de esperar a que la lotería
+salga bien, se quita la causa: `supabase start` levantaba los catorce
+contenedores del stack cuando `supabase test db` solo necesita
+Postgres. Ahora se excluyen los otros trece (`-x gotrue,realtime,
+storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,
+edge-runtime,logflare,vector,supavisor`).
+
+**Comprobado antes de subirlo**, no a ciegas: parando el stack local y
+arrancándolo con ese mismo `-x`, queda solo `supabase_db_itaca_app` en
+pie y las 275 pruebas pgTAP pasan igual. Menos contenedores, menos
+tiempo y trece cosas menos que puedan reventar un job que solo consulta
+la base de datos.

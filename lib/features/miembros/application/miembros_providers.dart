@@ -42,6 +42,32 @@ final ultimaAsistenciaMiembrosProvider =
       return ref.watch(miembrosRepositoryProvider).ultimaAsistenciaPorAlumno();
     });
 
+/// Quién ya cumple los entrenos que hacen falta para el siguiente
+/// cinturón, para marcarlo en Miembros sin abrir la ficha de cada alumno.
+/// Aplica las mismas reglas que [progresoCinturonProvider] (niños/adultos,
+/// próximo cinturón según la escala que toque), pero de golpe para toda la
+/// academia en vez de una por una.
+final graduacionMiembrosProvider = FutureProvider.autoDispose<Set<String>>((
+  ref,
+) async {
+  final academiaId = (await ref.watch(
+    currentProfileProvider.future,
+  ))?.academiaId;
+  if (academiaId == null) return const {};
+
+  final repo = ref.watch(miembrosRepositoryProvider);
+  final alumnos = await ref.watch(alumnosMiembrosProvider.future);
+  final progreso = await repo.progresoGraduacionAlumnos();
+
+  return {
+    for (final alumno in alumnos)
+      if (progreso[alumno.id] case final datos?)
+        if (proximoCinturon(alumno.cinturon, datos.esMenor) != null &&
+            datos.asistencias >= asistenciasRequeridas(datos.esMenor))
+          alumno.id,
+  };
+});
+
 /// Progreso de un alumno hacia su siguiente cinturón — para la ficha de
 /// Miembros. La clave lleva su cinturón y fecha de inicio (en vez de solo
 /// el id) para que un cambio de cualquiera de los dos recalcule sin
