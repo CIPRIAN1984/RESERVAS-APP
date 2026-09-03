@@ -76,7 +76,14 @@ class AppColors {
   };
 
   /// Borde para los cinturones demasiado claros para distinguirse del fondo.
-  static bool beltNeedsBorder(String cinturon) => cinturon == 'blanco';
+  ///
+  /// No es solo el blanco de adulto: los mixtos de niños con franja blanca
+  /// (`gris_blanco`, `amarillo_blanco`, `naranja_blanco`, `verde_blanco`)
+  /// perdían la franja de vista sobre fondo claro — parecían el cinturón
+  /// liso, que es otro grado distinto.
+  static bool beltNeedsBorder(String cinturon) =>
+      cinturon == 'blanco' ||
+      (esCinturonMixto(cinturon) && cinturon.split('_').contains('blanco'));
 
   static const Color beltBorder = Color(0xFFD4D4D8);
 
