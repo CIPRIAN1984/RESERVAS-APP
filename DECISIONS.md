@@ -1613,3 +1613,60 @@ de adulto; ahora también los mixtos con blanco.
 prueba de ancho falla (`0` en vez de `48`) y la del borde falla en
 `gris_blanco`. Es un fallo que ninguna prueba podía cazar antes porque
 nadie comprobaba el tamaño de lo dibujado, solo que existiera.
+
+## 2026-09-03 — Agujero en relaciones_familia: un alumno podía adueñarse del perfil de otro
+
+Encontrado al empezar el trabajo de familias y tutores, revisando qué había
+ya construido. **Estaba vivo en producción.**
+
+**El fallo.** La política de inserción de `relaciones_familia` solo
+comprobaba quién decía ser el padre:
+
+```sql
+with check (parent_id = auth.uid())
+```
+
+pero **no comprobaba nada sobre el hijo**, y `authenticated` tenía el
+permiso INSERT de tabla (concedido en la migración 20260812, que arreglaba
+otra cosa). Así que cualquier persona con sesión podía declararse padre de
+cualquier otro perfil de la app.
+
+Y eso no se queda ahí: la política de UPDATE de `profiles` concede permiso
+sobre los hijos de uno (`es_padre_de(profiles.id)`). Encadenando las dos,
+un alumno podía cambiarle a otro **el nombre, los apellidos y la foto** —
+las tres únicas columnas que `authenticated` tiene concedidas. El rol, el
+estado y el cinturón seguían protegidos gracias a la lección de la
+migración 0013 (revocar la tabla y conceder solo columnas), que es
+justamente lo que impidió que esto fuera mucho peor.
+
+**Comprobado, no supuesto.** Se reprodujo contra la base de datos de
+producción dentro de `begin; … rollback;`: con la sesión de un alumno real,
+insertar la relación funcionó y el `update` le cambió el nombre a otro
+alumno a «SECUESTRADO». Revertido y verificado después: los dos nombres
+intactos y cero filas en `relaciones_familia`.
+
+**El arreglo.** Hoy no hay ni una fila en la tabla y familias está
+congelada, así que ningún cliente necesita escribir en ella: se le quitan
+los permisos de escritura a `authenticated` y se borran las tres políticas
+que los permitían. Cuando se retome familias, el alta de un hijo pasará por
+una RPC `security definer` que valide que el hijo es un menor recién
+creado y no un perfil ajeno — el mismo patrón que `reservar_clase`, que es
+la única puerta para reservar.
+
+**Dos permisos sobrantes, de paso.** `anon` (gente sin sesión) tenía
+INSERT, UPDATE y DELETE sobre `relaciones_familia` y sobre `profiles`,
+incluidas las columnas `rol`, `estado`, `academia_id` e `id`. Hoy no hacen
+daño porque `auth.uid()` es nulo y ninguna política le devuelve ninguna
+fila, pero es exactamente el permiso que convierte un despiste futuro en
+que alguien se haga administrador. Revocados.
+
+**Deriva encontrada de camino:** esos permisos de `anon` **no están en
+ninguna migración** — el repositorio nunca los concedió. Aparecieron solo
+en producción, así que salieron del panel de Supabase o de los privilegios
+por defecto. Es la primera vez que se documenta deriva entre las
+migraciones y la base de datos real; conviene revisarlo de vez en cuando
+(ver la skill `seguimiento`).
+
+**Verificado en rojo/verde:** devolviendo el permiso y la política a la
+base local, 4 de las 9 pruebas nuevas fallan — incluida la que ejecuta el
+ataque completo. Restaurado el arreglo, 282/282 en verde.
