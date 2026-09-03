@@ -1507,3 +1507,31 @@ diálogos de la app (`equipo_screen`, `calendario_screen`,
 `clase_detalle_screen`, `perfil_screen`) y todos usan ya
 `builder: (context)`, que sombrea el de fuera y por eso están bien. Este
 era el único con `builder: (_)`.
+
+## 2026-09-03 — El job de pgTAP levanta solo la base de datos
+
+El check `supabase` del CI falló en el PR #54 con las migraciones ya
+aplicadas correctamente y sin llegar a ejecutar ni una prueba:
+
+```
+supabase_edge_runtime_itaca_app container logs:
+Bus error (core dumped)
+Error status 503
+```
+
+Se cayó el contenedor del *edge runtime* al pasar los health checks —
+nada que ver con el cambio del PR, que no tocaba ni una línea de SQL
+(solo Dart y documentación), y con el mismo check en verde el día
+anterior con esas mismas migraciones. No tengo permiso para relanzar
+jobs (`403` al intentarlo), así que en vez de esperar a que la lotería
+salga bien, se quita la causa: `supabase start` levantaba los catorce
+contenedores del stack cuando `supabase test db` solo necesita
+Postgres. Ahora se excluyen los otros trece (`-x gotrue,realtime,
+storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,
+edge-runtime,logflare,vector,supavisor`).
+
+**Comprobado antes de subirlo**, no a ciegas: parando el stack local y
+arrancándolo con ese mismo `-x`, queda solo `supabase_db_itaca_app` en
+pie y las 275 pruebas pgTAP pasan igual. Menos contenedores, menos
+tiempo y trece cosas menos que puedan reventar un job que solo consulta
+la base de datos.

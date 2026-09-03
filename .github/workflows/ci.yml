@@ -78,8 +78,16 @@ jobs:
         with:
           version: 2.109.1
 
-      - name: Start local Supabase stack
-        run: supabase start
+      # Las pruebas pgTAP solo necesitan Postgres. Levantar el resto del
+      # stack (edge runtime, studio, realtime, storage...) no aporta nada
+      # aquí y sí da guerra: el 03/09/2026 el contenedor del edge runtime
+      # se cayó con "Bus error (core dumped)" y tumbó el job entero antes
+      # de ejecutar una sola prueba. Con solo la base de datos, las 275
+      # pruebas pasan igual y hay 13 contenedores menos que puedan fallar.
+      - name: Start local Supabase stack (solo la base de datos)
+        run: >
+          supabase start
+          -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       - name: Run pgTAP RLS tests
         run: supabase test db --verbose 2>&1 | tee supabase-test.log
