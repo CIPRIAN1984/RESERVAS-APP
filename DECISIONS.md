@@ -1535,3 +1535,81 @@ arrancándolo con ese mismo `-x`, queda solo `supabase_db_itaca_app` en
 pie y las 275 pruebas pgTAP pasan igual. Menos contenedores, menos
 tiempo y trece cosas menos que puedan reventar un job que solo consulta
 la base de datos.
+
+## 2026-09-03 — El resumen de Miembros pasa a ser el filtro
+
+Cipri, tras probar la versión con las cuatro tarjetas de resumen: *«aun
+no se puede filtrar por (al día, inactivos...). para que veas como se ve
+en la maat (mucho mejor que en la nuestra, parece de novatos) mejora este
+apartado de los alumnos. visualmente tenemos que ser profesionales de
+alta calidad»*, con nueve capturas de MAAT.
+
+**Lo que se ha hecho, y por qué así.**
+
+**Las tarjetas del resumen son ahora el filtro.** Contaban pero no
+hacían nada, que es exactamente el reproche. Tocar una deja en la lista
+solo a esa gente; volver a tocarla lo quita. La elegida se marca con
+borde negro — el mismo recurso que usa MAAT, y el único que cabe en un
+sistema monocromo sin inventar un color nuevo. Se combina con el filtro
+de cinturón y con la búsqueda.
+
+**Una barra de recuento** debajo: «6 ALUMNOS», o «3 DE 6 ALUMNOS» y un
+botón «Ver todos» cuando hay algo filtrado. Sin ella, con un filtro
+puesto la lista parece rota: se ven tres alumnos de 166 y nada explica
+por qué.
+
+**Filas rediseñadas.** Antes eran `TarjetaFila` (título, una línea de
+texto y pastillas). Ahora llevan **avatar** — foto si la hay, si no las
+iniciales, con el punto del cinturón abajo a la derecha, como manda el
+sistema de diseño —, el nombre, una línea en monoespaciada con el
+cinturón y cuándo entrenó por última vez (`AZUL · HACE 3 DÍAS`), y las
+pastillas. La pastilla de inactividad pasa de decir «HACE 30 DÍAS» a
+decir «INACTIVO»: el dato exacto ya está en la línea de arriba y las
+pastillas cortas caben todas en una fila.
+
+**Cabeceras por inicial** (A, B, C…). Con 166 alumnos una lista corrida
+obliga a leerlo todo para encontrar a alguien.
+
+**Tocar una fila abre siempre la ficha.** Antes, tocar a quien no tenía
+cuota abría el cobro en efectivo y tocar a quien sí la tenía abría la
+ficha: el mismo gesto hacía dos cosas distintas según a quién tocaras,
+que es la clase de detalle que hace que una app parezca amateur. El
+cobro sigue estando a un toque, en un botón propio en su fila (icono de
+billetes, solo para quien no tiene cuota).
+
+**Fuera de alcance a propósito**, porque son datos que hoy no
+guardamos: fotos de verdad, teléfono, fecha de nacimiento, documentos,
+notas, rayas del cinturón y el historial de promociones. La ficha con
+pestañas (Resumen / Actividad / Promociones) que enseña MAAT depende de
+casi todo eso; se hará cuando existan esos datos, no antes.
+
+**Verificado en rojo/verde:** anulando el filtro de estado (`if (false &&
+!enEstado(a))`) caen las tres pruebas nuevas del filtro; restaurado,
+143/143 en verde. Además se miró renderizado con las tipografías reales,
+en 412 px, en los dos estados (sin filtro y con «Inactivos» elegido).
+
+## 2026-09-03 — Los doce cinturones mixtos de niños se dibujaban en blanco
+
+Salió al mirar Miembros renderizado: un alumno de cinturón
+**amarillo-negro** tenía el punto del cinturón vacío. No era cosa de esa
+pantalla — `PuntoCinturon` lleva rotos **todos** los cinturones mixtos
+(`gris_blanco`, `amarillo_negro`, `naranja_blanco`… doce de los
+diecisiete), en todas partes: ranking, ficha, compañeros de clase.
+
+**Causa.** El punto mixto se dibuja con una `Column` de dos
+`ColoredBox`. Dentro de una `Column`, el ancho llega **suelto**
+(`0..tamaño`), y un `ColoredBox` sin hijo se queda con
+`constraints.smallest`, o sea **0 px de ancho**. Se dibujaban los dos
+colores, con anchura cero. Arreglado envolviendo cada mitad en un
+`SizedBox(width: double.infinity)`.
+
+**Y un segundo fallo del mismo sitio:** en los mixtos con franja blanca
+(`gris_blanco`, `amarillo_blanco`, `naranja_blanco`, `verde_blanco`) la
+franja se confundía con el fondo, así que parecían el cinturón liso —
+que es **otro grado distinto**. `beltNeedsBorder` solo miraba el blanco
+de adulto; ahora también los mixtos con blanco.
+
+**Verificado en rojo/verde:** deshaciendo cada arreglo por separado, la
+prueba de ancho falla (`0` en vez de `48`) y la del borde falla en
+`gris_blanco`. Es un fallo que ninguna prueba podía cazar antes porque
+nadie comprobaba el tamaño de lo dibujado, solo que existiera.

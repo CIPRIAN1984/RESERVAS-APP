@@ -59,9 +59,15 @@ void main() {
       expect(AppColors.belt(null), AppColors.beltColors['blanco']);
     });
 
-    test('solo el blanco necesita borde para verse sobre fondo claro', () {
+    test('lo blanco necesita borde para verse sobre fondo claro', () {
       expect(AppColors.beltNeedsBorder('blanco'), isTrue);
       expect(AppColors.beltNeedsBorder('negro'), isFalse);
+      // También los mixtos con franja blanca: sin borde, la franja se
+      // confunde con el fondo y el cinturón parece el liso, que es otro
+      // grado.
+      expect(AppColors.beltNeedsBorder('gris_blanco'), isTrue);
+      expect(AppColors.beltNeedsBorder('verde_blanco'), isTrue);
+      expect(AppColors.beltNeedsBorder('amarillo_negro'), isFalse);
     });
 
     test('los cuatro colores base de niño tienen su propio tono', () {

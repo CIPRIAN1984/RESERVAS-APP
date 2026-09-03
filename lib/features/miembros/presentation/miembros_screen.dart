@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/theme/app_theme.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/models/profile.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -9,13 +11,13 @@ import '../../equipo/presentation/dar_cuota_sheet.dart';
 import '../application/miembros_providers.dart';
 import 'ficha_miembro_screen.dart';
 
-/// Alumnos de la academia, buscables y filtrables por cinturón — lo que
-/// pidió Cipri mirando MAAT. La pastilla de cuota sigue siendo binaria
-/// (al día/sin cuota) a propósito: quien está en prueba o pausada ya
-/// cuenta bien en uno u otro lado (ver `alumnosConCuotaAlDia`), y el
-/// detalle de los cuatro estados es cosa de gestionar, que vive en
-/// Equipo. Con inactividad y listo para graduarse, ya está todo lo que
-/// se pidió para esta pantalla.
+/// Alumnos de la academia: buscar, filtrar por cinturón y por estado, y
+/// abrir la ficha de cualquiera.
+///
+/// La pastilla de cuota es binaria a propósito (al día / sin cuota): quien
+/// está en prueba o pausada ya cuenta bien en uno u otro lado (ver
+/// `alumnosConCuotaAlDia`), y el detalle de los cuatro estados es cosa de
+/// gestionar, que vive en Equipo.
 const _etiquetasCinturon = {
   'blanco': 'Blanco',
   'azul': 'Azul',
@@ -78,6 +80,21 @@ String etiquetaInactividad(DateTime? ultimaAsistencia) {
   return dias == 1 ? 'Hace 1 día' : 'Hace $dias días';
 }
 
+/// Los cuatro montones en los que se reparte la academia. Son los mismos
+/// que ya contaban las tarjetas del resumen: ahora, además, se puede tocar
+/// una para quedarse solo con esa gente — que era lo que faltaba para que
+/// el resumen sirviera de algo más que de adorno.
+enum FiltroEstado {
+  alDia('Al día'),
+  sinCuota('Sin cuota'),
+  inactivos('Inactivos'),
+  listos('Listos');
+
+  const FiltroEstado(this.etiqueta);
+
+  final String etiqueta;
+}
+
 class MiembrosScreen extends ConsumerStatefulWidget {
   const MiembrosScreen({super.key});
 
@@ -88,6 +105,7 @@ class MiembrosScreen extends ConsumerStatefulWidget {
 class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
   String _busqueda = '';
   String? _cinturonElegido;
+  FiltroEstado? _estadoElegido;
 
   void _abrirFicha(Profile alumno) {
     Navigator.of(context).push(
@@ -119,6 +137,19 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
     // valor: solo llega aquí `null` de verdad cuando se cierra deslizando.
     if (!mounted) return;
     setState(() => _cinturonElegido = elegido);
+  }
+
+  /// Tocar la tarjeta que ya está elegida la apaga: es el mismo gesto para
+  /// poner y quitar el filtro, sin tener que buscar un botón aparte.
+  void _alternarEstado(FiltroEstado estado) {
+    setState(() => _estadoElegido = _estadoElegido == estado ? null : estado);
+  }
+
+  void _quitarFiltros() {
+    setState(() {
+      _cinturonElegido = null;
+      _estadoElegido = null;
+    });
   }
 
   @override
@@ -162,6 +193,21 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
               message: 'No se han podido cargar los alumnos.',
             ),
             data: (alumnos) {
+              if (alumnos.isEmpty) {
+                return const EmptyState(
+                  icon: Icons.groups_outlined,
+                  message: 'Todavía no hay alumnos en la academia.',
+                );
+              }
+
+              bool enEstado(Profile a) => switch (_estadoElegido) {
+                null => true,
+                FiltroEstado.alDia => cuotaAlDia.contains(a.id),
+                FiltroEstado.sinCuota => !cuotaAlDia.contains(a.id),
+                FiltroEstado.inactivos => esInactivo(ultimaAsistencia[a.id]),
+                FiltroEstado.listos => listosParaGraduarse.contains(a.id),
+              };
+
               final visibles = alumnos.where((a) {
                 // Sin cinturón asignado cuenta como blanco (igual que en la
                 // ficha y en el progreso hacia el siguiente): si no, nadie
@@ -171,16 +217,10 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                     (a.cinturon ?? 'blanco') != _cinturonElegido) {
                   return false;
                 }
+                if (!enEstado(a)) return false;
                 if (_busqueda.isEmpty) return true;
                 return a.nombreCompleto.toLowerCase().contains(_busqueda);
               }).toList();
-
-              if (alumnos.isEmpty) {
-                return const EmptyState(
-                  icon: Icons.groups_outlined,
-                  message: 'Todavía no hay alumnos en la academia.',
-                );
-              }
 
               final alDia = alumnos
                   .where((a) => cuotaAlDia.contains(a.id))
@@ -192,13 +232,18 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                   .where((a) => listosParaGraduarse.contains(a.id))
                   .length;
 
+              final hayFiltros =
+                  _cinturonElegido != null ||
+                  _estadoElegido != null ||
+                  _busqueda.isNotEmpty;
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Dos filas de dos: con cuatro tarjetas ya no caben a lo
                   // ancho en un móvil de 412 px sin encogerse demasiado.
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                     child: Column(
                       children: [
                         Row(
@@ -206,16 +251,26 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                             Expanded(
                               child: _TarjetaResumen(
                                 numero: alDia,
+                                estado: FiltroEstado.alDia,
                                 pastilla: const PastillaEstado.exito('Al día'),
+                                seleccionada:
+                                    _estadoElegido == FiltroEstado.alDia,
+                                onTap: () =>
+                                    _alternarEstado(FiltroEstado.alDia),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: _TarjetaResumen(
                                 numero: alumnos.length - alDia,
+                                estado: FiltroEstado.sinCuota,
                                 pastilla: const PastillaEstado.error(
                                   'Sin cuota',
                                 ),
+                                seleccionada:
+                                    _estadoElegido == FiltroEstado.sinCuota,
+                                onTap: () =>
+                                    _alternarEstado(FiltroEstado.sinCuota),
                               ),
                             ),
                           ],
@@ -226,16 +281,26 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                             Expanded(
                               child: _TarjetaResumen(
                                 numero: inactivos,
+                                estado: FiltroEstado.inactivos,
                                 pastilla: const PastillaEstado.aviso(
                                   'Inactivos',
                                 ),
+                                seleccionada:
+                                    _estadoElegido == FiltroEstado.inactivos,
+                                onTap: () =>
+                                    _alternarEstado(FiltroEstado.inactivos),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: _TarjetaResumen(
                                 numero: listos,
+                                estado: FiltroEstado.listos,
                                 pastilla: const PastillaEstado.exito('Listos'),
+                                seleccionada:
+                                    _estadoElegido == FiltroEstado.listos,
+                                onTap: () =>
+                                    _alternarEstado(FiltroEstado.listos),
                               ),
                             ),
                           ],
@@ -243,55 +308,31 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                       ],
                     ),
                   ),
+                  _BarraRecuento(
+                    visibles: visibles.length,
+                    total: alumnos.length,
+                    hayFiltros: hayFiltros,
+                    onQuitar: _quitarFiltros,
+                  ),
                   if (visibles.isEmpty)
-                    const Expanded(
+                    Expanded(
                       child: EmptyState(
                         icon: Icons.search_off,
-                        message: 'Ningún alumno coincide con el filtro.',
+                        message: _estadoElegido == null
+                            ? 'Ningún alumno coincide con el filtro.'
+                            : 'Ningún alumno en «${_estadoElegido!.etiqueta}» '
+                                  'con el resto de filtros.',
                       ),
                     )
                   else
                     Expanded(
-                      child: ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        itemCount: visibles.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 8),
-                        itemBuilder: (context, index) {
-                          final alumno = visibles[index];
-                          final tieneCuota = cuotaAlDia.contains(alumno.id);
-                          final ultima = ultimaAsistencia[alumno.id];
-                          final inactivo = esInactivo(ultima);
-                          final listo = listosParaGraduarse.contains(alumno.id);
-                          return TarjetaFila(
-                            titulo: alumno.nombreCompleto,
-                            detalle:
-                                'Cinturón '
-                                '${etiquetaCinturon(alumno.cinturon ?? 'blanco')}',
-                            // Wrap y no Row: con nombres largos o pantallas
-                            // estrechas, varias pastillas se salían por la
-                            // derecha (mismo motivo que en Equipo).
-                            estado: Wrap(
-                              spacing: 8,
-                              runSpacing: 4,
-                              children: [
-                                tieneCuota
-                                    ? const PastillaEstado.exito('Al día')
-                                    : const PastillaEstado.error('Sin cuota'),
-                                if (inactivo)
-                                  PastillaEstado.aviso(
-                                    etiquetaInactividad(ultima),
-                                  ),
-                                if (listo)
-                                  const PastillaEstado.exito(
-                                    'Listo para graduarse',
-                                  ),
-                              ],
-                            ),
-                            onTap: tieneCuota
-                                ? () => _abrirFicha(alumno)
-                                : () => _darCuota(alumno),
-                          );
-                        },
+                      child: _ListaAlumnos(
+                        alumnos: visibles,
+                        cuotaAlDia: cuotaAlDia,
+                        ultimaAsistencia: ultimaAsistencia,
+                        listosParaGraduarse: listosParaGraduarse,
+                        onAbrirFicha: _abrirFicha,
+                        onCobrar: _darCuota,
                       ),
                     ),
                 ],
@@ -309,6 +350,296 @@ extension on Profile {
       [nombre, apellidos].whereType<String>().join(' ');
 }
 
+/// Lista de alumnos agrupada por inicial, como la agenda del móvil y como
+/// MAAT. Con 166 alumnos, una lista corrida obliga a leerlo todo para
+/// encontrar a alguien; las cabeceras dan una referencia al desplazarse.
+class _ListaAlumnos extends StatelessWidget {
+  const _ListaAlumnos({
+    required this.alumnos,
+    required this.cuotaAlDia,
+    required this.ultimaAsistencia,
+    required this.listosParaGraduarse,
+    required this.onAbrirFicha,
+    required this.onCobrar,
+  });
+
+  final List<Profile> alumnos;
+  final Set<String> cuotaAlDia;
+  final Map<String, DateTime> ultimaAsistencia;
+  final Set<String> listosParaGraduarse;
+  final void Function(Profile) onAbrirFicha;
+  final void Function(Profile) onCobrar;
+
+  @override
+  Widget build(BuildContext context) {
+    // La consulta ya devuelve los alumnos ordenados por nombre, así que
+    // basta con cortar cada vez que cambia la inicial.
+    final elementos = <Object>[];
+    String? letraAnterior;
+    for (final alumno in alumnos) {
+      final nombre = alumno.nombreCompleto;
+      final letra = nombre.isEmpty ? '#' : nombre[0].toUpperCase();
+      if (letra != letraAnterior) {
+        elementos.add(letra);
+        letraAnterior = letra;
+      }
+      elementos.add(alumno);
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      itemCount: elementos.length,
+      itemBuilder: (context, index) {
+        final elemento = elementos[index];
+        if (elemento is String) {
+          return _CabeceraLetra(letra: elemento, primera: index == 0);
+        }
+        final alumno = elemento as Profile;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: _FilaAlumno(
+            alumno: alumno,
+            tieneCuota: cuotaAlDia.contains(alumno.id),
+            ultima: ultimaAsistencia[alumno.id],
+            listo: listosParaGraduarse.contains(alumno.id),
+            onTap: () => onAbrirFicha(alumno),
+            onCobrar: cuotaAlDia.contains(alumno.id)
+                ? null
+                : () => onCobrar(alumno),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CabeceraLetra extends StatelessWidget {
+  const _CabeceraLetra({required this.letra, required this.primera});
+
+  final String letra;
+  final bool primera;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(left: 4, top: primera ? 4 : 16, bottom: 10),
+      child: Row(
+        children: [
+          Text(
+            letra,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppColors.ink,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Expanded(child: Divider()),
+        ],
+      ),
+    );
+  }
+}
+
+/// Fila de alumno: foto (o iniciales) con el punto de su cinturón, nombre,
+/// una línea de datos en monoespaciada y las pastillas que hagan falta.
+///
+/// No usa `TarjetaFila` porque esta necesita avatar y un botón de cobro a
+/// la derecha, que aquella no contempla.
+class _FilaAlumno extends StatelessWidget {
+  const _FilaAlumno({
+    required this.alumno,
+    required this.tieneCuota,
+    required this.ultima,
+    required this.listo,
+    required this.onTap,
+    this.onCobrar,
+  });
+
+  final Profile alumno;
+  final bool tieneCuota;
+  final DateTime? ultima;
+  final bool listo;
+  final VoidCallback onTap;
+  final VoidCallback? onCobrar;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final inactivo = esInactivo(ultima);
+    final cinturon = alumno.cinturon ?? 'blanco';
+
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _AvatarAlumno(alumno: alumno),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      alumno.nombreCompleto,
+                      style: t.titleMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${etiquetaCinturon(cinturon)} · '
+                              '${etiquetaInactividad(ultima)}'
+                          .toUpperCase(),
+                      style: t.labelSmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 10),
+                    // Wrap y no Row: con nombres largos o pantallas
+                    // estrechas, varias pastillas se salían por la derecha
+                    // (mismo motivo que en Equipo).
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        tieneCuota
+                            ? const PastillaEstado.exito('Al día')
+                            : const PastillaEstado.error('Sin cuota'),
+                        if (inactivo) const PastillaEstado.aviso('Inactivo'),
+                        if (listo)
+                          const PastillaEstado.exito('Listo para graduarse'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (onCobrar != null) ...[
+                const SizedBox(width: 4),
+                SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: IconButton(
+                    onPressed: onCobrar,
+                    icon: const Icon(Icons.payments_outlined, size: 20),
+                    tooltip: 'Registrar cobro en efectivo',
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.ground,
+                      foregroundColor: AppColors.ink,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Avatar circular con la foto del alumno (o sus iniciales) y el punto de
+/// su cinturón abajo a la derecha, como manda el sistema de diseño.
+class _AvatarAlumno extends StatelessWidget {
+  const _AvatarAlumno({required this.alumno});
+
+  final Profile alumno;
+
+  @override
+  Widget build(BuildContext context) {
+    final nombre = alumno.nombre;
+    final apellidos = alumno.apellidos ?? '';
+    final iniciales = [
+      if (nombre.isNotEmpty) nombre[0],
+      if (apellidos.isNotEmpty) apellidos[0],
+    ].join().toUpperCase();
+
+    return SizedBox(
+      width: 46,
+      height: 46,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          CircleAvatar(
+            radius: 23,
+            backgroundColor: AppColors.surfaceStrong,
+            backgroundImage: alumno.fotoUrl != null
+                ? CachedNetworkImageProvider(alumno.fotoUrl!)
+                : null,
+            child: alumno.fotoUrl == null
+                ? Text(
+                    iniciales.isEmpty ? '?' : iniciales,
+                    style: const TextStyle(
+                      fontFamily: AppTheme.fontSans,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.subtle,
+                    ),
+                  )
+                : null,
+          ),
+          Positioned(
+            right: -1,
+            bottom: -1,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              // Anillo blanco, no del color de la tarjeta: sobre el gris de
+              // la tarjeta un anillo gris no separa nada y el punto del
+              // cinturón se confunde con el avatar.
+              decoration: const BoxDecoration(
+                color: AppColors.ground,
+                shape: BoxShape.circle,
+              ),
+              child: PuntoCinturon(alumno.cinturon ?? 'blanco', tamano: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Cuántos alumnos se están viendo de cuántos hay, y el atajo para volver a
+/// verlos todos. Sin esto, con un filtro puesto la lista parece vacía sin
+/// que nada explique por qué.
+class _BarraRecuento extends StatelessWidget {
+  const _BarraRecuento({
+    required this.visibles,
+    required this.total,
+    required this.hayFiltros,
+    required this.onQuitar,
+  });
+
+  final int visibles;
+  final int total;
+  final bool hayFiltros;
+  final VoidCallback onQuitar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 8, hayFiltros ? 8 : 20, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              hayFiltros
+                  ? '$visibles de $total alumnos'.toUpperCase()
+                  : '$total ${total == 1 ? 'alumno' : 'alumnos'}'.toUpperCase(),
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+          ),
+          if (hayFiltros)
+            TextButton(onPressed: onQuitar, child: const Text('Ver todos')),
+        ],
+      ),
+    );
+  }
+}
+
 class _BotonCinturon extends StatelessWidget {
   const _BotonCinturon({required this.cinturon, required this.onTap});
 
@@ -323,7 +654,15 @@ class _BotonCinturon extends StatelessWidget {
           ? const Icon(Icons.filter_list, size: 18)
           : PuntoCinturon(cinturon, tamano: 14),
       label: Text(cinturon == null ? 'Cinturón' : etiquetaCinturon(cinturon!)),
-      style: OutlinedButton.styleFrom(minimumSize: const Size(0, 56)),
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(0, 56),
+        // Con un cinturón elegido el botón se marca en negro, para que se
+        // note de un vistazo que la lista está filtrada.
+        side: BorderSide(
+          color: cinturon == null ? const Color(0x400A0A0A) : AppColors.ink,
+          width: cinturon == null ? 1 : 1.5,
+        ),
+      ),
     );
   }
 }
@@ -442,26 +781,57 @@ class _CinturonChip extends StatelessWidget {
   }
 }
 
+/// Tarjeta del resumen. Además de contar, **es el filtro**: tocarla deja en
+/// la lista solo a esa gente, y volver a tocarla lo quita. La elegida se
+/// marca con borde negro (el mismo recurso que usa MAAT).
 class _TarjetaResumen extends StatelessWidget {
-  const _TarjetaResumen({required this.numero, required this.pastilla});
+  const _TarjetaResumen({
+    required this.numero,
+    required this.estado,
+    required this.pastilla,
+    required this.seleccionada,
+    required this.onTap,
+  });
 
   final int numero;
+  final FiltroEstado estado;
   final PastillaEstado pastilla;
+  final bool seleccionada;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
-        child: Column(
-          children: [
-            Text('$numero', style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 6),
-            // Con tres tarjetas por fila (antes eran dos) una pastilla larga
-            // como «INACTIVOS» ya no cabe a su tamaño natural en un móvil
-            // estrecho; se encoge en vez de desbordar.
-            FittedBox(child: pastilla),
-          ],
+    return Semantics(
+      button: true,
+      selected: seleccionada,
+      label: '$numero ${estado.etiqueta}',
+      child: Card(
+        key: ValueKey('resumen-${estado.name}'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: seleccionada
+              ? const BorderSide(color: AppColors.ink, width: 2)
+              : BorderSide.none,
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+            child: Column(
+              children: [
+                Text(
+                  '$numero',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                const SizedBox(height: 6),
+                // Con cuatro tarjetas, una pastilla larga como «INACTIVOS»
+                // no cabe a su tamaño natural en un móvil estrecho; se
+                // encoge en vez de desbordar.
+                FittedBox(child: pastilla),
+              ],
+            ),
+          ),
         ),
       ),
     );

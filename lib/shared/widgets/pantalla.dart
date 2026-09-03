@@ -268,12 +268,23 @@ class PuntoCinturon extends StatelessWidget {
         child: mixto
             ? Column(
                 children: [
+                  // `double.infinity` de ancho no es opcional: dentro de una
+                  // Column el ancho llega suelto (0..tamaño) y un ColoredBox
+                  // sin hijo se queda con el mínimo — es decir, 0 px de
+                  // ancho. Los doce cinturones mixtos de niños salían en
+                  // blanco por esto.
                   Expanded(
                     flex: 2,
-                    child: ColoredBox(color: AppColors.belt(valor)),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ColoredBox(color: AppColors.belt(valor)),
+                    ),
                   ),
                   Expanded(
-                    child: ColoredBox(color: AppColors.franjaCinturon(valor)),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ColoredBox(color: AppColors.franjaCinturon(valor)),
+                    ),
                   ),
                 ],
               )
