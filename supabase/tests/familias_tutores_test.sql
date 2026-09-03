@@ -3,7 +3,7 @@
 
 begin;
 
-select plan(29);
+select plan(27);
 
 -- ============================================================
 -- Validar tabla relaciones_familia
@@ -68,23 +68,18 @@ select ok(
    and policyname = 'relaciones_familia_select'),
   'Policy relaciones_familia_select existe');
 
+-- Las políticas de INSERT/UPDATE/DELETE se retiraron el 03/09/2026: la de
+-- inserción solo comprobaba `parent_id = auth.uid()` y no miraba de quién
+-- se decía uno padre, así que cualquier alumno podía adueñarse del perfil
+-- de otro. Ver `agujero_relaciones_familia_test.sql` y la migración
+-- 20260903120000. Ahora la tabla es de solo lectura para los clientes.
 select ok(
-  (select count(*) > 0 from pg_policies
+  (select count(*) = 0 from pg_policies
    where tablename = 'relaciones_familia'
-   and policyname = 'relaciones_familia_insert'),
-  'Policy relaciones_familia_insert existe');
-
-select ok(
-  (select count(*) > 0 from pg_policies
-   where tablename = 'relaciones_familia'
-   and policyname = 'relaciones_familia_update'),
-  'Policy relaciones_familia_update existe');
-
-select ok(
-  (select count(*) > 0 from pg_policies
-   where tablename = 'relaciones_familia'
-   and policyname = 'relaciones_familia_delete'),
-  'Policy relaciones_familia_delete existe');
+   and policyname in ('relaciones_familia_insert',
+                      'relaciones_familia_update',
+                      'relaciones_familia_delete')),
+  'Los clientes ya no tienen políticas de escritura en relaciones_familia');
 
 -- ============================================================
 -- Validar function crear_perfil_hijo
