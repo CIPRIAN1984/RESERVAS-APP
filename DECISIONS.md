@@ -1462,3 +1462,48 @@ Va en la misma rama/PR que "Listo para graduarse" (`claude/listo-para-graduarse`
 #54): es un arreglo pequeño, sin migración, descubierto probando esa
 misma vista previa, y así Cipri solo tiene que volver a mirar un enlace
 en vez de dos.
+
+## 2026-09-02 — El diálogo de promover dejaba la app congelada (fallo grave)
+
+Cipri: *"no funciona nada, ni promover ni filtrar por cinturón, activos o
+al día... en ninguna parte, ni en producción, ni en móvil"*. Mandó tres
+capturas del móvil y ahí estaba todo: al confirmar la promoción, **se
+cerraba la ficha del alumno por detrás y el diálogo se quedaba pegado en
+pantalla**, encima de la lista de Miembros.
+
+**Causa.** En `ficha_miembro_screen.dart`, el diálogo de confirmación se
+construía con `builder: (_) => AlertDialog(...)` — descartando el
+contexto del propio diálogo — y sus botones llamaban a
+`Navigator.of(context).pop(...)` con el contexto de **la pantalla**, no
+el del diálogo. En la app real hay dos navegadores: el raíz y el anidado
+del armazón de la barra inferior. `showDialog` monta el diálogo en el
+**raíz**; `Navigator.of(contextoDePantalla)` resuelve al **anidado**. Así
+que cada pulsación cerraba la ficha en vez del diálogo, el `await
+showDialog` no devolvía nunca su respuesta, y la promoción no se
+ejecutaba jamás.
+
+**Por qué parecía que fallaba todo.** Un diálogo pegado bloquea la
+pantalla entera con su barrera modal: con él encima no se puede tocar el
+filtro de cinturón, ni las tarjetas del resumen, ni nada. Un solo fallo
+explicaba los cuatro síntomas que reportó.
+
+**Por qué no lo cazó ninguna prueba.** La prueba que ya existía montaba
+la ficha como `home:` de un `MaterialApp` pelado — **un único
+navegador**, donde equivocarse de contexto da exactamente igual. Pasaba
+por el motivo equivocado, que es justo lo que advierte §9.3 de
+CLAUDE.md. La prueba nueva monta la ficha dentro de un `Navigator`
+anidado, como en la app de verdad.
+
+**Verificado en rojo/verde:** con el contexto equivocado de vuelta, la
+prueba nueva falla con `Expected: ['a1->azul'] / Actual: []` (la
+promoción no llega al servidor) mientras la prueba antigua sigue en
+verde — la demostración de que la vieja no servía. Restaurado el
+arreglo, 135/135 en verde.
+
+**Lección para futuros diálogos y hojas:** en esta app, dentro de
+`showDialog`/`showModalBottomSheet` hay que usar **siempre** el contexto
+que da el `builder`, nunca el de la pantalla. Se revisaron los otros seis
+diálogos de la app (`equipo_screen`, `calendario_screen`,
+`clase_detalle_screen`, `perfil_screen`) y todos usan ya
+`builder: (context)`, que sombrea el de fuera y por eso están bien. Este
+era el único con `builder: (_)`.

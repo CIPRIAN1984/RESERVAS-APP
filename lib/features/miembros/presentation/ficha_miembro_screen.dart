@@ -24,9 +24,16 @@ class FichaMiembroScreen extends ConsumerWidget {
     WidgetRef ref,
     String proximo,
   ) async {
+    // OJO con el contexto: `showDialog` monta el diálogo en el navegador
+    // raíz, pero `context` aquí es el de esta pantalla, que en la app real
+    // cuelga del navegador anidado del armazón (el de la barra inferior).
+    // Usar `context` en los botones cerraba la ficha por detrás y dejaba el
+    // diálogo pegado en pantalla, sin devolver nunca la respuesta: promover
+    // no llegaba a ejecutarse jamás. Hay que usar el contexto del propio
+    // diálogo. (Lo cazó Cipri probando en el móvil, 02/09/2026.)
     final confirmar = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (contextoDialogo) => AlertDialog(
         title: const Text('Promover a un nuevo cinturón'),
         content: Text(
           '¿Pasar a ${alumno.nombreCompleto} de '
@@ -35,11 +42,11 @@ class FichaMiembroScreen extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => Navigator.of(contextoDialogo).pop(false),
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(contextoDialogo).pop(true),
             child: const Text('Promover'),
           ),
         ],
