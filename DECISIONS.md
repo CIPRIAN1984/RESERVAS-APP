@@ -1670,3 +1670,79 @@ migraciones y la base de datos real; conviene revisarlo de vez en cuando
 **Verificado en rojo/verde:** devolviendo el permiso y la política a la
 base local, 4 de las 9 pruebas nuevas fallan — incluida la que ejecuta el
 ataque completo. Restaurado el arreglo, 282/282 en verde.
+
+## 2026-09-03 — Familias y tutores, segunda versión (base de datos)
+
+La primera versión (agosto) estaba congelada **y rota de raíz**:
+`crear_perfil_hijo` insertaba un perfil con un uuid nuevo, pero
+`profiles.id` tenía una clave foránea contra `auth.users`. Fallaba
+siempre. FREEZE.md ya lo anotó el 12/08/2026. No se descongela: se rehace.
+
+**Decisiones de producto (Cipri, 03/09/2026):**
+
+* **Un padre que solo trae al hijo no cuenta como alumno.** No sale en
+  Miembros ni en «Sin cuota» ni en «Inactivos». Si además entrena, cuenta
+  como alumno también. De ahí la columna `profiles.entrena`, que él mismo
+  puede cambiar en su perfil.
+* **Una cuota por hijo**, igual que cualquier otro alumno. Ni cuota
+  familiar ni descuento de hermanos. Consecuencia práctica: **el modelo de
+  cobros no se toca en absoluto**, y al reservar por un hijo se mira la
+  cuota *del hijo*, no la del padre.
+
+**Decisiones técnicas:**
+
+* **Los menores son perfiles normales sin cuenta.** Se descartó crearles
+  una cuenta falsa en `auth.users`: un menor no debe poder iniciar sesión
+  nunca, y una cuenta que existe es una cuenta que algún día alguien usa.
+  Al ser perfiles normales, todo lo demás (inscripciones, asistencias,
+  cuotas, ranking, cinturones, graduación) les funciona sin tocar nada.
+* El precio es quitar la clave foránea `profiles.id -> auth.users.id`. Lo
+  único que daba gratis era el borrado en cascada, y se recupera con un
+  disparador explícito sobre `auth.users`. A un menor no le afecta: no
+  tiene cuenta que borrar, y su historial no depende de nadie.
+* **`crear_hijo` crea el perfil del hijo dentro de la función.** No acepta
+  un id ajeno, que es exactamente lo que permitía el agujero de esta misma
+  mañana. Valida que quien llama esté activo, que no sea a su vez un menor,
+  que el nombre no venga vacío, y pone un tope de 10 hijos.
+* **`reservar_clase` y `cancelar_reserva` ganan un segundo argumento
+  opcional** `p_alumno_id`. Sin él, se opera sobre uno mismo; con él, solo
+  si `es_padre_de` dice que sí. Las dos funciones ya trabajaban sobre una
+  variable `v_usuario_id`, así que el cambio real es de dónde sale.
+
+**Tres cosas que salieron mal y merece la pena recordar:**
+
+1. **Reconstruí `cancelar_reserva` desde una versión vieja.** Es
+   literalmente el error contra el que avisa este fichero desde agosto. Mi
+   copia perdía `promovida_at`, cambiaba el orden de la cola, escribía en
+   una columna `datos` que no existe (es `data`) y **renombraba las claves
+   que devuelve** (`estado_anterior` en vez de `estado_cancelado`), lo que
+   habría roto la cancelación en la app. Lo cazaron cinco suites pgTAP a la
+   vez. Solución adoptada: en vez de copiar a mano, **extraer el cuerpo
+   vigente del fichero de migración y aplicarle solo los cambios
+   necesarios**, por programa. Es lo que se hizo también con
+   `reservar_clase`.
+2. **`clases_restantes` vuelve a comprobar permisos por dentro** y solo
+   deja a Dueño y Profesor mirar el saldo de otra persona, así que un padre
+   reservando para su hijo se estrellaba con «No autorizado.». Se llama a
+   `_saldo_clases` directamente, que es lo que ya hacía `cancelar_reserva`
+   desde agosto por el mismo motivo.
+3. **Cambiar la firma de una función rompe las pruebas que la nombran.**
+   `function_permissions_test` y `waitlist_policies_test` referencian
+   `reservar_clase(uuid)` y `cancelar_reserva(uuid)` por su firma exacta y
+   abortaban el fichero entero. Actualizadas.
+
+**Verificado en rojo/verde, tres veces:**
+* Haciendo que `es_padre_de` devuelva siempre `true` → caen las pruebas del
+  extraño que reserva y cancela por el hijo de otro.
+* Quitando el filtro `entrena` → cae la del tutor que no debería salir en
+  la lista de graduación.
+* Devolviendo la clave foránea contra `auth.users` → cae toda el alta de
+  hijos, que es exactamente cómo estaba rota la primera versión.
+
+Restaurado todo: **300/300** pgTAP, `flutter analyze` limpio, 143/143
+pruebas de Flutter.
+
+**Fuera de alcance de esta tanda:** la pantalla. Esto es solo la base de
+datos. Y no hay «dar de baja a un hijo»: borrar su perfil dejaría
+asistencias e inscripciones huérfanas, así que necesita su propia decisión
+(¿se archiva? ¿se conserva el historial?) antes de escribirlo.

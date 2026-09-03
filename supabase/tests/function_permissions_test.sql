@@ -66,7 +66,7 @@ select is(
 select ok(
   has_function_privilege(
     'authenticated',
-    'public.reservar_clase(uuid)',
+    'public.reservar_clase(uuid,uuid)',
     'EXECUTE'
   ),
   'Authenticated conserva la RPC de reserva'
