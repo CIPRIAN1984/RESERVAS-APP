@@ -551,10 +551,17 @@ grant execute on function public.cancelar_reserva(uuid, uuid) to authenticated;
 -- trae al niño saldría en «Inactivos» y en «Sin cuota» para siempre,
 -- que es justo lo que Cipri no quiere.
 
+-- Ojo con el `set search_path`: un `create or replace` **sin** cláusula SET
+-- borra la configuración que la función tuviera puesta antes con
+-- `alter function ... set search_path`. Las dos funciones de aquí abajo la
+-- tenían desde sus migraciones originales (20260830090000 y 20260901090000)
+-- y este fichero se la llevaba por delante sin que ninguna prueba lo notara.
+-- Va inline para que no se pueda perder otra vez.
 create or replace function public.ultima_asistencia_por_alumno()
 returns table (alumno_id uuid, ultima_asistencia timestamptz)
 language sql
 stable
+set search_path = public, pg_temp
 as $$
   select a.alumno_id, max(a.fecha) as ultima_asistencia
     from public.asistencias a
@@ -573,6 +580,7 @@ returns table (
 )
 language sql
 stable
+set search_path = public, pg_temp
 as $$
   select
     p.id as alumno_id,

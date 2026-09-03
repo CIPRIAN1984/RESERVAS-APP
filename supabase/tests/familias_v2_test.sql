@@ -10,7 +10,7 @@
 -- ensucia las listas de alumnos.
 
 begin;
-select plan(18);
+select plan(19);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000b1', 'padre@test.dev'),
@@ -256,6 +256,33 @@ select ok(
       and conname = 'profiles_id_fkey'
   ),
   'Un perfil ya no obliga a tener cuenta: los menores no la tienen'
+);
+
+-- Un `create or replace` sin cláusula SET borra el `search_path` fijo que la
+-- función tuviera puesto antes con `alter function`. Pasó aquí mismo el
+-- 03/09/2026: esta migración reescribió las dos funciones de abajo y les
+-- quitó el suyo sin que nada lo notara. Una función `security definer` o
+-- expuesta por PostgREST sin `search_path` fijo es un riesgo conocido (lo
+-- avisan los propios advisors de Supabase), así que se comprueba.
+select is(
+  (select count(*)::int
+     from pg_proc p
+     join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.proname in (
+        'crear_hijo', 'reservar_clase', 'cancelar_reserva',
+        'ultima_asistencia_por_alumno', 'progreso_graduacion_alumnos',
+        'borrar_perfil_al_borrar_cuenta'
+      )
+      and (
+        p.proconfig is null
+        or not exists (
+          select 1 from unnest(p.proconfig) as c
+          where c like 'search_path=%'
+        )
+      )),
+  0,
+  'Todas las funciones de familias fijan su search_path'
 );
 
 select * from finish();
