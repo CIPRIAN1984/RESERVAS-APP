@@ -1746,3 +1746,38 @@ pruebas de Flutter.
 datos. Y no hay «dar de baja a un hijo»: borrar su perfil dejaría
 asistencias e inscripciones huérfanas, así que necesita su propia decisión
 (¿se archiva? ¿se conserva el historial?) antes de escribirlo.
+
+## 2026-09-03 — Dar de baja a un hijo: se borra todo (con una salvedad por confirmar)
+
+Decisión de Cipri, preguntado expresamente: al dar de baja a un hijo **se
+borra todo**, no se archiva.
+
+**Qué implica de verdad, comprobado contra el esquema de producción.** No es
+un `delete` y ya: casi todas las tablas que apuntan a `profiles` tienen la
+clave foránea en `NO ACTION`, es decir, **bloquean el borrado**. Con que el
+niño tenga una sola asistencia, reserva, cuota, pedido o préstamo, el
+borrado falla. Solo `relaciones_familia` está en `CASCADE`.
+
+Así que «borrar todo» hay que escribirlo a mano y en orden, dentro de una
+transacción: `asistencias` → `inscripciones` → `suscripciones` → `pedidos`
+→ `prestamos` → `solicitudes_cambio_escuela` → `relaciones_familia` → el
+perfil. Irreversible: no hay papelera.
+
+**La salvedad, y por qué se para aquí.** Entre esas tablas está
+`suscripciones`, que es donde vive **el registro de los cobros en mano**.
+Borrarla borra la prueba de un dinero que la academia ha ingresado y
+declarado. En España los registros que respaldan ingresos hay que
+conservarlos años (Hacienda cuenta cuatro; el Código de Comercio, seis).
+Esto no es una opinión técnica: es un riesgo con consecuencias fuera de la
+app, y Cipri no tiene por qué haberlo pensado al responder «borra todo».
+
+**Propuesta pendiente de su confirmación:** borrar todo lo demás — el
+perfil, las asistencias, las reservas, los pedidos, los préstamos y la
+relación de familia — y **conservar solo las filas de `suscripciones`**,
+desligadas del perfil borrado. El alumno desaparece de la app a todos los
+efectos; lo único que queda es el rastro contable, que no se ve en ninguna
+pantalla.
+
+Mientras no lo confirme, **no se escribe el borrado**. No bloquea nada: la
+pantalla de familias (alta de hijos, reservar por ellos) no necesita esto
+para funcionar.

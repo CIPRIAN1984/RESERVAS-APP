@@ -7,39 +7,51 @@ Estas funcionalidades existen en el código pero están **desactivadas, ocultas 
 
 ---
 
-## 1. Familias y Tutores
+## 1. Familias y Tutores — DESCONGELADA A MEDIAS (03/09/2026)
 
-**Estado:** Código implementado, tabla NO aplicada en Supabase.
+**Estado: la base de datos ya está rehecha y aplicada en producción. La
+pantalla sigue sin existir.**
 
-**Actualización 2026-08-12:** pese a este congelamiento, una sesión posterior
-(10 de agosto) sí aplicó la tabla `relaciones_familia`, su RLS y la función
-`crear_perfil_hijo()` en la base de datos de producción. La pantalla y la
-Edge Function siguen sin desplegar, así que ningún usuario puede llegar hasta
-ahí — pero si algún día se intenta invocar `crear_perfil_hijo()`, falla
-siempre: exige una fila en `auth.users` para el perfil del menor y nunca la
-crea (los menores están pensados para no tener cuenta propia). Confirmado
-probándolo directamente. Es la prueba concreta de por qué este congelamiento
-seguía siendo necesario — no tocar hasta el rediseño de abajo.
+No se descongeló la versión vieja: **se rehizo**. La de agosto estaba rota de
+raíz (ver el histórico más abajo). Lo que hay ahora, del PR #57:
 
-**Por qué se congela:**
-- Necesita rediseño: menores sin Auth propia genera huérfanos.
-- Cambio arquitectónico: tabla `relaciones_familia` debe ser reemplazada.
-- No es bloqueador para v1: todas las clases pueden registrarse con perfil de alumno único.
+- Los menores son **perfiles normales sin cuenta** (`profiles.tiene_cuenta`
+  a false). Se quitó la clave foránea `profiles.id -> auth.users.id` que
+  hacía imposible crearlos, y el borrado en cascada que daba se recuperó con
+  un disparador. **No** se creó la tabla `dependientes` que planteaba el plan
+  original: al ser perfiles normales, las inscripciones, asistencias, cuotas,
+  ranking, cinturones y graduación les funcionan sin tocar nada.
+- `crear_hijo(nombre, apellidos, cinturon)` sustituye a `crear_perfil_hijo`,
+  que se borró. Crea el perfil **dentro** de la función, así que no acepta el
+  id de un perfil ajeno.
+- `reservar_clase` y `cancelar_reserva` aceptan un segundo argumento
+  opcional `p_alumno_id` para operar sobre un hijo, y solo si `es_padre_de`
+  lo confirma.
+- `profiles.entrena`: un padre que solo trae al niño no cuenta como alumno.
+- 19 pruebas pgTAP en `supabase/tests/familias_v2_test.sql`.
 
-**Qué está oculto:**
-- Pantalla `AgregarHijoSheet` en `lib/features/perfil/presentation/agregar_hijo_sheet.dart`.
-- Método `familia_repository.dart` (crear, listar, actualizar hijos).
-- Ruta `/familia/agregar-hijo` en router.
-- **2026-08-13:** el botón "Gestionar hijos" en Perfil (`context.push(Routes.misHijos)`)
-  seguía visible y tapable aunque la ruta destino estuviera comentada en el
-  router — se quita del todo. Antes de esto era el único acceso real que
-  quedaba desde la interfaz.
+**Lo que sigue sin existir, y por eso esto no está descongelado del todo:**
+- La pantalla. `MisHijosScreen`, `AgregarHijoSheet` y `familia_repository.dart`
+  son de la versión vieja: **llaman a la Edge Function `crear-hijo` y a
+  `crear_perfil_hijo`, que ya no existe**. Hay que reescribirlos contra
+  `crear_hijo`, no reactivarlos.
+- Las rutas de familias siguen fuera del router y el botón "Gestionar hijos"
+  sigue quitado de Perfil. **Se quedan así hasta que la pantalla esté
+  rehecha**, o un padre llegaría a una pantalla que revienta.
+- **Dar de baja a un hijo**: sin decidir. Borrar su perfil dejaría
+  asistencias e inscripciones huérfanas. Pendiente de que Cipri diga si se
+  archiva conservando el historial o se borra del todo.
+- La Edge Function `crear-hijo` sobra: ya no hace falta ninguna, el alta va
+  por RPC directa. Queda por borrar.
 
-**Qué hacer para retomarlo:**
-- Diseñar tabla `dependientes` en lugar de `relaciones_familia`.
-- Padres tienen Auth; menores no.
-- Nueva migración, nuevas pruebas pgTAP, nueva RPC.
-- Ver `DECISIONS.md` para contexto completo.
+**Histórico, por si alguien se pregunta por qué se rehízo:** la primera
+versión (10 de agosto) aplicó `relaciones_familia`, su RLS y
+`crear_perfil_hijo()` en producción pese al congelamiento. Esa función
+fallaba **siempre**: insertaba un perfil con un uuid nuevo contra una clave
+foránea que exigía una fila en `auth.users`. Nunca creó un solo hijo.
+Además, su política de inserción dejaba que cualquier persona con sesión se
+declarase padre de cualquier otro perfil y le cambiara el nombre — agujero
+cerrado el 03/09/2026 en el PR #56. Contexto completo en `DECISIONS.md`.
 
 ---
 
@@ -206,6 +218,10 @@ o dejarlo tal cual para el piloto.
 
 ## Referencias
 
-- **Rediseño de Familias:** ver DECISIONS.md sección "2026-08-03 — Familias y tutores".
+- **Familias, rediseño ya hecho (base de datos):** ver DECISIONS.md,
+  "2026-09-03 — Familias y tutores, segunda versión (base de datos)".
 - **Stripe ready:** ver OPERATIONS.md sección "Stripe en Producción".
-- **Migraciones congeladas:** `supabase/migrations/20260803...familias_tutores.sql` (no aplicar aún).
+- **Migraciones de familias, ya aplicadas:** `20260903120000_cerrar_agujero_relaciones_familia.sql`
+  y `20260903130000_familias_tutores_v2.sql`. La vieja
+  `20260810100946_familias_tutores.sql` sigue en el historial (no se editan
+  migraciones aplicadas), pero la función que creaba ya no existe.
