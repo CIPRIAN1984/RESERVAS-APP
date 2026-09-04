@@ -1771,13 +1771,22 @@ conservarlos años (Hacienda cuenta cuatro; el Código de Comercio, seis).
 Esto no es una opinión técnica: es un riesgo con consecuencias fuera de la
 app, y Cipri no tiene por qué haberlo pensado al responder «borra todo».
 
-**Propuesta pendiente de su confirmación:** borrar todo lo demás — el
-perfil, las asistencias, las reservas, los pedidos, los préstamos y la
-relación de familia — y **conservar solo las filas de `suscripciones`**,
-desligadas del perfil borrado. El alumno desaparece de la app a todos los
-efectos; lo único que queda es el rastro contable, que no se ve en ninguna
-pantalla.
+**Se le propuso conservar solo las filas de `suscripciones`** (el rastro
+contable, invisible en la app) y borrar todo lo demás. **Lo rechazó: «borra
+todo»**, con el aviso ya sobre la mesa. Es su decisión y su negocio, así
+que se hace así — pero queda escrito aquí que se le advirtió, porque dentro
+de un año nadie se acordará de esta conversación.
 
-Mientras no lo confirme, **no se escribe el borrado**. No bloquea nada: la
-pantalla de familias (alta de hijos, reservar por ellos) no necesita esto
-para funcionar.
+**Lo que se escribirá, cuando toque:** una RPC `borrar_hijo(p_hijo_id)`,
+`security definer`, que exija `es_padre_de` o rol Dueño, y borre en una
+sola transacción y en este orden: `asistencias`, `inscripciones`,
+`suscripciones`, `pedidos`, `prestamos`,
+`solicitudes_cambio_escuela`, `relaciones_familia` y el perfil. El orden no
+es decorativo: al ser todas las claves foráneas `NO ACTION`, cualquier otro
+orden falla.
+
+**Y la interfaz tiene que estar a la altura de lo irreversible:** confirmar
+escribiendo el nombre del niño, no un «¿Seguro?» que se pulsa sin leer.
+
+No bloquea nada más: la pantalla de familias (alta de hijos, reservar por
+ellos) no necesita el borrado para funcionar, así que va en su propia tanda.
