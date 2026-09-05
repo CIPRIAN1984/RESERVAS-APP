@@ -24,6 +24,10 @@ abstract class Profile with _$Profile {
     // Desde cuándo lleva el alumno en su cinturón actual — arranca en la
     // fecha de alta y se reinicia con cada promoción (ver Miembros).
     @JsonKey(name: 'fecha_inicio_cinturon') DateTime? fechaInicioCinturon,
+    // false = solo tutor: trae a sus hijos pero no entrena. No sale en
+    // Miembros ni en los contadores de alumnos, y no puede reservar para sí
+    // mismo. Decisión de producto de Cipri (03/09/2026).
+    @Default(true) bool entrena,
   }) = _Profile;
 
   factory Profile.fromJson(Map<String, dynamic> json) =>

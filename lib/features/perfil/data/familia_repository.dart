@@ -1,31 +1,54 @@
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../../../core/models/profile.dart';
-import 'relacion_familia.dart';
 
+/// Los hijos de un padre o tutor.
+///
+/// Reescrito el 04/09/2026. La versión anterior llamaba a una Edge Function
+/// (`crear-hijo`) que a su vez invocaba `crear_perfil_hijo`, una función
+/// que **no podía funcionar nunca**: insertaba un perfil con un uuid nuevo
+/// contra una clave foránea que exigía una cuenta de correo. Se borró en la
+/// migración `20260903130000_familias_tutores_v2`.
+///
+/// Ahora el alta va por una única RPC, `crear_hijo`, que crea el perfil del
+/// menor **dentro** de la función: no acepta el id de un perfil ajeno, que
+/// es justo lo que permitía el agujero cerrado en la migración
+/// `20260903120000`.
 class FamiliaRepository {
   FamiliaRepository(this._client);
 
   final sb.SupabaseClient _client;
 
-  /// Lista todos los hijos del usuario actual (via relaciones_familia).
+  /// Los hijos del usuario que ha iniciado sesión.
+  ///
+  /// Dos consultas y no un `join` porque la RLS de `relaciones_familia` y la
+  /// de `profiles` se comprueban por separado; encadenarlas en un embed de
+  /// PostgREST hacía que un fallo de permisos volviera como lista vacía en
+  /// vez de como error.
   Future<List<Profile>> listarHijos() async {
+    final usuario = _client.auth.currentUser;
+    if (usuario == null) return const [];
+
     final relaciones =
         await _client
                 .from('relaciones_familia')
                 .select('child_id')
-                .eq('parent_id', _client.auth.currentUser!.id)
+                .eq('parent_id', usuario.id)
             as List;
 
-    if (relaciones.isEmpty) return [];
+    if (relaciones.isEmpty) return const [];
 
-    final childIds = relaciones
+    final ids = relaciones
         .cast<Map<String, dynamic>>()
         .map((r) => r['child_id'] as String)
         .toList();
 
     final hijos =
-        await _client.from('profiles').select().inFilter('id', childIds)
+        await _client
+                .from('profiles')
+                .select()
+                .inFilter('id', ids)
+                .order('nombre')
             as List;
 
     return hijos
@@ -33,60 +56,33 @@ class FamiliaRepository {
         .toList();
   }
 
-  /// Crea un nuevo hijo llamando a la Edge Function.
-  /// Devuelve el ID del perfil creado y la relación familia.
-  Future<({String childId, String familiaId})> crearHijo({
-    required String nombre,
-    String? apellidos,
-    String? cinturon,
-  }) async {
-    final response = await _client.functions.invoke(
-      'crear-hijo',
-      body: {'nombre': nombre, 'apellidos': apellidos, 'cinturon': cinturon},
+  /// Da de alta a un hijo y devuelve su id.
+  ///
+  /// No se le pide el cinturón al padre a propósito: el menor entra sin
+  /// cinturón (que la app enseña como blanco) y quien gradúa es el Dueño,
+  /// desde la ficha del alumno. Un padre no tiene por qué conocer la
+  /// escala infantil de doce grados.
+  Future<String> crearHijo({required String nombre, String? apellidos}) async {
+    final id = await _client.rpc(
+      'crear_hijo',
+      params: {'p_nombre': nombre, 'p_apellidos': apellidos},
     );
-
-    final data = response.data as Map<String, dynamic>;
-    if (data['error'] != null) throw Exception(data['error'] as String);
-
-    return (
-      childId: data['hijo_id'] as String,
-      familiaId: data['familia_id'] as String,
-    );
+    return id as String;
   }
 
-  /// Actualiza datos del hijo (nombre, apellidos, cinturón).
-  /// El hijo debe tener parent_id = auth.uid() en relaciones_familia.
-  Future<void> actualizarHijo({
-    required String childId,
+  /// Corrige el nombre de un hijo.
+  ///
+  /// Solo nombre y apellidos: son las únicas columnas de `profiles` que un
+  /// cliente puede escribir (ver la lección de la migración 0013). El
+  /// cinturón lo cambia el Dueño con `promover_cinturon`.
+  Future<void> renombrarHijo({
+    required String hijoId,
     required String nombre,
     String? apellidos,
-    String? cinturon,
   }) async {
     await _client
         .from('profiles')
-        .update({
-          'nombre': nombre,
-          'apellidos': apellidos,
-          'cinturon': cinturon,
-        })
-        .eq('id', childId);
-  }
-
-  /// Elimina la relación familia (el padre deja de tener potestad).
-  /// Nota: el perfil del menor sigue existiendo; solo se rompe la relación.
-  Future<void> eliminarHijo(String childId) async {
-    await _client.from('relaciones_familia').delete().eq('child_id', childId);
-  }
-
-  /// Obtiene la relación familia (si existe).
-  Future<RelacionFamilia?> obtenerRelacion(String childId) async {
-    final row = await _client
-        .from('relaciones_familia')
-        .select()
-        .eq('child_id', childId)
-        .maybeSingle();
-
-    if (row == null) return null;
-    return RelacionFamilia.fromJson(row);
+        .update({'nombre': nombre, 'apellidos': apellidos})
+        .eq('id', hijoId);
   }
 }

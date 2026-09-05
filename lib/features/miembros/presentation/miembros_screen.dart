@@ -4,12 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../../app/theme/color_tokens.dart';
+import '../../../core/models/cinturones.dart';
 import '../../../core/models/profile.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../equipo/presentation/dar_cuota_sheet.dart';
 import '../application/miembros_providers.dart';
 import 'ficha_miembro_screen.dart';
+
+export '../../../core/models/cinturones.dart' show etiquetaCinturon;
 
 /// Alumnos de la academia: buscar, filtrar por cinturón y por estado, y
 /// abrir la ficha de cualquiera.
@@ -18,47 +21,11 @@ import 'ficha_miembro_screen.dart';
 /// está en prueba o pausada ya cuenta bien en uno u otro lado (ver
 /// `alumnosConCuotaAlDia`), y el detalle de los cuatro estados es cosa de
 /// gestionar, que vive en Equipo.
-const _etiquetasCinturon = {
-  'blanco': 'Blanco',
-  'azul': 'Azul',
-  'morado': 'Morado',
-  'marron': 'Marrón',
-  'negro': 'Negro',
-  'gris_blanco': 'Gris-Blanco',
-  'gris': 'Gris',
-  'gris_negro': 'Gris-Negro',
-  'amarillo_blanco': 'Amarillo-Blanco',
-  'amarillo': 'Amarillo',
-  'amarillo_negro': 'Amarillo-Negro',
-  'naranja_blanco': 'Naranja-Blanco',
-  'naranja': 'Naranja',
-  'naranja_negro': 'Naranja-Negro',
-  'verde_blanco': 'Verde-Blanco',
-  'verde': 'Verde',
-  'verde_negro': 'Verde-Negro',
-};
-
-const _cinturonesAdultos = ['blanco', 'azul', 'morado', 'marron', 'negro'];
-
-/// El blanco de niño es el mismo color que el de adulto (no hay entrada
-/// separada: filtrar por "Blanco" ya trae a todos, niños incluidos).
-const _cinturonesNinos = [
-  'gris_blanco',
-  'gris',
-  'gris_negro',
-  'amarillo_blanco',
-  'amarillo',
-  'amarillo_negro',
-  'naranja_blanco',
-  'naranja',
-  'naranja_negro',
-  'verde_blanco',
-  'verde',
-  'verde_negro',
-];
-
-String etiquetaCinturon(String cinturon) =>
-    _etiquetasCinturon[cinturon] ?? cinturon;
+///
+/// Los nombres de los cinturones se subieron a `core/models/cinturones.dart`
+/// cuando la pantalla de familias los necesitó también: se siguen
+/// reexportando desde aquí porque la ficha del alumno los importa de este
+/// fichero.
 
 /// A partir de cuántos días sin entrenar se marca a un alumno como
 /// inactivo. Es un número de producto, no técnico — 14 días es un primer
@@ -705,7 +672,7 @@ class _FiltroCinturonSheet extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final cinturon in _cinturonesAdultos)
+                for (final cinturon in cinturonesAdultos)
                   _CinturonChip(
                     texto: etiquetaCinturon(cinturon),
                     cinturon: cinturon,
@@ -721,7 +688,7 @@ class _FiltroCinturonSheet extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final cinturon in _cinturonesNinos)
+                for (final cinturon in cinturonesNinos)
                   _CinturonChip(
                     texto: etiquetaCinturon(cinturon),
                     cinturon: cinturon,
