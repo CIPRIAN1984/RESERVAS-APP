@@ -16,6 +16,8 @@ class ClaseCard extends StatelessWidget {
     this.onTap,
     this.onUnirse,
     this.onBorrarse,
+    this.onQuienViene,
+    this.nombrePorAlumnoId = const {},
     this.onConfirmarTodos,
     this.loadingAccion = false,
     this.confirmandoTodos = false,
@@ -26,6 +28,16 @@ class ClaseCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onUnirse;
   final VoidCallback? onBorrarse;
+
+  /// Solo para quien tiene hijos dados de alta: en vez del botón de siempre,
+  /// abre la hoja «¿Quién viene?», donde se apunta y se quita a cada uno.
+  /// Cuando es `null` la tarjeta se comporta exactamente igual que antes de
+  /// que existieran las familias.
+  final VoidCallback? onQuienViene;
+
+  /// Cómo se llama cada hijo, para poder escribir «Nico tiene plaza» en vez
+  /// de un uuid. Lo que no esté aquí simplemente no se nombra.
+  final Map<String, String> nombrePorAlumnoId;
 
   /// Modo Gestor: confirma de golpe la asistencia de todos los inscritos
   /// sin validar, sin entrar en el detalle de la clase.
@@ -38,7 +50,8 @@ class ClaseCard extends StatelessWidget {
     final t = Theme.of(context).textTheme;
     final inicio = DateFormat.Hm().format(clase.fechaHoraInicio.toLocal());
     final fin = DateFormat.Hm().format(clase.fechaHoraFin.toLocal());
-    final hayAccion = onUnirse != null || onBorrarse != null;
+    final hayAccion =
+        onUnirse != null || onBorrarse != null || onQuienViene != null;
     final libres = clase.aforoMaximo - clase.inscritosCount;
 
     return Card(
@@ -96,7 +109,10 @@ class ClaseCard extends StatelessWidget {
                     const PastillaEstado.error('Cancelada')
                   else if (clase.cerrada)
                     const PastillaEstado.aviso('Cerrada')
-                  else if (clase.tieneReservaActiva)
+                  // Con familia, mi estado baja a la fila de abajo junto al
+                  // de los hijos: aquí arriba, suelto, un «INSCRITO» al lado
+                  // de «NICO» y «LUCÍA» no dice de quién es.
+                  else if (clase.tieneReservaActiva && onQuienViene == null)
                     clase.enListaEspera
                         ? const PastillaEstado.aviso(
                             'En espera',
@@ -130,6 +146,31 @@ class ClaseCard extends StatelessWidget {
                 ],
               ),
 
+              // Quién de la familia tiene plaza, yo incluido y con mi nombre.
+              // Sin esto un padre apunta al niño y la tarjeta no cambia:
+              // parece que no ha pasado nada.
+              if (onQuienViene != null &&
+                  (clase.tieneReservaActiva ||
+                      clase.reservasFamilia.isNotEmpty)) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    if (clase.tieneReservaActiva)
+                      _PastillaDeAlguien(
+                        nombre: 'Tú',
+                        enEspera: clase.enListaEspera,
+                      ),
+                    for (final r in clase.reservasFamilia)
+                      _PastillaDeAlguien(
+                        nombre: nombrePorAlumnoId[r.alumnoId] ?? 'Tu hijo',
+                        enEspera: r.estado == 'espera',
+                      ),
+                  ],
+                ),
+              ],
+
               if (hayAccion) ...[
                 const SizedBox(height: 14),
                 _Accion(
@@ -137,8 +178,11 @@ class ClaseCard extends StatelessWidget {
                   cargando: loadingAccion,
                   onUnirse: onUnirse,
                   onBorrarse: onBorrarse,
+                  onQuienViene: onQuienViene,
                 ),
-                if (!clase.aforoCompleto && !clase.tieneReservaActiva) ...[
+                if (onQuienViene == null &&
+                    !clase.aforoCompleto &&
+                    !clase.tieneReservaActiva) ...[
                   const SizedBox(height: 10),
                   Center(
                     child: Text(
@@ -176,6 +220,26 @@ class ClaseCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// «NICO» si tiene plaza, «NICO · EN ESPERA» si espera sitio. Solo aparece
+/// en las tarjetas de quien tiene familia: con una sola persona basta con la
+/// pastilla de arriba, que ya se sabe de quién es.
+class _PastillaDeAlguien extends StatelessWidget {
+  const _PastillaDeAlguien({required this.nombre, required this.enEspera});
+
+  final String nombre;
+  final bool enEspera;
+
+  @override
+  Widget build(BuildContext context) {
+    return enEspera
+        ? PastillaEstado.aviso(
+            '$nombre · en espera',
+            icono: Icons.hourglass_top,
+          )
+        : PastillaEstado.exito(nombre, icono: Icons.check);
   }
 }
 
@@ -218,12 +282,14 @@ class _Accion extends StatelessWidget {
     required this.cargando,
     this.onUnirse,
     this.onBorrarse,
+    this.onQuienViene,
   });
 
   final ClaseResumen clase;
   final bool cargando;
   final VoidCallback? onUnirse;
   final VoidCallback? onBorrarse;
+  final VoidCallback? onQuienViene;
 
   @override
   Widget build(BuildContext context) {
@@ -238,6 +304,23 @@ class _Accion extends StatelessWidget {
           ),
         ),
       );
+    }
+
+    // Con hijos dados de alta, un solo botón no puede decir la verdad: yo
+    // puedo tener plaza y el niño no, o al revés. Se abre la hoja y allí cada
+    // uno tiene la suya.
+    if (onQuienViene != null) {
+      final alguienDentro =
+          clase.tieneReservaActiva || clase.reservasFamilia.isNotEmpty;
+      return alguienDentro
+          ? OutlinedButton(
+              onPressed: onQuienViene,
+              child: const Text('Cambiar quién viene'),
+            )
+          : ElevatedButton(
+              onPressed: onQuienViene,
+              child: const Text('Reservar plaza'),
+            );
     }
 
     if (clase.tieneReservaActiva) {

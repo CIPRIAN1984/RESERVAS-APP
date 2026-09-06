@@ -151,18 +151,22 @@ class ClasesRepository {
     return (notificados as int?) ?? 0;
   }
 
-  Future<String> unirse({required String claseId}) async {
+  /// Reserva plaza. Sin [alumnoId] reserva para uno mismo; con él, para ese
+  /// hijo — y el servidor comprueba que de verdad lo sea (`es_padre_de`), no
+  /// se fía de lo que mande la app.
+  Future<String> unirse({required String claseId, String? alumnoId}) async {
     final estado = await _client.rpc(
       'reservar_clase',
-      params: {'p_clase_id': claseId},
+      params: {'p_clase_id': claseId, 'p_alumno_id': ?alumnoId},
     );
     return (estado as String?) ?? 'inscrito';
   }
 
-  Future<bool> borrarse({required String claseId}) async {
+  /// Cancela la reserva. Sin [alumnoId], la mía; con él, la de ese hijo.
+  Future<bool> borrarse({required String claseId, String? alumnoId}) async {
     final resultado = await _client.rpc(
       'cancelar_reserva',
-      params: {'p_clase_id': claseId},
+      params: {'p_clase_id': claseId, 'p_alumno_id': ?alumnoId},
     );
     if (resultado is Map<String, dynamic>) {
       return resultado['cancelacion_tardia'] == true;

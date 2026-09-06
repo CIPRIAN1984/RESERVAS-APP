@@ -7,12 +7,15 @@ import '../../../app/theme/app_theme.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/pantalla.dart';
+import '../../perfil/application/profile_providers.dart';
 import '../application/clases_providers.dart';
 import '../data/clase_resumen.dart';
 import 'clase_card.dart';
 import 'clase_detalle_screen.dart';
 import 'companeros_clase_screen.dart';
 import 'crear_clase_screen.dart';
+import 'mensajes_reserva.dart';
+import 'quien_viene_sheet.dart';
 
 class CalendarioScreen extends ConsumerStatefulWidget {
   const CalendarioScreen({super.key});
@@ -42,7 +45,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(_mensajeError(e))));
+        ).showSnackBar(SnackBar(content: Text(mensajeReserva(e))));
       }
     } finally {
       if (mounted) setState(() => _accionEnCursoClaseId = null);
@@ -132,35 +135,15 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     }
   }
 
-  String _mensajeError(Object e) {
-    final texto = e.toString();
-    if (texto.contains('Aforo completo')) {
-      return 'Aforo completo para esta clase.';
-    }
-    if (texto.contains('cuota activa')) {
-      return 'Necesitas una cuota activa para reservar.';
-    }
-    if (texto.contains('No te quedan clases')) {
-      return 'No te quedan clases en tu tarifa este mes. Renueva o compra una clase suelta.';
-    }
-    if (texto.contains('Ya estás inscrito') ||
-        texto.contains('Ya tienes una reserva')) {
-      return 'Ya tienes una reserva o plaza de espera para esta clase.';
-    }
-    if (texto.contains('clases futuras')) {
-      return 'Esta clase ya ha comenzado.';
-    }
-    if (texto.contains('no admite nuevas reservas')) {
-      return 'Esta clase está cerrada y no admite nuevas reservas.';
-    }
-    return 'No se ha podido completar la acción.';
-  }
-
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(currentProfileProvider).value;
     final userId = ref.watch(currentUserIdProvider);
     final academiaId = profile?.academiaId;
+    // Con hijos dados de alta, reservar deja de ser un botón y pasa a ser
+    // «¿quién viene?». Sin hijos, la pantalla se comporta como siempre.
+    final hijos = ref.watch(hijosProvider).value ?? const [];
+    final nombrePorAlumnoId = {for (final h in hijos) h.id: h.nombre};
     // Por MODO, no por rol: un dueño en modo Entrenamiento viene a apuntarse
     // a clase, no a gestionarlas.
     final gestionando = ref.watch(enModoGestionProvider);
@@ -263,9 +246,11 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                             : () => _confirmarTodos(clase),
                       );
                     }
+                    final conFamilia = hijos.isNotEmpty;
                     return ClaseCard(
                       clase: clase,
                       loadingAccion: cargando,
+                      nombrePorAlumnoId: nombrePorAlumnoId,
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => CompanerosClaseScreen(
@@ -274,8 +259,13 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                           ),
                         ),
                       ),
-                      onUnirse: userId == null ? null : () => _unirse(clase),
-                      onBorrarse: userId == null
+                      onQuienViene: (userId != null && conFamilia)
+                          ? () => mostrarQuienVieneSheet(context, clase.id)
+                          : null,
+                      onUnirse: (userId == null || conFamilia)
+                          ? null
+                          : () => _unirse(clase),
+                      onBorrarse: (userId == null || conFamilia)
                           ? null
                           : () => _borrarse(clase),
                     );

@@ -6,6 +6,18 @@ part of 'clase_resumen.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_ReservaFamiliar _$ReservaFamiliarFromJson(Map<String, dynamic> json) =>
+    _ReservaFamiliar(
+      alumnoId: json['alumno_id'] as String,
+      estado: json['estado'] as String,
+    );
+
+Map<String, dynamic> _$ReservaFamiliarToJson(_ReservaFamiliar instance) =>
+    <String, dynamic>{
+      'alumno_id': instance.alumnoId,
+      'estado': instance.estado,
+    };
+
 _ClaseResumen _$ClaseResumenFromJson(Map<String, dynamic> json) =>
     _ClaseResumen(
       id: json['id'] as String,
@@ -20,6 +32,11 @@ _ClaseResumen _$ClaseResumenFromJson(Map<String, dynamic> json) =>
       miEstado: json['mi_estado'] as String?,
       estado: json['estado'] as String? ?? 'activa',
       pendientesConfirmar: (json['pendientes_confirmar'] as num?)?.toInt() ?? 0,
+      reservasFamilia:
+          (json['reservas_familia'] as List<dynamic>?)
+              ?.map((e) => ReservaFamiliar.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <ReservaFamiliar>[],
     );
 
 Map<String, dynamic> _$ClaseResumenToJson(_ClaseResumen instance) =>
@@ -36,4 +53,5 @@ Map<String, dynamic> _$ClaseResumenToJson(_ClaseResumen instance) =>
       'mi_estado': instance.miEstado,
       'estado': instance.estado,
       'pendientes_confirmar': instance.pendientesConfirmar,
+      'reservas_familia': instance.reservasFamilia,
     };
