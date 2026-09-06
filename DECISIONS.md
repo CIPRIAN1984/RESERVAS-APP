@@ -1841,6 +1841,45 @@ hijos: sin eso, el padre apunta al niño y la tarjeta de la clase sigue
 diciendo «Reservar plaza», como si no hubiera pasado nada. Eso es otra
 migración y otra tanda — meterlo aquí habría mezclado dos temas en un PR.
 
+## 2026-09-06 — Reservar clase para un hijo desde el calendario
+
+Tercera y última tanda de familias. La base de datos ya aceptaba
+`reservar_clase(p_clase_id, p_alumno_id)` desde el 03/09; lo que faltaba era
+que la app supiera **preguntar por quién** y **enseñar quién tiene plaza**.
+
+**El agujero que había que tapar primero.** `listar_clases_semana` devolvía
+`mi_estado`, y solo el mío. Sin más, un padre apuntaba al niño, la reserva
+se creaba de verdad en el servidor… y la tarjeta seguía diciendo «Reservar
+plaza». Sin esa columna la funcionalidad no es que quede a medias: es que
+parece rota. Por eso lleva migración.
+
+**Qué devuelve ahora.** Una columna nueva, `reservas_familia`, con la
+reserva de cada hijo que tenga plaza o esté en espera en esa clase. Solo los
+hijos: lo mío sigue en `mi_estado`, que ya funcionaba y no se toca.
+
+**Decisiones de diseño:**
+
+* **Quien no tiene hijos no nota absolutamente nada.** La tarjeta de la
+  clase se comporta igual que ayer: un botón, «Reservar plaza». Son la
+  inmensa mayoría de los 166 alumnos y no hay motivo para complicarles la
+  pantalla.
+* **Quien sí tiene hijos ve una hoja «¿Quién viene?»** al pulsar el botón:
+  una fila por persona (yo, y cada hijo) con su estado y su propio botón a
+  ancho completo. Se apunta y se quita a cada uno desde ahí. La alternativa
+  —una fila por persona dentro de la propia tarjeta— hacía la tarjeta enorme
+  en un día con cinco clases.
+* **El tutor que no entrena no se ve a sí mismo en esa lista.** Tiene
+  `entrena = false`, así que el servidor le rechazaría la reserva con un
+  error; ofrecérsela sería enseñar un botón que no funciona.
+* **La hoja no se cierra al apuntar a alguien.** Un padre con dos hijos los
+  apunta a los dos seguidos; cerrarla tras el primero le obliga a volver a
+  abrirla. Se cierra cuando él quiere.
+
+**Lo que sigue sin existir, a propósito:** que el padre vea el saldo de
+clases de cada hijo. No bloquea reservar. (Dar de baja a un hijo sí se
+escribió, el mismo día — ver la entrada siguiente, que además corrige la
+decisión del 03/09 sobre quién puede hacerlo.)
+
 ## 2026-09-06 — Dar de baja a un hijo: solo mientras no haya empezado
 
 **Esto corrige la decisión del 03/09.** Aquel día Cipri dijo que el padre

@@ -46,13 +46,19 @@ raíz (ver el histórico más abajo). Lo que hay ahora, del PR #57:
   app enseña como blanco) y gradúa el Dueño. Un padre no tiene por qué
   conocer la escala infantil de doce grados.
 
-**Lo que todavía falta de familias:**
-- **Reservar por un hijo desde el calendario.** La base de datos ya lo
-  permite (`reservar_clase(p_clase_id, p_alumno_id)`), pero la pantalla aún
-  no ofrece elegir para quién se reserva. Hace falta además que
-  `listar_clases_semana` devuelva las reservas de los hijos: si no, el padre
-  apunta a su hijo y la tarjeta de la clase sigue diciendo «Reservar plaza»,
-  sin rastro de que el niño ya tiene plaza. **Es la siguiente tanda.**
+**El calendario, del 06/09/2026 (PR de «reservar por un hijo»):**
+- `listar_clases_semana` devuelve una columna nueva, `reservas_familia`, con
+  la reserva de cada hijo en esa clase. Lo del propio usuario sigue en
+  `mi_estado`.
+- Con hijos dados de alta, el botón de la tarjeta abre la hoja
+  **«¿Quién viene?»**: una fila por persona (yo y cada hijo) con su estado y
+  su botón. **Quien no tiene hijos no nota ningún cambio.**
+- La tarjeta enseña quién de la familia tiene plaza, yo incluido y con
+  nombre («TÚ», «NICO», «LUCÍA · EN ESPERA»).
+- El tutor con `entrena = false` no se ve a sí mismo en la hoja: el servidor
+  le rechazaría la reserva.
+- 9 pruebas pgTAP en `supabase/tests/reservas_familia_calendario_test.sql`.
+
 **Deshacer el alta de un hijo, del 06/09/2026:**
 - `borrar_hijo(p_hijo_id)` y `hijos_borrables()`. El padre solo puede borrar
   a un hijo **mientras no tenga nada**: ni clase, ni asistencia, ni cuota,
@@ -61,8 +67,14 @@ raíz (ver el histórico más abajo). Lo que hay ahora, del PR #57:
 - La regla la puso Cipri el 06/09 y **corrige la decisión del 03/09**: «solo
   yo les puedo dar de baja». Un alumno que se da de baja solo es el
   descontrol que evita en MAAT.
-- La baja de verdad (la del Dueño, con su borrado en cascada) es otra tanda.
 - 18 pruebas pgTAP en `supabase/tests/borrar_hijo_test.sql`.
+
+**Lo que todavía falta de familias:**
+- **La baja de verdad, la del Dueño**, con su borrado en cascada y la
+  decisión de si se archiva o se borra. Es la siguiente tanda, ya pedida por
+  Cipri: «solo yo les puedo dar de baja».
+- **El saldo de clases de cada hijo**, para el padre que tiene una tarifa
+  por número de clases. Hoy solo lo ve el Dueño.
 
 **Histórico, por si alguien se pregunta por qué se rehízo:** la primera
 versión (10 de agosto) aplicó `relaciones_familia`, su RLS y
