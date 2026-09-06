@@ -7,10 +7,9 @@ Estas funcionalidades existen en el código pero están **desactivadas, ocultas 
 
 ---
 
-## 1. Familias y Tutores — DESCONGELADA A MEDIAS (03/09/2026)
+## 1. Familias y Tutores — DESCONGELADA (04/09/2026)
 
-**Estado: la base de datos ya está rehecha y aplicada en producción. La
-pantalla sigue sin existir.**
+**Estado: funcionando. Base de datos y pantalla, las dos rehechas.**
 
 No se descongeló la versión vieja: **se rehizo**. La de agosto estaba rota de
 raíz (ver el histórico más abajo). Lo que hay ahora, del PR #57:
@@ -30,19 +29,32 @@ raíz (ver el histórico más abajo). Lo que hay ahora, del PR #57:
 - `profiles.entrena`: un padre que solo trae al niño no cuenta como alumno.
 - 19 pruebas pgTAP en `supabase/tests/familias_v2_test.sql`.
 
-**Lo que sigue sin existir, y por eso esto no está descongelado del todo:**
-- La pantalla. `MisHijosScreen`, `AgregarHijoSheet` y `familia_repository.dart`
-  son de la versión vieja: **llaman a la Edge Function `crear-hijo` y a
-  `crear_perfil_hijo`, que ya no existe**. Hay que reescribirlos contra
-  `crear_hijo`, no reactivarlos.
-- Las rutas de familias siguen fuera del router y el botón "Gestionar hijos"
-  sigue quitado de Perfil. **Se quedan así hasta que la pantalla esté
-  rehecha**, o un padre llegaría a una pantalla que revienta.
-- **Dar de baja a un hijo**: sin decidir. Borrar su perfil dejaría
-  asistencias e inscripciones huérfanas. Pendiente de que Cipri diga si se
-  archiva conservando el historial o se borra del todo.
-- La Edge Function `crear-hijo` sobra: ya no hace falta ninguna, el alta va
-  por RPC directa. Queda por borrar.
+**La pantalla, del 04/09/2026 (PR de «Mi familia»):**
+- `MisHijosScreen` y `AgregarHijoSheet` **reescritas**, no descomentadas: las
+  viejas llamaban a la Edge Function `crear-hijo`, que invocaba la difunta
+  `crear_perfil_hijo`. `familia_repository.dart` va ahora contra la RPC
+  `crear_hijo`.
+- La Edge Function `crear-hijo` **borrada**, y con ella el modelo
+  `RelacionFamilia`, que se quedó sin usar.
+- La ruta `Routes.misHijos` vuelve al router, con el acceso «Mi familia» en
+  Perfil — visible para todo el que pertenezca a una academia, tenga hijos o
+  no: si solo se enseñara a quien ya los tiene, nadie podría dar de alta al
+  primero.
+- Interruptor «Yo también entreno» en Perfil, para el tutor que solo trae a
+  sus hijos (columna `entrena`).
+- Al padre **no se le pide el cinturón** del hijo: entra sin cinturón (que la
+  app enseña como blanco) y gradúa el Dueño. Un padre no tiene por qué
+  conocer la escala infantil de doce grados.
+
+**Lo que todavía falta de familias:**
+- **Reservar por un hijo desde el calendario.** La base de datos ya lo
+  permite (`reservar_clase(p_clase_id, p_alumno_id)`), pero la pantalla aún
+  no ofrece elegir para quién se reserva. Hace falta además que
+  `listar_clases_semana` devuelva las reservas de los hijos: si no, el padre
+  apunta a su hijo y la tarjeta de la clase sigue diciendo «Reservar plaza»,
+  sin rastro de que el niño ya tiene plaza. **Es la siguiente tanda.**
+- **Dar de baja a un hijo.** Cipri decidió que se borra todo (ver
+  DECISIONS.md, 03/09/2026). Sin escribir todavía.
 
 **Histórico, por si alguien se pregunta por qué se rehízo:** la primera
 versión (10 de agosto) aplicó `relaciones_familia`, su RLS y

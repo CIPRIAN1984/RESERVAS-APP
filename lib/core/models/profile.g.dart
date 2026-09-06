@@ -19,6 +19,7 @@ _Profile _$ProfileFromJson(Map<String, dynamic> json) => _Profile(
   fechaInicioCinturon: json['fecha_inicio_cinturon'] == null
       ? null
       : DateTime.parse(json['fecha_inicio_cinturon'] as String),
+  entrena: json['entrena'] as bool? ?? true,
 );
 
 Map<String, dynamic> _$ProfileToJson(_Profile instance) => <String, dynamic>{
@@ -32,4 +33,5 @@ Map<String, dynamic> _$ProfileToJson(_Profile instance) => <String, dynamic>{
   'estado': instance.estado,
   'parent_id': instance.parentId,
   'fecha_inicio_cinturon': instance.fechaInicioCinturon?.toIso8601String(),
+  'entrena': instance.entrena,
 };

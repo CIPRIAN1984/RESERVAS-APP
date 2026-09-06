@@ -1790,3 +1790,53 @@ escribiendo el nombre del niño, no un «¿Seguro?» que se pulsa sin leer.
 
 No bloquea nada más: la pantalla de familias (alta de hijos, reservar por
 ellos) no necesita el borrado para funcionar, así que va en su propia tanda.
+
+## 2026-09-04 — «Mi familia»: la pantalla de familias y tutores
+
+Segunda mitad de familias. La primera (03/09) dejó la base de datos lista;
+esto es lo que ve el padre.
+
+**Qué se ha hecho.** Una pantalla «Mi familia» a la que se llega desde
+Perfil: lista de hijos con su avatar y su cinturón, y un botón para dar de
+alta a uno nuevo. Más el interruptor «Yo también entreno», para el tutor
+que solo trae a los niños.
+
+**Decisiones de diseño que merece la pena dejar escritas:**
+
+* **El acceso a «Mi familia» se enseña a todo el mundo**, tenga hijos o no.
+  Enseñarlo solo a quien ya tiene hijos es la trampa clásica: nadie podría
+  dar de alta al primero. (La versión de agosto caía justo en eso.)
+* **Al padre no se le pide el cinturón del hijo.** Entra sin cinturón —que
+  la app enseña como blanco— y gradúa el Dueño desde la ficha del alumno.
+  Un padre no tiene por qué conocer la escala infantil de doce grados, y
+  además el cinturón no es una columna que el cliente pueda escribir: solo
+  se cambia por `promover_cinturon`.
+* **La pantalla explica que los hijos no tienen cuenta.** Es la primera
+  pregunta que hace un padre («¿y con qué usuario entra mi hijo?»), y sale
+  más barato contestarla en la propia pantalla que por WhatsApp.
+* **Editar el nombre de un hijo se queda en nombre y apellidos.** Son las
+  únicas columnas de `profiles` que un cliente puede escribir (lección de la
+  migración 0013). No es una limitación de la pantalla, es el modelo de
+  permisos.
+
+**Limpieza que venía de arrastre.** Se borran la Edge Function `crear-hijo`
+(llamaba a `crear_perfil_hijo`, que ya no existe) y el modelo
+`RelacionFamilia`, que se quedó sin usuarios. Y los nombres de los
+cinturones suben de `miembros_screen.dart` a `core/models/cinturones.dart`:
+los necesitaba también familias, y una pantalla importando de otra pantalla
+es el principio de una madeja.
+
+**Verificado en rojo/verde, tres veces:** quitando la validación del
+formulario, un hijo sin nombre llega al servidor y cae su prueba; cerrando
+la hoja cuando el servidor falla, cae la suya; y cambiando el título del
+acceso en Perfil, cae la de integración. Restaurado: 151/151 pruebas de
+Flutter y `flutter analyze` limpio. Mirado además renderizado con las
+tipografías reales, a 412 px, en los tres estados (con hijos, vacía y la
+hoja de alta).
+
+**Lo que falta de familias, y por qué no va aquí.** Reservar por un hijo
+desde el calendario. La base de datos ya lo permite, pero hacerlo bien
+exige que `listar_clases_semana` devuelva también las reservas de los
+hijos: sin eso, el padre apunta al niño y la tarjeta de la clase sigue
+diciendo «Reservar plaza», como si no hubiera pasado nada. Eso es otra
+migración y otra tanda — meterlo aquí habría mezclado dos temas en un PR.

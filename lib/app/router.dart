@@ -26,9 +26,9 @@ import '../features/onboarding/presentation/pendiente_aprobacion_screen.dart';
 import '../features/onboarding/presentation/registro_screen.dart';
 import '../features/onboarding/presentation/restablecer_contrasena_screen.dart';
 import '../features/onboarding/presentation/splash_screen.dart';
+import '../features/perfil/presentation/mis_hijos_screen.dart';
 import '../features/perfil/presentation/perfil_screen.dart';
 // CONGELADO: import '../features/perfil/presentation/solicitudes_cambio_escuela_screen.dart';
-// CONGELADO: import '../features/perfil/presentation/mis_hijos_screen.dart';
 import '../shared/navigation/main_shell.dart';
 import '../shared/widgets/pantalla.dart';
 import 'routes.dart';
@@ -266,15 +266,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               child: PerfilScreen(),
             ),
           ),
-          // CONGELADO: Familias y tutores
-          // GoRoute(
-          //   path: Routes.misHijos,
-          //   builder: (context, state) => PantallaConTitulo(
-          //     titulo: 'Mis hijos',
-          //     onVolver: () => context.go(Routes.perfil),
-          //     child: const MisHijosScreen(),
-          //   ),
-          // ),
+          GoRoute(
+            path: Routes.misHijos,
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Mi familia',
+              onVolver: () => context.go(Routes.perfil),
+              child: const MisHijosScreen(),
+            ),
+          ),
           GoRoute(
             path: Routes.admin,
             builder: (context, state) => const PantallaConTitulo(

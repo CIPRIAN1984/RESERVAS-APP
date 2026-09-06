@@ -31,6 +31,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
   bool _savingDatos = false;
   bool _uploadingFoto = false;
   bool _savingPassword = false;
+  bool _savingEntrena = false;
 
   @override
   void dispose() {
@@ -39,6 +40,38 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
     _passwordController.dispose();
     _passwordConfirmController.dispose();
     super.dispose();
+  }
+
+  /// «No entreno, solo traigo a mis hijos». Cambiarlo no da ni quita
+  /// permisos: solo decide si sales en la lista de alumnos de la academia
+  /// y si puedes reservar plaza para ti.
+  Future<void> _guardarEntrena(String userId, bool entrena) async {
+    setState(() => _savingEntrena = true);
+    try {
+      await ref
+          .read(profileRepositoryProvider)
+          .actualizarEntrena(userId: userId, entrena: entrena);
+      ref.invalidate(currentProfileProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              entrena
+                  ? 'Vuelves a contar como alumno de la academia.'
+                  : 'Marcado: solo traes a tus hijos, no entrenas.',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se ha podido guardar el cambio.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _savingEntrena = false);
+    }
   }
 
   Future<void> _guardarDatos(String userId) async {
@@ -269,6 +302,61 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                       descripcion: 'Consulta tu plan, cámbialo o date de baja.',
                       destino: const TarifasScreen(),
                     ),
+                    const SizedBox(height: 12),
+                    // Mi familia es para todos, no solo para quien ya tiene
+                    // hijos: si solo se enseñara a quien los tiene, nadie
+                    // podría dar de alta al primero.
+                    Card(
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () => context.push(Routes.misHijos),
+                        child: Padding(
+                          padding: const EdgeInsets.all(18),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.family_restroom_outlined,
+                                size: 26,
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Mi familia',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Da de alta a tus hijos y gestiónalos '
+                                      'desde tu cuenta.',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(color: AppColors.subtle),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right,
+                                color: AppColors.disabled,
+                                size: 22,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _InterruptorEntrena(
+                      entrena: profile.entrena,
+                      guardando: _savingEntrena,
+                      onCambio: (valor) => _guardarEntrena(profile.id, valor),
+                    ),
                   ],
                   const SizedBox(height: 32),
                   Align(
@@ -399,6 +487,66 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Interruptor de «yo también entreno».
+///
+/// Se enseña en positivo (activado = entrenas) porque es lo normal: quien
+/// solo trae a sus hijos lo apaga, y con eso deja de aparecer en la lista
+/// de alumnos y en los contadores de cuotas del Dueño.
+class _InterruptorEntrena extends StatelessWidget {
+  const _InterruptorEntrena({
+    required this.entrena,
+    required this.guardando,
+    required this.onCambio,
+  });
+
+  final bool entrena;
+  final bool guardando;
+  final ValueChanged<bool> onCambio;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 10, 12, 10),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Yo también entreno',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    entrena
+                        ? 'Cuentas como alumno y puedes reservar plaza.'
+                        : 'Solo traes a tus hijos: no sales en la lista de '
+                              'alumnos ni reservas para ti.',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            if (guardando)
+              const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2.4),
+              )
+            else
+              Switch(value: entrena, onChanged: onCambio),
+          ],
+        ),
+      ),
     );
   }
 }

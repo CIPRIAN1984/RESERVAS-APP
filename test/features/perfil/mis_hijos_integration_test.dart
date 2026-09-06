@@ -8,78 +8,92 @@ import 'package:itaca/core/models/profile.dart';
 import 'package:itaca/features/perfil/application/profile_providers.dart';
 import 'package:itaca/features/perfil/presentation/perfil_screen.dart';
 
-/// Familias y tutores está congelado para v1 (ver FREEZE.md): la sección
-/// "Mis hijos" no debe aparecer en Perfil aunque el perfil tenga hijos
-/// asignados, porque el botón llevaba a una ruta (`Routes.misHijos`) que el
-/// router ya no resuelve. Antes de este cierre el botón seguía siendo
-/// visible y tapable pese a la ruta congelada.
+/// El acceso a «Mi familia» desde Perfil.
+///
+/// Estuvo congelado hasta el 04/09/2026 porque la versión vieja llevaba a
+/// una pantalla que no podía funcionar (ver FREEZE.md). Ahora la base de
+/// datos y la pantalla están rehechas, así que el acceso vuelve — y se
+/// enseña **siempre**, no solo a quien ya tiene hijos: si solo se enseñara
+/// a quien los tiene, nadie podría dar de alta al primero.
 
-Profile _perfil({required String rol}) => Profile(
+Profile _perfil({required String rol, bool entrena = true}) => Profile(
   id: 'u1',
   academiaId: 'a1',
   rol: rol,
   nombre: 'Riojano',
   apellidos: 'Ejemplo',
   estado: 'activo',
+  entrena: entrena,
 );
 
-Profile _hijo({required String id, required String nombre}) => Profile(
-  id: id,
-  academiaId: 'a1',
-  rol: 'alumno',
-  nombre: nombre,
-  apellidos: 'Ejemplo',
-  estado: 'activo',
-  parentId: 'u1',
-  cinturon: 'blanco',
+Widget _app({required Profile perfil}) => ProviderScope(
+  overrides: [
+    currentUserIdProvider.overrideWithValue(perfil.id),
+    currentProfileProvider.overrideWith((ref) async => perfil),
+    currentAcademiaProvider.overrideWith((ref) async => null),
+    hijosProvider.overrideWith((ref) async => const []),
+  ],
+  child: MaterialApp(
+    theme: AppTheme.light,
+    home: const Scaffold(body: PerfilScreen()),
+  ),
 );
-
-Widget _app({required Profile perfil, required List<Profile> hijos}) =>
-    ProviderScope(
-      overrides: [
-        currentUserIdProvider.overrideWithValue(perfil.id),
-        currentProfileProvider.overrideWith((ref) async => perfil),
-        currentAcademiaProvider.overrideWith((ref) async => null),
-        hijosProvider.overrideWith((ref) async => hijos),
-      ],
-      child: MaterialApp(
-        theme: AppTheme.light,
-        home: const Scaffold(body: PerfilScreen()),
-      ),
-    );
 
 void main() {
-  testWidgets('un padre sin hijos no ve la sección Mis hijos', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(412, 1400));
-    await tester.pumpWidget(
-      _app(
-        perfil: _perfil(rol: 'alumno'),
-        hijos: [],
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Mis hijos'), findsNothing);
-    expect(find.textContaining('Gestionar hijos'), findsNothing);
-  });
-
-  testWidgets('un padre CON hijos tampoco ve la sección: sigue congelada', (
+  testWidgets('un alumno ve el acceso a Mi familia aunque no tenga hijos', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(412, 1400));
-    final hijos = [
-      _hijo(id: 'h1', nombre: 'Juan'),
-      _hijo(id: 'h2', nombre: 'María'),
-    ];
+    await tester.pumpWidget(_app(perfil: _perfil(rol: 'alumno')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mi familia'), findsOneWidget);
+  });
+
+  testWidgets('el Administrador de plataforma no ve Mi familia', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 1400));
+    await tester.pumpWidget(_app(perfil: _perfil(rol: 'administrador')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Mi familia'),
+      findsNothing,
+      reason: 'No pertenece a ninguna academia: no tiene hijos que gestionar.',
+    );
+  });
+
+  testWidgets('el interruptor de «yo también entreno» refleja el perfil', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 1400));
+    await tester.pumpWidget(_app(perfil: _perfil(rol: 'alumno')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Yo también entreno'), findsOneWidget);
+    expect(
+      find.textContaining('Cuentas como alumno'),
+      findsOneWidget,
+      reason: 'Con entrena a true, el texto explica que sí cuenta.',
+    );
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+  });
+
+  testWidgets('un tutor que no entrena lo ve reflejado y explicado', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 1400));
     await tester.pumpWidget(
-      _app(
-        perfil: _perfil(rol: 'alumno'),
-        hijos: hijos,
-      ),
+      _app(perfil: _perfil(rol: 'alumno', entrena: false)),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Mis hijos'), findsNothing);
-    expect(find.textContaining('Gestionar hijos'), findsNothing);
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+    expect(
+      find.textContaining('no sales en la lista de alumnos'),
+      findsOneWidget,
+      reason: 'Tiene que quedar claro qué implica tenerlo apagado.',
+    );
   });
 }
