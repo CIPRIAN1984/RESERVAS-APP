@@ -1840,3 +1840,52 @@ exige que `listar_clases_semana` devuelva también las reservas de los
 hijos: sin eso, el padre apunta al niño y la tarjeta de la clase sigue
 diciendo «Reservar plaza», como si no hubiera pasado nada. Eso es otra
 migración y otra tanda — meterlo aquí habría mezclado dos temas en un PR.
+
+## 2026-09-06 — Dar de baja a un hijo: solo mientras no haya empezado
+
+**Esto corrige la decisión del 03/09.** Aquel día Cipri dijo que el padre
+borra a su hijo y se borra todo. Hoy, hablando de la gestión de alumnos,
+dijo algo que choca de frente con aquello:
+
+> «solo yo les puedo dar de baja. ahora en maat nadie se da de baja… yo debo
+> darles manualmente si no es un cristo»
+
+Un hijo es un alumno que paga cuota. Si el padre puede borrarlo cuando
+quiera, es exactamente el descontrol que Cipri evita en MAAT: gente
+dándose de baja sola y él enterándose después, con las cuotas cobradas en
+mano desapareciendo por el camino.
+
+**Lo que se hace, elegido por Cipri entre tres opciones:** el padre puede
+borrar a un hijo **solo mientras el niño no tenga nada** — ni una clase
+reservada, ni una asistencia, ni una cuota, ni un pedido, ni un préstamo,
+ni una solicitud de cambio de escuela. O sea: sirve para **corregir un alta
+recién hecha** (un nombre mal escrito, un duplicado), no para dar de baja a
+nadie.
+
+En cuanto el niño pisa el tatami o paga, el botón desaparece del móvil del
+padre y la baja pasa a ser cosa del Dueño, como la de cualquier otro
+alumno.
+
+**Consecuencias que merece la pena dejar escritas:**
+
+* **Ya no hace falta el borrado en cascada** que se documentó el 03/09 (el
+  orden `asistencias → inscripciones → suscripciones → pedidos → prestamos
+  → solicitudes_cambio_escuela → relaciones_familia → perfil`). Si el niño
+  no tiene ninguna de esas filas, no hay nada que encadenar. Ese borrado
+  hará falta cuando se escriba **la baja del Dueño**, que es otra tanda.
+* **Y ya no hace falta escribir el nombre del niño para confirmar.** Aquella
+  precaución era para un borrado irreversible que se llevaba por delante el
+  registro de cobros. Aquí no se pierde nada, así que basta un diálogo
+  normal que diga a quién se borra. Pedir que escriban el nombre para
+  deshacer un alta de hace treinta segundos es ceremonia vacía, y la
+  ceremonia vacía enseña a la gente a pulsar sin leer.
+* **`relaciones_familia` es la única clave foránea en cascada** de todas las
+  que apuntan a `profiles` (comprobado contra el esquema, no supuesto), así
+  que borrar el perfil se lleva la relación sola.
+* Se limpian además `device_tokens` y `notificaciones_outbox`, que guardan
+  el id sin clave foránea y se quedarían huérfanas. Un menor sin cuenta no
+  debería tener ninguna de las dos, pero costaba dos líneas asegurarlo.
+
+**Lo siguiente, ya decidido por Cipri:** la gestión de alumnos por el
+Dueño, empezando por dar de baja y pausar. Y ahí la regla es suya y es
+tajante: **el alumno nunca se da de baja solo.**

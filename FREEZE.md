@@ -53,8 +53,16 @@ raíz (ver el histórico más abajo). Lo que hay ahora, del PR #57:
   `listar_clases_semana` devuelva las reservas de los hijos: si no, el padre
   apunta a su hijo y la tarjeta de la clase sigue diciendo «Reservar plaza»,
   sin rastro de que el niño ya tiene plaza. **Es la siguiente tanda.**
-- **Dar de baja a un hijo.** Cipri decidió que se borra todo (ver
-  DECISIONS.md, 03/09/2026). Sin escribir todavía.
+**Deshacer el alta de un hijo, del 06/09/2026:**
+- `borrar_hijo(p_hijo_id)` y `hijos_borrables()`. El padre solo puede borrar
+  a un hijo **mientras no tenga nada**: ni clase, ni asistencia, ni cuota,
+  ni pedido, ni préstamo, ni solicitud de cambio de escuela. Sirve para
+  corregir un alta recién hecha, **no para dar de baja a nadie**.
+- La regla la puso Cipri el 06/09 y **corrige la decisión del 03/09**: «solo
+  yo les puedo dar de baja». Un alumno que se da de baja solo es el
+  descontrol que evita en MAAT.
+- La baja de verdad (la del Dueño, con su borrado en cascada) es otra tanda.
+- 18 pruebas pgTAP en `supabase/tests/borrar_hijo_test.sql`.
 
 **Histórico, por si alguien se pregunta por qué se rehízo:** la primera
 versión (10 de agosto) aplicó `relaciones_familia`, su RLS y

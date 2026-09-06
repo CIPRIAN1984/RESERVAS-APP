@@ -6,6 +6,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/models/cinturones.dart';
 import '../../../core/models/profile.dart';
+import '../../../core/utils/error_messages.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../application/profile_providers.dart';
@@ -28,14 +29,114 @@ class _MisHijosScreenState extends ConsumerState<MisHijosScreen> {
     final nombre = await mostrarAgregarHijoSheet(context);
     if (nombre == null || !mounted) return;
     ref.invalidate(hijosProvider);
+    ref.invalidate(hijosBorrablesProvider);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$nombre ya está dado de alta en la academia.')),
     );
   }
 
+  /// Deshacer un alta recién hecha.
+  ///
+  /// No es «dar de baja»: el botón solo aparece mientras el niño no tenga
+  /// nada (ni una clase, ni una asistencia, ni una cuota). En cuanto empieza,
+  /// la baja pasa a ser cosa de la academia — decisión de Cipri del
+  /// 06/09/2026, porque un alumno que se da de baja solo es justo el
+  /// descontrol que quiere evitar.
+  Future<void> _borrar(Profile hijo) async {
+    final nombre = [hijo.nombre, hijo.apellidos].whereType<String>().join(' ');
+
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Borrar el alta'),
+        content: Text(
+          'Se borra a $nombre de la academia. Todavía no ha empezado, así '
+          'que no se pierde nada: ni clases, ni asistencias, ni cuotas.',
+        ),
+        // Los dos a ancho completo, uno debajo del otro. Con las acciones
+        // sueltas de un diálogo normal, el tema (que hace los botones de
+        // ancho completo) dejaba «Borrar» rojo y enorme y «Cancelar» como un
+        // enlace pequeñito encima: la opción peligrosa acababa siendo la
+        // más fácil de pulsar sin querer.
+        actions: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancelar'),
+              ),
+              const SizedBox(height: 8),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.destructive,
+                ),
+                child: const Text('Borrar'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true || !mounted) return;
+
+    try {
+      await ref.read(familiaRepositoryProvider).borrarHijo(hijo.id);
+      if (!mounted) return;
+      ref.invalidate(hijosProvider);
+      ref.invalidate(hijosBorrablesProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$nombre ya no está dado de alta.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      // Se recarga igualmente: si el servidor lo ha rechazado es porque el
+      // niño ya ha empezado, y entonces el botón sobra de la pantalla.
+      ref.invalidate(hijosBorrablesProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            mensajeErrorAmigable(
+              e,
+              generico: _motivo(e) ?? 'No se ha podido borrar el alta.',
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  /// Los mensajes que manda el servidor ya están escritos para el padre
+  /// («Nico ya ha empezado en la academia…»), así que se aprovechan en vez
+  /// de taparlos con un genérico.
+  String? _motivo(Object e) {
+    final texto = e.toString();
+    for (final trozo in const [
+      'ya ha empezado en la academia',
+      'tiene una cuota registrada',
+      'su propia cuenta',
+      'tus propios hijos',
+    ]) {
+      final i = texto.indexOf(trozo);
+      if (i == -1) continue;
+      // El texto viene envuelto en el error de Postgres; se recorta la frase.
+      final desde = texto.lastIndexOf(RegExp(r'[:>]\s'), i);
+      final hasta = texto.indexOf('.', i);
+      if (hasta == -1) continue;
+      return texto.substring(desde == -1 ? 0 : desde + 2, hasta + 1).trim();
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final hijosAsync = ref.watch(hijosProvider);
+    // Mientras no se sepa, no se enseña ningún botón de borrar: mejor que no
+    // esté a que aparezca y desaparezca al terminar de cargar.
+    final borrables =
+        ref.watch(hijosBorrablesProvider).value ?? const <String>{};
 
     return Scaffold(
       backgroundColor: AppColors.ground,
@@ -74,7 +175,13 @@ class _MisHijosScreenState extends ConsumerState<MisHijosScreen> {
             separatorBuilder: (_, _) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               if (index == hijos.length) return const _NotaSinCuenta();
-              return _FilaHijo(hijo: hijos[index]);
+              final hijo = hijos[index];
+              return _FilaHijo(
+                hijo: hijo,
+                onBorrar: borrables.contains(hijo.id)
+                    ? () => _borrar(hijo)
+                    : null,
+              );
             },
           );
         },
@@ -104,9 +211,14 @@ class _NotaSinCuenta extends StatelessWidget {
 }
 
 class _FilaHijo extends StatelessWidget {
-  const _FilaHijo({required this.hijo});
+  const _FilaHijo({required this.hijo, this.onBorrar});
 
   final Profile hijo;
+
+  /// Solo se pasa mientras el alta se pueda deshacer. Cuando el niño ya ha
+  /// empezado llega `null` y el botón no existe: enseñar uno que va a fallar
+  /// es peor que no enseñarlo.
+  final VoidCallback? onBorrar;
 
   @override
   Widget build(BuildContext context) {
@@ -139,6 +251,22 @@ class _FilaHijo extends StatelessWidget {
                 ],
               ),
             ),
+            if (onBorrar != null) ...[
+              const SizedBox(width: 4),
+              SizedBox(
+                width: 44,
+                height: 44,
+                child: IconButton(
+                  onPressed: onBorrar,
+                  icon: const Icon(Icons.delete_outline, size: 20),
+                  tooltip: 'Borrar el alta de $nombre',
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppColors.ground,
+                    foregroundColor: AppColors.destructive,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
