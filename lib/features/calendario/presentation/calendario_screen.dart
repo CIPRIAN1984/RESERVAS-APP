@@ -147,6 +147,10 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
     // Por MODO, no por rol: un dueño en modo Entrenamiento viene a apuntarse
     // a clase, no a gestionarlas.
     final gestionando = ref.watch(enModoGestionProvider);
+    // Dado de baja: puede entrar y mirar, pero no reservar. Es lo que eligió
+    // Cipri el 06/09/2026 frente a bloquearle el acceso — si vuelve dentro de
+    // seis meses, la puerta cerrada da más trabajo del que ahorra.
+    final deBaja = profile?.deBaja ?? false;
 
     final selectedDay = ref.watch(selectedDayProvider);
     final visibleWeek = ref.watch(visibleWeekProvider);
@@ -178,6 +182,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
             const TituloPantalla('Hoy')
           else
             const _CabeceraInicio(),
+          if (deBaja && !gestionando) const _AvisoDeBaja(),
           _SemanaPildoras(
             semana: visibleWeek,
             selectedDay: selectedDay,
@@ -259,13 +264,13 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                           ),
                         ),
                       ),
-                      onQuienViene: (userId != null && conFamilia)
+                      onQuienViene: (userId != null && conFamilia && !deBaja)
                           ? () => mostrarQuienVieneSheet(context, clase.id)
                           : null,
-                      onUnirse: (userId == null || conFamilia)
+                      onUnirse: (userId == null || conFamilia || deBaja)
                           ? null
                           : () => _unirse(clase),
-                      onBorrarse: (userId == null || conFamilia)
+                      onBorrarse: (userId == null || conFamilia || deBaja)
                           ? null
                           : () => _borrarse(clase),
                     );
@@ -275,6 +280,54 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Lo que ve alguien a quien la academia ha dado de baja.
+///
+/// No se le echa de la app: entra, ve el calendario y sus estadísticas de
+/// siempre, pero no puede reservar. Y se le dice por qué, con quién hablar
+/// y que no ha perdido nada — que es lo primero que va a temer.
+class _AvisoDeBaja extends StatelessWidget {
+  const _AvisoDeBaja();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.pause_circle_outline, color: AppColors.subtle),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Ya no estás dado de alta',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'No puedes reservar clases. Habla con tu academia si '
+                      'quieres volver: tus entrenos y tu cinturón siguen '
+                      'guardados.',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

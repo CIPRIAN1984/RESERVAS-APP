@@ -41,4 +41,10 @@ abstract class Profile with _$Profile {
 
   /// True while the owning academia hasn't been approved by the platform admin yet.
   bool get pendienteAprobacion => estado == 'pendiente_aprobacion';
+
+  /// Dado de baja por el Dueño. **No es un perfil borrado**: conserva su
+  /// cinturón, sus asistencias y sus cuotas, y se puede reactivar (decisión
+  /// de Cipri del 06/09/2026). Lo que no puede es reservar, ni cuenta en las
+  /// listas, el ranking ni las estadísticas.
+  bool get deBaja => estado == 'baja';
 }

@@ -55,7 +55,8 @@ enum FiltroEstado {
   alDia('Al día'),
   sinCuota('Sin cuota'),
   inactivos('Inactivos'),
-  listos('Listos');
+  listos('Listos'),
+  deBaja('De baja');
 
   const FiltroEstado(this.etiqueta);
 
@@ -173,9 +174,16 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                 FiltroEstado.sinCuota => !cuotaAlDia.contains(a.id),
                 FiltroEstado.inactivos => esInactivo(ultimaAsistencia[a.id]),
                 FiltroEstado.listos => listosParaGraduarse.contains(a.id),
+                FiltroEstado.deBaja => a.deBaja,
               };
 
               final visibles = alumnos.where((a) {
+                // Quien está de baja no sale, salvo que se filtre por ellos
+                // a propósito. Si salieran mezclados, dar de baja a alguien
+                // no cambiaría nada de lo que ves en la lista.
+                if (a.deBaja && _estadoElegido != FiltroEstado.deBaja) {
+                  return false;
+                }
                 // Sin cinturón asignado cuenta como blanco (igual que en la
                 // ficha y en el progreso hacia el siguiente): si no, nadie
                 // sin dato se veía nunca al filtrar por "Blanco", ni
@@ -189,13 +197,18 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                 return a.nombreCompleto.toLowerCase().contains(_busqueda);
               }).toList();
 
-              final alDia = alumnos
+              // Los recuentos de arriba son de los alumnos ACTIVOS. Contar
+              // también a los de baja haría que «Al día» o «Inactivos» no
+              // cuadraran nunca con la lista de abajo.
+              final activos = alumnos.where((a) => !a.deBaja).toList();
+              final bajas = alumnos.length - activos.length;
+              final alDia = activos
                   .where((a) => cuotaAlDia.contains(a.id))
                   .length;
-              final inactivos = alumnos
+              final inactivos = activos
                   .where((a) => esInactivo(ultimaAsistencia[a.id]))
                   .length;
-              final listos = alumnos
+              final listos = activos
                   .where((a) => listosParaGraduarse.contains(a.id))
                   .length;
 
@@ -229,7 +242,7 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: _TarjetaResumen(
-                                numero: alumnos.length - alDia,
+                                numero: activos.length - alDia,
                                 estado: FiltroEstado.sinCuota,
                                 pastilla: const PastillaEstado.error(
                                   'Sin cuota',
@@ -272,12 +285,44 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                             ),
                           ],
                         ),
+                        // La tercera fila solo aparece si hay alguien de
+                        // baja: mientras no hayas dado ninguna, es una
+                        // tarjeta con un cero que no dice nada.
+                        if (bajas > 0) ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _TarjetaResumen(
+                                  numero: bajas,
+                                  estado: FiltroEstado.deBaja,
+                                  pastilla: const PastillaEstado('De baja'),
+                                  seleccionada:
+                                      _estadoElegido == FiltroEstado.deBaja,
+                                  onTap: () =>
+                                      _alternarEstado(FiltroEstado.deBaja),
+                                ),
+                              ),
+                              // Hueco a la derecha para que la tarjeta
+                              // conserve el ancho de las de arriba en vez de
+                              // estirarse a lo largo de toda la fila.
+                              const SizedBox(width: 8),
+                              const Expanded(child: SizedBox()),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
                   _BarraRecuento(
                     visibles: visibles.length,
-                    total: alumnos.length,
+                    // El total es el del grupo del que sale la lista, no el
+                    // de la tabla entera. Con `alumnos.length` decía «4
+                    // alumnos» enseñando 2, porque dos estaban de baja — se
+                    // vio mirando la captura, no compilando.
+                    total: _estadoElegido == FiltroEstado.deBaja
+                        ? bajas
+                        : activos.length,
                     hayFiltros: hayFiltros,
                     onQuitar: _quitarFiltros,
                   ),
