@@ -118,4 +118,22 @@ class MiembrosRepository {
       params: {'p_alumno_id': alumnoId, 'p_nuevo_cinturon': nuevoCinturon},
     );
   }
+
+  /// Da de baja a un alumno. **No borra nada**: se queda su perfil, su
+  /// cinturón, sus asistencias y el registro de sus cuotas.
+  ///
+  /// El servidor hace lo demás en el mismo paso: libera sus reservas
+  /// futuras (ascendiendo a quien esperaba plaza) y cierra su cuota con
+  /// fecha de hoy. Y solo se lo permite al Dueño — regla de Cipri: «el
+  /// alumno nunca se da de baja solo».
+  Future<void> darDeBaja(String alumnoId) async {
+    await _client.rpc('dar_de_baja_alumno', params: {'p_alumno_id': alumnoId});
+  }
+
+  /// Vuelve a activar a un alumno que se había ido. Recupera su cinturón y
+  /// su historial; la cuota **no** se reactiva sola, la cobra el Dueño
+  /// cuando toque.
+  Future<void> reactivar(String alumnoId) async {
+    await _client.rpc('reactivar_alumno', params: {'p_alumno_id': alumnoId});
+  }
 }

@@ -76,6 +76,95 @@ class FichaMiembroScreen extends ConsumerWidget {
     }
   }
 
+  /// Dar de baja, o traerlo de vuelta.
+  ///
+  /// El diálogo dice **exactamente** lo que va a pasar, porque son varias
+  /// cosas a la vez y ninguna es obvia: se liberan sus reservas futuras, se
+  /// cierra su cuota, y no se borra nada. Un «¿Seguro?» aquí sería mentir
+  /// por omisión.
+  Future<void> _cambiarAlta(BuildContext context, WidgetRef ref) async {
+    final baja = alumno.deBaja;
+
+    // Mismo cuidado con el contexto que en `_promover`: el diálogo se monta
+    // en el navegador raíz y esta pantalla cuelga del anidado del armazón.
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (contextoDialogo) => AlertDialog(
+        title: Text(baja ? 'Reactivar al alumno' : 'Dar de baja'),
+        content: Text(
+          baja
+              ? '${alumno.nombreCompleto} vuelve a ser alumno de la academia, '
+                    'con su cinturón y su historial. Su cuota no se reactiva '
+                    'sola: se la cobras tú cuando toque.'
+              : 'A ${alumno.nombreCompleto} se le liberan las reservas que '
+                    'tenga a partir de hoy y se le cierra la cuota con fecha '
+                    'de hoy.\n\nNo se borra nada: su historial, sus cuotas '
+                    'cobradas y su cinturón se quedan, y puedes reactivarlo '
+                    'cuando vuelva.',
+        ),
+        actions: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(contextoDialogo).pop(false),
+                child: const Text('Cancelar'),
+              ),
+              const SizedBox(height: 8),
+              FilledButton(
+                onPressed: () => Navigator.of(contextoDialogo).pop(true),
+                style: baja
+                    ? null
+                    : FilledButton.styleFrom(
+                        backgroundColor: AppColors.destructive,
+                      ),
+                child: Text(baja ? 'Reactivar' : 'Dar de baja'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true || !context.mounted) return;
+
+    try {
+      final repo = ref.read(miembrosRepositoryProvider);
+      if (baja) {
+        await repo.reactivar(alumno.id);
+      } else {
+        await repo.darDeBaja(alumno.id);
+      }
+      if (!context.mounted) return;
+      // Se recarga todo lo que depende de quién está activo: la lista, las
+      // cuotas al día, la inactividad y el progreso de graduación.
+      ref.invalidate(alumnosMiembrosProvider);
+      ref.invalidate(cuotaAlDiaMiembrosProvider);
+      ref.invalidate(ultimaAsistenciaMiembrosProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            baja
+                ? '${alumno.nombreCompleto} vuelve a estar activo.'
+                : '${alumno.nombreCompleto} está dado de baja.',
+          ),
+        ),
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            baja
+                ? 'No se ha podido reactivar al alumno.'
+                : 'No se ha podido dar de baja al alumno.',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final progresoAsync = ref.watch(
@@ -115,15 +204,33 @@ class FichaMiembroScreen extends ConsumerWidget {
                   spacing: 8,
                   runSpacing: 4,
                   children: [
-                    esInactivo(ultima)
-                        ? PastillaEstado.aviso(etiquetaInactividad(ultima))
-                        : PastillaEstado.exito(etiquetaInactividad(ultima)),
-                    if (progreso.listoParaGraduarse)
-                      const PastillaEstado.exito('Listo para graduarse'),
+                    // De baja, las demás pastillas sobran: «lleva 3 meses sin
+                    // venir» no es una alerta cuando la persona se ha ido, y
+                    // «listo para graduarse» tampoco viene a cuento.
+                    if (alumno.deBaja)
+                      const PastillaEstado.error('De baja')
+                    else ...[
+                      esInactivo(ultima)
+                          ? PastillaEstado.aviso(etiquetaInactividad(ultima))
+                          : PastillaEstado.exito(etiquetaInactividad(ultima)),
+                      if (progreso.listoParaGraduarse)
+                        const PastillaEstado.exito('Listo para graduarse'),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 20),
-                if (progreso.proximoCinturon == null)
+                if (alumno.deBaja)
+                  const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(18),
+                      child: Text(
+                        'Este alumno está dado de baja. No puede reservar '
+                        'clases ni sale en las listas, pero su historial y su '
+                        'cinturón se conservan intactos.',
+                      ),
+                    ),
+                  )
+                else if (progreso.proximoCinturon == null)
                   const Card(
                     child: Padding(
                       padding: EdgeInsets.all(18),
@@ -151,6 +258,25 @@ class FichaMiembroScreen extends ConsumerWidget {
                     child: const Text('Promover a un nuevo cinturón'),
                   ),
                 ],
+
+                // Abajo del todo y separado: es la acción que menos se usa y
+                // la que peor sienta pulsar sin querer.
+                const SizedBox(height: 32),
+                const Divider(color: AppColors.line),
+                const SizedBox(height: 16),
+                if (alumno.deBaja)
+                  FilledButton(
+                    onPressed: () => _cambiarAlta(context, ref),
+                    child: const Text('Reactivar al alumno'),
+                  )
+                else
+                  OutlinedButton(
+                    onPressed: () => _cambiarAlta(context, ref),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.destructive,
+                    ),
+                    child: const Text('Dar de baja'),
+                  ),
               ],
             ),
           ),

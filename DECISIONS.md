@@ -1928,3 +1928,42 @@ alumno.
 **Lo siguiente, ya decidido por Cipri:** la gestión de alumnos por el
 Dueño, empezando por dar de baja y pausar. Y ahí la regla es suya y es
 tajante: **el alumno nunca se da de baja solo.**
+
+## 2026-09-06 — Dar de baja a un alumno: se archiva, no se borra
+
+La respuesta que faltaba, de Cipri: **«al dar de baja a un alumno se guarda
+su historial»**. Con eso queda cerrada la duda que venía del 03/09 y que
+para los hijos ya se había resuelto por otro camino.
+
+**Qué significa.** Dar de baja **no borra nada**. El perfil se queda, con
+sus asistencias, sus cuotas cobradas, su cinturón y su antigüedad; lo que
+cambia es que deja de ser un alumno en activo. Si vuelve dentro de un año,
+se reactiva y sigue donde lo dejó.
+
+Esto es lo contrario de lo que se planteó el 03/09 para los hijos («borra
+todo») y por buenos motivos: ahí hablábamos de deshacer un alta de hace
+treinta segundos, y aquí de alguien que lleva años pagando. Son dos cosas
+distintas y ahora la app las trata distinto.
+
+**Las tres reglas que las manda todas, dichas por Cipri:**
+
+1. **El alumno nunca se da de baja solo.** «En MAAT nadie se da de baja, yo
+   debo darles manualmente, si no es un cristo.» La baja es del Dueño.
+2. **Se guarda el historial.** No hay borrado.
+3. **La cuota se cierra con fecha de hoy** al dar de baja. No se borra —el
+   cobro sigue en el histórico para sus cuentas—, pero deja de estar activa.
+   Si no, un mes después de irse le seguiría saliendo «al día» en la lista.
+
+**Y una consecuencia elegida:** el alumno dado de baja **sí puede entrar en
+la app**. Ve un mensaje claro de que ya no está dado de alta y sus
+estadísticas pasadas, pero no puede reservar ni sale en las listas.
+Bloquearle el acceso era más tajante pero más frío, y cuando vuelva dentro
+de seis meses da más trabajo de soporte que el que ahorra.
+
+**Lo que esto implica en la base de datos**, para quien lo lea luego:
+`profiles.estado` pasa a admitir `baja` además de `activo` y
+`pendiente_aprobacion`. Todo lo que hoy filtra por «alumno activo» tiene
+que mirar ese estado, y ahí está el riesgo real de esta tanda: si se escapa
+un sitio, un alumno de baja sigue contando en el ranking, en las listas o
+en las estadísticas. Por eso la migración va acompañada de pruebas que
+recorren esos sitios uno a uno.
