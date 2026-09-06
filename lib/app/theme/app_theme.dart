@@ -61,7 +61,13 @@ class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         systemOverlayStyle: overlayStyle,
-        titleTextStyle: text.titleLarge,
+        // `copyWith(fontFamily:)` y no `text.titleLarge` a secas: el
+        // `fontFamily` de arriba solo lo aplica Flutter al `textTheme`, no a
+        // los estilos que se pasan sueltos a un tema de componente. Sin esto
+        // el título sale con la letra del sistema. Y no vale
+        // `_textTheme.apply(fontFamily:)`, que pisaría la mono de las
+        // etiquetas pequeñas.
+        titleTextStyle: text.titleLarge?.copyWith(fontFamily: fontSans),
       ),
 
       // Tarjeta: gris muy claro, esquinas de 20, sin sombra ni borde.
@@ -205,7 +211,10 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         elevation: 8,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        titleTextStyle: _textTheme.titleLarge,
+        // Mismo caso que en la barra superior: sin el `fontFamily` explícito,
+        // el título de TODOS los diálogos de la app sale con la letra del
+        // sistema en vez de con Inter Tight.
+        titleTextStyle: _textTheme.titleLarge?.copyWith(fontFamily: fontSans),
       ),
 
       bottomSheetTheme: const BottomSheetThemeData(

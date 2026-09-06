@@ -17,3 +17,13 @@ final familiaRepositoryProvider = Provider<FamiliaRepository>((ref) {
 final hijosProvider = FutureProvider<List<Profile>>((ref) async {
   return ref.watch(familiaRepositoryProvider).listarHijos();
 });
+
+/// De esos hijos, cuáles se pueden borrar todavía: los que no han empezado.
+///
+/// Va aparte del listado a propósito. El listado ya funciona y se usa en
+/// tres sitios (Mi familia, el calendario y la hoja «¿Quién viene?»); meterle
+/// dentro un dato que solo necesita una pantalla habría obligado a tocar los
+/// tres para nada.
+final hijosBorrablesProvider = FutureProvider<Set<String>>((ref) async {
+  return ref.watch(familiaRepositoryProvider).hijosBorrables();
+});

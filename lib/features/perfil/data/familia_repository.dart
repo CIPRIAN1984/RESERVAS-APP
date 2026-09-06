@@ -70,6 +70,29 @@ class FamiliaRepository {
     return id as String;
   }
 
+  /// De mis hijos, cuáles puedo borrar todavía.
+  ///
+  /// Solo los que **no han empezado**: sin clases, asistencias, cuotas,
+  /// pedidos ni préstamos. Sirve para deshacer un alta recién hecha, no para
+  /// dar de baja a nadie — eso es cosa del Dueño (decisión de Cipri del
+  /// 06/09/2026).
+  ///
+  /// Va por RPC y no por una consulta suelta porque comprobarlo exige mirar
+  /// las cuotas del niño, y la seguridad de `suscripciones` no le deja eso a
+  /// un padre. Con razón: ahí vive el dinero.
+  Future<Set<String>> hijosBorrables() async {
+    final filas = await _client.rpc('hijos_borrables') as List;
+    return filas.map((f) => f as String).toSet();
+  }
+
+  /// Borra a un hijo recién dado de alta.
+  ///
+  /// El servidor vuelve a comprobarlo todo: entre que la pantalla pintó el
+  /// botón y el padre lo pulsó, el profesor puede haberle pasado lista.
+  Future<void> borrarHijo(String hijoId) async {
+    await _client.rpc('borrar_hijo', params: {'p_hijo_id': hijoId});
+  }
+
   /// Corrige el nombre de un hijo.
   ///
   /// Solo nombre y apellidos: son las únicas columnas de `profiles` que un

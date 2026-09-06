@@ -59,9 +59,20 @@ raíz (ver el histórico más abajo). Lo que hay ahora, del PR #57:
   le rechazaría la reserva.
 - 9 pruebas pgTAP en `supabase/tests/reservas_familia_calendario_test.sql`.
 
+**Deshacer el alta de un hijo, del 06/09/2026:**
+- `borrar_hijo(p_hijo_id)` y `hijos_borrables()`. El padre solo puede borrar
+  a un hijo **mientras no tenga nada**: ni clase, ni asistencia, ni cuota,
+  ni pedido, ni préstamo, ni solicitud de cambio de escuela. Sirve para
+  corregir un alta recién hecha, **no para dar de baja a nadie**.
+- La regla la puso Cipri el 06/09 y **corrige la decisión del 03/09**: «solo
+  yo les puedo dar de baja». Un alumno que se da de baja solo es el
+  descontrol que evita en MAAT.
+- 18 pruebas pgTAP en `supabase/tests/borrar_hijo_test.sql`.
+
 **Lo que todavía falta de familias:**
-- **Dar de baja a un hijo.** Cipri decidió que se borra todo (ver
-  DECISIONS.md, 03/09/2026). Sin escribir todavía.
+- **La baja de verdad, la del Dueño**, con su borrado en cascada y la
+  decisión de si se archiva o se borra. Es la siguiente tanda, ya pedida por
+  Cipri: «solo yo les puedo dar de baja».
 - **El saldo de clases de cada hijo**, para el padre que tiene una tarifa
   por número de clases. Hoy solo lo ve el Dueño.
 
