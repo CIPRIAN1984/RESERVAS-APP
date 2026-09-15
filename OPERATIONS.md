@@ -297,3 +297,58 @@ La URL de privacidad para ambas tiendas es
 `https://itc2-reservas.vercel.app/privacidad`. La publicación no se considera
 terminada hasta que cada consola confirme la aprobación y la versión esté
 disponible en la pista o países elegidos.
+
+## Conectar el agente personal del Dueño
+
+La app expone una puerta de **solo lectura** para que un asistente externo
+consulte datos de la academia. Ver la decisión completa en `DECISIONS.md`
+(2026-09-14) y las implicaciones de privacidad en `PRIVACY.md`.
+
+### Crear la clave
+
+1. En la app, modo Gestor → **Herramientas → Claves para tu agente**.
+2. **Crear una clave**. Ponle un nombre que se reconozca («ChatGPT del
+   móvil»). El interruptor de correos viene apagado; enciéndelo solo si de
+   verdad hace falta.
+3. Copia la clave **en ese momento**: es la única vez que se ve entera.
+
+### Engancharla a ChatGPT
+
+En ChatGPT, *Configuración → Conectores → Añadir*, con:
+
+- **URL:** `https://dpcdpcvjcutcqyqcacti.supabase.co/functions/v1/agente`
+- **Autenticación:** cabecera `Authorization: Bearer itc_…`
+
+El conector descubre solo las cuatro consultas disponibles (`resumen`,
+`avisos`, `horario`, `alumnos`). La opción de conectores personalizados
+depende del plan de ChatGPT y de tener activado el modo de desarrollador; si
+no aparece, la puerta sigue funcionando por `GET` (ver abajo).
+
+### Comprobar que responde, sin ChatGPT
+
+```bash
+CLAVE=itc_...
+BASE=https://dpcdpcvjcutcqyqcacti.supabase.co/functions/v1/agente
+
+# Qué sabe hacer
+curl -s -H "Authorization: Bearer $CLAVE" "$BASE"
+
+# Los avisos de la semana
+curl -s -H "Authorization: Bearer $CLAVE" "$BASE?consulta=avisos"
+
+# El horario de los próximos siete días
+curl -s -H "Authorization: Bearer $CLAVE" "$BASE?consulta=horario"
+```
+
+Una clave mala devuelve `401` y nada más — sin pistas sobre por qué.
+
+### Cortar el acceso
+
+En la misma pantalla, **Anular esta clave**. El corte es inmediato y no se
+puede deshacer: para volver a dar acceso hay que crear una clave nueva.
+
+### Qué se ve desde el otro lado
+
+En la misma pantalla, «Lo que ha leído tu agente» lista las últimas consultas
+con fecha y clave. Es el sitio donde mirar si alguna vez hay dudas sobre qué
+ha estado leyendo.
