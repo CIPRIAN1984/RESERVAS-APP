@@ -396,6 +396,14 @@ deno_version = 2
 [functions.send-push]
 verify_jwt = false
 
+# El agente personal del Dueño no tiene una sesión de Supabase: se presenta
+# con la clave `itc_…` que él mismo genera desde la app. Si Supabase exigiera
+# aquí su propio JWT, la petición se rechazaría antes de que la función
+# llegue a comprobar la clave. La comprobación la hace la función, y sin
+# clave válida no devuelve absolutamente nada.
+[functions.agente]
+verify_jwt = false
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

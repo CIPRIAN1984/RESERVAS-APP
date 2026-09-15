@@ -41,6 +41,28 @@ personalizada.
 Cada proveedor debe configurarse únicamente para `RESERVAS-APP`, con acceso
 mínimo y sin reutilizar credenciales de otros proyectos.
 
+### Agente personal del Dueño
+
+El Dueño puede generar claves de **solo lectura** (*Herramientas → Claves para
+tu agente*) para que un asistente externo — hoy ChatGPT — consulte datos de su
+academia. Esto añade un proveedor que el Dueño elige por su cuenta, así que
+conviene tenerlo claro:
+
+- Lo que el agente lee **sale de la app** y entra en la empresa que lo
+  fabrica. Cada consulta queda registrada en `consultas_agente` y el Dueño la
+  ve en la propia pantalla.
+- Por defecto el agente accede a datos de gestión: recuentos, estado de cuota,
+  cinturón, asistencia y horario, con nombre y apellidos en los avisos.
+- **El correo electrónico solo sale si esa clave lo tiene autorizado**
+  expresamente (`incluye_contacto`), y el interruptor viene apagado. Es el
+  único dato de contacto que la app guarda de un alumno; no hay teléfonos.
+- Las claves se anulan en cualquier momento y el corte es inmediato.
+
+Una academia que quiera usar esto debe valorar si su base legal cubre esa
+comunicación a un tercero, e informarlo en su propio aviso de privacidad. Si
+no está segura, la recomendación es dejar el interruptor de contacto apagado:
+los recuentos y avisos funcionan igual.
+
 ## Conservación
 
 Los datos operativos se mantienen mientras la cuenta y la relación con la
