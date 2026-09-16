@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/widgets/pantalla.dart';
-import '../../agente/presentation/agente_screen.dart';
 import '../../tarifas/presentation/tarifas_screen.dart';
 
 /// Lo que la academia administra y no es el día a día: catálogos y ajustes.
@@ -26,15 +25,6 @@ class HerramientasScreen extends ConsumerWidget {
               'Cuotas que pueden contratar tus alumnos: precio, '
               'periodicidad y sesiones incluidas.',
           destino: const TarifasScreen(),
-        ),
-        const SizedBox(height: 12),
-        TarjetaAcceso(
-          icono: Icons.key_outlined,
-          titulo: 'Claves para tu agente',
-          descripcion:
-              'Deja que un asistente como ChatGPT consulte los datos de '
-              'la academia. Solo lectura, y se anula cuando quieras.',
-          destino: const AgenteScreen(),
         ),
       ],
     );
