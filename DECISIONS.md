@@ -1967,3 +1967,34 @@ que mirar ese estado, y ahí está el riesgo real de esta tanda: si se escapa
 un sitio, un alumno de baja sigue contando en el ranking, en las listas o
 en las estadísticas. Por eso la migración va acompañada de pruebas que
 recorren esos sitios uno a uno.
+
+## 2026-09-19 — Tienda y préstamos: se descongela, sin esperar a Stripe real
+
+Cipri pidió avanzar con "Tienda y préstamos de material" en la misma tanda
+que el horario semanal y la preparación de Stripe. Al revisar el módulo a
+fondo para decidir si merecía seguir congelado (ver FREEZE.md §3, congelado
+desde el 08/08/2026), resultó que ya estaba completo: catálogo, pedidos,
+préstamos y el descuento/reposición de stock, todo construido y probado.
+El motivo del congelamiento (una nota del 13/08/2026 que decía "Stock NO es
+atómico. Pagos de productos NO están conectados") estaba obsoleto —
+la fase de fiabilidad de pagos de esa misma época ya lo había resuelto,
+solo que nadie actualizó FREEZE.md para reflejarlo.
+
+**Por qué es seguro exponerlo ya, antes de activar Stripe de verdad**
+(ver la decisión de preparar-Stripe-sin-conectar, misma fecha): el propio
+`catalogo_tab.dart` comprueba `academia.stripeChargesEnabled` antes de
+intentar abrir la hoja de pago. Sin cuenta de Stripe conectada, no ofrece
+comprar — muestra un aviso claro en vez de fallar o cobrar nada. No hace
+falta esperar a tener Stripe activo para que el Dueño pueda gestionar su
+catálogo, sus pedidos y sus préstamos de material.
+
+**Qué se ha hecho:** tarjeta "Tienda y material" en Herramientas (para
+Dueño/Profesor: Catálogo, Pedidos, Préstamos) y en Perfil (para el alumno:
+Catálogo, Mis pedidos) — la de Perfil ya estaba prevista en un comentario
+del código que quedó huérfano al congelar la función en agosto. Se
+reactiva también la inicialización de `flutter_stripe` en `main.dart`
+(sigue inerte: no hay clave publicable configurada).
+
+**Qué NO cambia:** nada en la base de datos. El esquema, los triggers de
+stock y las políticas RLS de `productos`/`pedidos`/`prestamos` ya estaban
+en producción desde julio y siguen sin tocarse.

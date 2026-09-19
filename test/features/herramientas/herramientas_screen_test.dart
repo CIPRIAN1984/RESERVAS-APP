@@ -5,11 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/features/herramientas/presentation/herramientas_screen.dart';
 
-/// Tienda está congelada para v1 (ver FREEZE.md). Antes de este cierre,
-/// la tarjeta "Tienda y material" en Herramientas saltaba directamente a
-/// TiendaScreen con Navigator.push, sin pasar por el router.
+/// Tienda se descongeló el 19/09/2026 (ver FREEZE.md): el catálogo, los
+/// pedidos y los préstamos ya estaban completos y el checkout de Stripe
+/// se protege solo cuando la academia no tiene cobros configurados
+/// (`catalogo_tab.dart`), así que es seguro exponerlo antes de activar
+/// Stripe de verdad.
 void main() {
-  testWidgets('Herramientas no ofrece acceso a la Tienda', (tester) async {
+  testWidgets('Herramientas ofrece acceso a la Tienda', (tester) async {
     await tester.binding.setSurfaceSize(const Size(412, 1000));
     await tester.pumpWidget(
       ProviderScope(
@@ -21,7 +23,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Tienda y material'), findsNothing);
+    expect(find.text('Tienda y material'), findsOneWidget);
     expect(find.text('Tarifas y planes'), findsOneWidget);
   });
 }

@@ -42,6 +42,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Mi cuota'), findsOneWidget);
+    expect(find.text('Tienda y material'), findsOneWidget);
   });
 
   testWidgets('un dueño también lo tiene: entrena en la misma academia', (
@@ -52,10 +53,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Mi cuota'), findsOneWidget);
+    expect(find.text('Tienda y material'), findsOneWidget);
   });
 
-  // Tienda, Familias y cambio de escuela están congelados para v1 (ver
-  // FREEZE.md): ningún rol debe poder llegar a ellos desde Perfil.
+  // Familias y cambio de escuela siguen congelados para v1 (ver FREEZE.md):
+  // ningún rol debe poder llegar a ellos desde Perfil. Tienda se descongeló
+  // el 19/09/2026 y tiene sus propias pruebas arriba.
   for (final rol in ['alumno', 'profesor', 'dueño', 'administrador']) {
     testWidgets('un $rol no ve accesos a funciones congeladas desde Perfil', (
       tester,
@@ -64,7 +67,6 @@ void main() {
       await tester.pumpWidget(_app(_perfil(rol: rol)));
       await tester.pumpAndSettle();
 
-      expect(find.text('Tienda y material'), findsNothing);
       expect(find.textContaining('Gestionar hijos'), findsNothing);
       expect(find.text('Solicitar cambio de escuela'), findsNothing);
     });

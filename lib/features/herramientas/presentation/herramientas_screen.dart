@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/widgets/pantalla.dart';
 import '../../tarifas/presentation/tarifas_screen.dart';
+import '../../tienda/presentation/tienda_screen.dart';
 
 /// Lo que la academia administra y no es el día a día: catálogos y ajustes.
 ///
@@ -25,6 +26,14 @@ class HerramientasScreen extends ConsumerWidget {
               'Cuotas que pueden contratar tus alumnos: precio, '
               'periodicidad y sesiones incluidas.',
           destino: const TarifasScreen(),
+        ),
+        const SizedBox(height: 12),
+        TarjetaAcceso(
+          icono: Icons.storefront_outlined,
+          titulo: 'Tienda y material',
+          descripcion:
+              'Catálogo, pedidos de tus alumnos y préstamos de material.',
+          destino: const TiendaScreen(),
         ),
       ],
     );
