@@ -56,7 +56,9 @@ export interface CallerProfile {
 }
 
 /** Verifies the request's JWT and returns the caller's own profile, or null if unauthenticated/not found. */
-export async function getCallerProfile(req: Request): Promise<CallerProfile | null> {
+export async function getCallerProfile(
+  req: Request,
+): Promise<CallerProfile | null> {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) return null;
 

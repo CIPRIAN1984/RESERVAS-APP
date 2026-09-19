@@ -1,22 +1,33 @@
 // Called when a Dueño taps "Conectar con Stripe". Creates the academia's
 // Stripe Connect (Standard) account if it doesn't exist yet, and always
 // returns a fresh Account Link URL to open in an external browser.
-import { createAdminClient, getCallerProfile, jsonResponse } from "../_shared/utils.ts";
+import {
+  createAdminClient,
+  getCallerProfile,
+  jsonResponse,
+} from "../_shared/utils.ts";
 import { createStripeClient } from "../_shared/stripe.ts";
 
 // Where Stripe sends the Dueño back after (or on abandoning) onboarding.
 // Configurable per environment so it isn't pinned to a single deploy: set the
 // STRIPE_ONBOARDING_RETURN_URL secret to an HTTPS URL that redirects into the
 // app (a universal/app link or a web page with a "volver a la app" button).
+//
+// El valor por defecto apuntaba a un dominio de una maqueta antigua
+// ("web-henna-seven-16"), no al nuestro: quien conectara Stripe sin fijar
+// el secreto habría acabado en una página que no es la app. Corregido al
+// dominio real de producción (ver CLAUDE.md §2).
 const RETURN_URL = Deno.env.get("STRIPE_ONBOARDING_RETURN_URL") ??
-  "https://web-henna-seven-16.vercel.app";
+  "https://itc2-reservas.vercel.app";
 
 Deno.serve(async (req) => {
   try {
     const caller = await getCallerProfile(req);
     if (!caller) return jsonResponse({ error: "No autorizado." }, 401);
     if (caller.rol !== "dueño" || !caller.academiaId) {
-      return jsonResponse({ error: "Solo el Dueño de una academia puede conectar Stripe." }, 403);
+      return jsonResponse({
+        error: "Solo el Dueño de una academia puede conectar Stripe.",
+      }, 403);
     }
 
     const admin = createAdminClient();
@@ -37,13 +48,18 @@ Deno.serve(async (req) => {
         type: "standard",
         country: "ES",
         email: academia.email_contacto || undefined,
-        business_profile: academia.nombre ? { name: academia.nombre } : undefined,
+        business_profile: academia.nombre
+          ? { name: academia.nombre }
+          : undefined,
       });
       accountId = account.id;
 
       await admin
         .from("academias")
-        .update({ stripe_account_id: accountId, stripe_onboarding_status: "pending" })
+        .update({
+          stripe_account_id: accountId,
+          stripe_onboarding_status: "pending",
+        })
         .eq("id", academia.id);
     }
 
@@ -57,6 +73,8 @@ Deno.serve(async (req) => {
     return jsonResponse({ url: accountLink.url });
   } catch (error) {
     console.error("stripe-connect-onboarding error:", error);
-    return jsonResponse({ error: "No se ha podido iniciar la conexión con Stripe." }, 500);
+    return jsonResponse({
+      error: "No se ha podido iniciar la conexión con Stripe.",
+    }, 500);
   }
 });

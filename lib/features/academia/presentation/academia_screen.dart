@@ -121,6 +121,13 @@ class AcademiaScreen extends ConsumerWidget {
             texto: 'Ajustes de reservas',
             onTap: () => context.go(Routes.ajustesReservas),
           ),
+
+        if (esDueno)
+          _Fila(
+            icono: Icons.credit_card_outlined,
+            texto: 'Cobros',
+            onTap: () => context.go(Routes.cobros),
+          ),
         _Fila(
           icono: Icons.privacy_tip_outlined,
           texto: 'Privacidad y protección de datos',

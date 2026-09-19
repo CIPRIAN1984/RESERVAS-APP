@@ -111,6 +111,24 @@ jobs:
         run: deno fmt --check supabase/functions/send-push/index.ts
       - name: Type-check push function
         run: deno check supabase/functions/send-push/index.ts
+      - name: Check Stripe functions formatting
+        run: |
+          deno fmt --check \
+            supabase/functions/stripe-connect-onboarding/index.ts \
+            supabase/functions/stripe-connect-status/index.ts \
+            supabase/functions/stripe-webhook/index.ts \
+            supabase/functions/stripe-create-tarifa-subscription/index.ts \
+            supabase/functions/stripe-cancel-tarifa-subscription/index.ts \
+            supabase/functions/stripe-create-tienda-payment/index.ts \
+            supabase/functions/_shared/stripe.ts \
+            supabase/functions/_shared/utils.ts
+      - name: Type-check Stripe functions
+        run: |
+          for fn in stripe-connect-onboarding stripe-connect-status stripe-webhook \
+                    stripe-create-tarifa-subscription stripe-cancel-tarifa-subscription \
+                    stripe-create-tienda-payment; do
+            deno check "supabase/functions/$fn/index.ts"
+          done
 
   security:
     runs-on: ubuntu-latest

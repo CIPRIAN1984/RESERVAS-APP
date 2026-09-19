@@ -17,7 +17,7 @@ import '../features/miembros/presentation/miembros_screen.dart';
 import '../features/novedades/presentation/novedades_screen.dart';
 import '../features/onboarding/presentation/login_screen.dart';
 import '../features/onboarding/presentation/olvide_contrasena_screen.dart';
-// CONGELADO: import '../features/pagos/presentation/conectar_stripe_screen.dart';
+import '../features/pagos/presentation/conectar_stripe_screen.dart';
 import '../features/privacy/presentation/privacy_screen.dart';
 import '../features/tarifas/presentation/tarifas_screen.dart';
 // CONGELADO: import '../features/tienda/presentation/tienda_screen.dart';
@@ -66,6 +66,7 @@ const _rutasAcademia = {
   // CONGELADO: Routes.tienda,
   Routes.tarifas,
   Routes.ajustesReservas,
+  Routes.cobros,
   Routes.herramientas,
   Routes.academia,
   Routes.miembros,
@@ -290,15 +291,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           //     child: const SolicitudesCambioEscuelaScreen(),
           //   ),
           // ),
-          // CONGELADO: Stripe y pagos
-          // GoRoute(
-          //   path: Routes.cobros,
-          //   builder: (context, state) => PantallaConTitulo(
-          //     titulo: 'Cobros',
-          //     onVolver: () => context.go(Routes.academia),
-          //     child: const ConectarStripeScreen(),
-          //   ),
-          // ),
+          GoRoute(
+            path: Routes.cobros,
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Cobros',
+              onVolver: () => context.go(Routes.academia),
+              child: const ConectarStripeScreen(),
+            ),
+          ),
           GoRoute(
             path: Routes.ajustesReservas,
             builder: (context, state) => PantallaConTitulo(
