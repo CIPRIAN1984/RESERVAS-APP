@@ -3,10 +3,20 @@
 // using inline price_data (never a cached Price — so alumnos already
 // subscribed aren't affected if the tarifa's price changes later).
 import Stripe from "npm:stripe@17";
-import { createAdminClient, createUserClient, getCallerProfile, jsonResponse } from "../_shared/utils.ts";
+import {
+  createAdminClient,
+  createUserClient,
+  getCallerProfile,
+  jsonResponse,
+} from "../_shared/utils.ts";
 import { createStripeClient } from "../_shared/stripe.ts";
 
-const intervalFor = (periodicidad: string): { interval: Stripe.PriceCreateParams.Recurring.Interval; interval_count: number } => {
+const intervalFor = (
+  periodicidad: string,
+): {
+  interval: Stripe.PriceCreateParams.Recurring.Interval;
+  interval_count: number;
+} => {
   switch (periodicidad) {
     case "mensual":
       return { interval: "month", interval_count: 1 };
@@ -24,7 +34,9 @@ Deno.serve(async (req) => {
     const caller = await getCallerProfile(req);
     if (!caller) return jsonResponse({ error: "No autorizado." }, 401);
 
-    const body = (await req.json().catch(() => null)) as { tarifa_id?: string } | null;
+    const body = (await req.json().catch(() => null)) as
+      | { tarifa_id?: string }
+      | null;
     const tarifaId = body?.tarifa_id;
     if (!tarifaId) return jsonResponse({ error: "Falta tarifa_id." }, 400);
 
@@ -45,7 +57,9 @@ Deno.serve(async (req) => {
       .eq("id", tarifa.academia_id)
       .single();
     if (!academia?.stripe_account_id || !academia.stripe_charges_enabled) {
-      return jsonResponse({ error: "Esta academia todavía no ha configurado los cobros." }, 409);
+      return jsonResponse({
+        error: "Esta academia todavía no ha configurado los cobros.",
+      }, 409);
     }
 
     const { data: activa } = await userClient
@@ -56,7 +70,10 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (activa && activa.tarifa_id !== tarifaId) {
       return jsonResponse(
-        { error: "Ya tienes una suscripción activa. Cancélala antes de suscribirte a otra tarifa." },
+        {
+          error:
+            "Ya tienes una suscripción activa. Cancélala antes de suscribirte a otra tarifa.",
+        },
         409,
       );
     }
@@ -77,17 +94,28 @@ Deno.serve(async (req) => {
     if (pendiente) {
       if (pendiente.tarifa_id !== tarifaId) {
         return jsonResponse(
-          { error: "Ya tienes un pago de suscripción en curso para otra tarifa. Complétalo o cancélalo antes de suscribirte a esta." },
+          {
+            error:
+              "Ya tienes un pago de suscripción en curso para otra tarifa. Complétalo o cancélalo antes de suscribirte a esta.",
+          },
           409,
         );
       }
-      const subscription = await stripe.subscriptions.retrieve(pendiente.referencia_externa!, {
-        expand: ["latest_invoice.payment_intent"],
-        stripeAccount,
-      });
+      // `expand` va en los parámetros de la petición; `stripeAccount` en
+      // las opciones, un argumento aparte — mezclarlos en un mismo objeto
+      // no compila contra los tipos de `stripe@17` (nunca se había
+      // comprobado con `deno check`, que no estaba en el CI).
+      const subscription = await stripe.subscriptions.retrieve(
+        pendiente.referencia_externa!,
+        { expand: ["latest_invoice.payment_intent"] },
+        { stripeAccount },
+      );
       const invoice = subscription.latest_invoice as Stripe.Invoice;
       const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
-      return jsonResponse({ client_secret: paymentIntent.client_secret, stripe_account_id: stripeAccount });
+      return jsonResponse({
+        client_secret: paymentIntent.client_secret,
+        stripe_account_id: stripeAccount,
+      });
     }
 
     // Reuse a previous Customer for this alumno on this connected account if
@@ -105,9 +133,12 @@ Deno.serve(async (req) => {
     const customer = previa?.stripe_customer_id
       ? { id: previa.stripe_customer_id }
       : await stripe.customers.create(
-          { email: caller.email ?? undefined, metadata: { alumno_id: caller.userId } },
-          { stripeAccount },
-        );
+        {
+          email: caller.email ?? undefined,
+          metadata: { alumno_id: caller.userId },
+        },
+        { stripeAccount },
+      );
 
     const { interval, interval_count } = intervalFor(tarifa.periodicidad);
     const amountCents = Math.round(Number(tarifa.precio) * 100);
@@ -160,9 +191,15 @@ Deno.serve(async (req) => {
 
     const invoice = subscription.latest_invoice as Stripe.Invoice;
     const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
-    return jsonResponse({ client_secret: paymentIntent.client_secret, stripe_account_id: stripeAccount });
+    return jsonResponse({
+      client_secret: paymentIntent.client_secret,
+      stripe_account_id: stripeAccount,
+    });
   } catch (error) {
     console.error("stripe-create-tarifa-subscription error:", error);
-    return jsonResponse({ error: "No se ha podido iniciar la suscripción." }, 500);
+    return jsonResponse(
+      { error: "No se ha podido iniciar la suscripción." },
+      500,
+    );
   }
 });

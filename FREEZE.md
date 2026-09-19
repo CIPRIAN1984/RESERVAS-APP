@@ -89,35 +89,54 @@ cerrado el 03/09/2026 en el PR #56. Contexto completo en `DECISIONS.md`.
 
 ## 2. Stripe y Pagos
 
-**Estado:** Código presente, no configurado, funciones no desplegadas.
+**Estado (19/09/2026): PREPARADA, sin activar con dinero real.** Cipri pidió
+dejarlo listo para conectar; el código, desplegado y probado, sigue sin
+poder mover un euro porque **no existe ninguna cuenta de Stripe conectada
+ni ningún secreto configurado**. Ver `DECISIONS.md`, entrada del 19/09/2026,
+y el procedimiento de activación en `OPERATIONS.md`.
 
-**Por qué se congela:**
-- Solo lleva "conectar Stripe" en perfil del Dueño.
-- Flujo de pago NO implementado.
-- Webhook de Stripe NO desplegado.
-- Usar dinero real sin esto listo es riesgo de compliance y fraude.
+**Lo que se descubrió al preparar esto (nunca se había comprobado):**
+- El CI solo pasaba `deno check`/`deno fmt` sobre `send-push`; ninguna
+  función de Stripe se comprobaba nunca. Ampliado.
+- Ninguna de las seis estaba formateada con `deno fmt`.
+- `apiVersion: "2024-06-20"` en `_shared/stripe.ts` ya no compilaba contra
+  el propio `stripe@17` resuelto hoy (pide `"2025-02-24.acacia"`) —
+  `deno check` nunca se había ejecutado, así que nadie lo vio.
+- `stripe-create-tarifa-subscription` mezclaba `expand` y `stripeAccount`
+  en el mismo objeto al reanudar un pago a medias; van en argumentos
+  distintos. Tipo de error que `deno check` sí caza, y que no se había
+  ejecutado nunca.
+- La URL de vuelta tras el onboarding tenía por defecto un dominio de una
+  maqueta antigua (`web-henna-seven-16.vercel.app`), no el nuestro.
 
-**Qué está oculto:**
-- Ruta `/pagos/conectar-stripe` en router (comentada o eliminada).
-- Pantalla `ConectarStripeScreen` en `lib/features/pagos/presentation/conectar_stripe_screen.dart`.
-- Botón en perfil de Dueño: "Conectar Stripe".
-- Imports innecesarios en `main.dart`: `Stripe.publishableKey` y `applySettings()`.
-- **2026-08-13:** el bloque "Cobros" en Academia (`context.go(Routes.cobros)`,
-  ruta sin `GoRoute`) y el botón "Suscribirse" en Tarifas (abría de verdad la
-  hoja de pago de Stripe si la academia tenía `stripeChargesEnabled`) se
-  quitan. El alta de cuota sigue siendo solo en mano (`dar_cuota_sheet.dart`).
+Las seis funciones están **desplegadas** (`stripe-connect-onboarding`,
+`stripe-connect-status`, `stripe-create-tarifa-subscription`,
+`stripe-cancel-tarifa-subscription`, `stripe-create-tienda-payment`,
+`stripe-webhook`) y probadas sin secretos: todas las que exigen sesión
+devuelven 401 sin ella; el webhook, 400 sin firma de Stripe. Nada llega a
+tocar Stripe de verdad porque falta `STRIPE_SECRET_KEY`.
 
-**Qué está activo:**
-- Cobro en mano (`dar_cuota_sheet.dart`) — mantener.
-- Modelo de cuota (`suscripciones` en BD) — mantener.
-- Webhook handler en Supabase — desactivado hasta ser probado.
+**Qué está oculto todavía, a propósito:**
+- El botón "Suscribirse" en Tarifas (activaría la hoja de pago Stripe si
+  la academia tuviera `stripeChargesEnabled`) — sigue sin ese acceso; el
+  alta de cuota sigue siendo solo en mano (`dar_cuota_sheet.dart`).
+- El pago con Stripe en Tienda — depende de que Tienda salga de su propio
+  congelamiento (sección 3).
 
-**Qué hacer para retomarlo:**
-- Desplegar Edge Function `activar-suscripcion-webhook`.
-- Crear tests para el flujo Stripe → webhook → activación de cuota.
-- Implementar cancelación y reembolsos.
-- Probar con datos de test de Stripe.
-- Ver `OPERATIONS.md` para procedimiento de activación.
+**Qué está visible ahora:**
+- Academia → **Cobros**: pantalla `ConectarStripeScreen`, solo para el
+  Dueño. Hoy, al pulsar "Conectar con Stripe", fallaría (no hay clave) —
+  eso es exactamente lo que debe pasar hasta que Cipri decida activarlo.
+
+**Qué falta para activarlo de verdad (decisión de Cipri, no de código):**
+1. Crear la cuenta de Stripe de la academia.
+2. Configurar en Supabase los secretos `STRIPE_SECRET_KEY` y
+   `STRIPE_WEBHOOK_SECRET` (y, si se quiere una página de vuelta propia,
+   `STRIPE_ONBOARDING_RETURN_URL`).
+3. Dar de alta el webhook en el panel de Stripe apuntando a
+   `stripe-webhook`, con "Listen to events on Connected accounts".
+4. Probar el flujo entero en modo test de Stripe antes de tocar dinero
+   real — ver `OPERATIONS.md`.
 
 ---
 

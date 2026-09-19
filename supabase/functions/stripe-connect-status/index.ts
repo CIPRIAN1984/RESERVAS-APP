@@ -1,6 +1,10 @@
 // Lets the Dueño get an immediate status refresh after returning from Stripe's
 // hosted onboarding, instead of waiting on webhook delivery latency.
-import { createAdminClient, getCallerProfile, jsonResponse } from "../_shared/utils.ts";
+import {
+  createAdminClient,
+  getCallerProfile,
+  jsonResponse,
+} from "../_shared/utils.ts";
 import { createStripeClient, onboardingStatusFor } from "../_shared/stripe.ts";
 
 Deno.serve(async (req) => {
@@ -13,7 +17,9 @@ Deno.serve(async (req) => {
     const admin = createAdminClient();
     const { data: academia, error: academiaError } = await admin
       .from("academias")
-      .select("id, stripe_account_id, stripe_onboarding_status, stripe_charges_enabled")
+      .select(
+        "id, stripe_account_id, stripe_onboarding_status, stripe_charges_enabled",
+      )
       .eq("id", caller.academiaId)
       .single();
     if (academiaError || !academia) {
@@ -21,7 +27,10 @@ Deno.serve(async (req) => {
     }
 
     if (!academia.stripe_account_id) {
-      return jsonResponse({ stripe_onboarding_status: "not_started", stripe_charges_enabled: false });
+      return jsonResponse({
+        stripe_onboarding_status: "not_started",
+        stripe_charges_enabled: false,
+      });
     }
 
     const stripe = createStripeClient();
@@ -31,10 +40,16 @@ Deno.serve(async (req) => {
 
     await admin
       .from("academias")
-      .update({ stripe_onboarding_status: status, stripe_charges_enabled: chargesEnabled })
+      .update({
+        stripe_onboarding_status: status,
+        stripe_charges_enabled: chargesEnabled,
+      })
       .eq("id", academia.id);
 
-    return jsonResponse({ stripe_onboarding_status: status, stripe_charges_enabled: chargesEnabled });
+    return jsonResponse({
+      stripe_onboarding_status: status,
+      stripe_charges_enabled: chargesEnabled,
+    });
   } catch (error) {
     console.error("stripe-connect-status error:", error);
     return jsonResponse({ error: "No se ha podido comprobar el estado." }, 500);
