@@ -297,3 +297,68 @@ La URL de privacidad para ambas tiendas es
 `https://itc2-reservas.vercel.app/privacidad`. La publicación no se considera
 terminada hasta que cada consola confirme la aprobación y la versión esté
 disponible en la pista o países elegidos.
+
+## Conectar Stripe (cobros reales)
+
+El código está preparado y desplegado (ver `FREEZE.md`, "Stripe y Pagos"),
+pero **no toca dinero real hasta que se complete esto**. Son pasos que solo
+puede dar Cipri — necesitan la cuenta bancaria y los datos fiscales reales
+de la academia — con permiso explícito antes de cada uno, como cualquier
+cambio que toque producción.
+
+### 1. Crear la cuenta de Stripe
+
+1. Entra en la app → modo Gestor → **Academia → Cobros**.
+2. Pulsa **Conectar con Stripe**: te lleva al formulario de alta de Stripe
+   (nombre, cuenta bancaria, datos fiscales de la academia).
+3. Al terminar, Stripe te devuelve a la app. Si el estado no se actualiza
+   solo, pulsa **Comprobar estado**.
+
+Mientras no se hagan los pasos 2 y 3 de aquí abajo, esta pantalla puede
+llegar a crear la cuenta en Stripe pero cualquier intento de cobrar fallará
+— es el comportamiento correcto: sin webhook ni clave, no debe poder
+cobrarse nada.
+
+### 2. Configurar los secretos en Supabase
+
+En el panel de Supabase → Edge Functions → Secrets, añadir:
+
+| Secreto | De dónde sale |
+|---|---|
+| `STRIPE_SECRET_KEY` | Panel de Stripe → Developers → API keys → *Secret key* |
+| `STRIPE_WEBHOOK_SECRET` | Se obtiene al dar de alta el webhook (paso 3) |
+| `STRIPE_ONBOARDING_RETURN_URL` (opcional) | Solo si se quiere una página de "vuelta a la app" distinta de `https://itc2-reservas.vercel.app` |
+
+**Empieza siempre con las claves de test de Stripe** (`sk_test_…`), nunca
+con las reales, hasta haber probado el flujo entero.
+
+### 3. Dar de alta el webhook
+
+En el panel de Stripe → Developers → Webhooks → Add endpoint:
+
+- URL: `https://dpcdpcvjcutcqyqcacti.supabase.co/functions/v1/stripe-webhook`
+- Marcar **"Listen to events on Connected accounts"** (los cobros de cada
+  academia van por su propia cuenta conectada, no por la nuestra).
+- Eventos a escuchar: `account.updated`, `payment_intent.succeeded`,
+  `payment_intent.payment_failed`, `payment_intent.canceled`,
+  `charge.refunded`, `invoice.payment_succeeded`,
+  `customer.subscription.updated`, `customer.subscription.deleted`.
+
+Stripe te da el *Signing secret* de ese endpoint: es el
+`STRIPE_WEBHOOK_SECRET` del paso 2.
+
+### 4. Probar antes de tocar dinero real
+
+Con las claves de test puestas:
+
+1. Crea una tarifa de prueba y suscríbete con una
+   [tarjeta de test de Stripe](https://stripe.com/docs/testing) (p. ej.
+   `4242 4242 4242 4242`).
+2. Comprueba que la suscripción pasa a "activa" en la app tras el pago.
+3. Cancélala desde la app y comprueba que Stripe la cancela también.
+4. Solo cuando esto funcione de principio a fin, cambia las claves de
+   Supabase a las reales (`sk_live_…` y el *Signing secret* del webhook en
+   modo real) — con permiso explícito, como cualquier cambio de producción.
+
+La URL de privacidad para procesadores de pago es
+`https://itc2-reservas.vercel.app/privacidad`.

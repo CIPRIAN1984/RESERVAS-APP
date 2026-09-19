@@ -8,10 +8,15 @@ import 'package:itaca/core/models/academia.dart';
 import 'package:itaca/core/models/profile.dart';
 import 'package:itaca/features/academia/presentation/academia_screen.dart';
 
-/// Cobros (Stripe) y Cambios de escuela están congelados para v1 (ver
-/// FREEZE.md). Antes de este cierre, un Dueño veía ambas filas en Academia
-/// aunque llevaran a rutas (`Routes.cobros`, `Routes.solicitudesCambioEscuela`)
+/// Cambios de escuela sigue congelado para v1 (ver FREEZE.md): no aplica
+/// con una sola academia. Antes de aquel cierre, un Dueño veía la fila en
+/// Academia aunque llevara a una ruta (`Routes.solicitudesCambioEscuela`)
 /// que el router ya no resuelve.
+///
+/// Cobros (Stripe) **se ha descongelado** (19/09/2026, a petición de
+/// Cipri): preparar la conexión, sin activarla con dinero real todavía.
+/// Ver `test/features/pagos/conectar_stripe_screen_test.dart` para la
+/// pantalla en sí.
 
 const _academia = Academia(
   id: 'a1',
@@ -29,7 +34,7 @@ Profile _dueno() => Profile(
 );
 
 void main() {
-  testWidgets('un dueño no ve Cobros ni Cambios de escuela en Academia', (
+  testWidgets('un dueño ve Cobros pero no Cambios de escuela en Academia', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(412, 1600));
@@ -47,7 +52,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Cobros'), findsNothing);
+    expect(find.text('Cobros'), findsOneWidget);
     expect(find.text('Cambios de escuela'), findsNothing);
     // El resto de Academia sigue en pie.
     expect(find.text('Equipo'), findsOneWidget);

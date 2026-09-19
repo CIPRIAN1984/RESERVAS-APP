@@ -22,7 +22,11 @@ Deno.serve(async (req) => {
   try {
     // Async variant required: Deno's SubtleCrypto (used for signature
     // verification) is async-only, unlike Node's.
-    event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
+    event = await stripe.webhooks.constructEventAsync(
+      body,
+      signature,
+      webhookSecret,
+    );
   } catch (error) {
     logEvent("warn", "stripe-webhook", "Firma de webhook inválida", {
       error: String(error),
@@ -72,7 +76,10 @@ Deno.serve(async (req) => {
         const pi = event.data.object as Stripe.PaymentIntent;
         const pedidoId = pi.metadata?.pedido_id;
         if (pedidoId) {
-          await admin.from("pedidos").update({ payment_status: "failed" }).eq("id", pedidoId);
+          await admin.from("pedidos").update({ payment_status: "failed" }).eq(
+            "id",
+            pedidoId,
+          );
         }
         break;
       }
@@ -119,15 +126,24 @@ Deno.serve(async (req) => {
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         const paymentStatus = subscription.status; // active | past_due | canceled | unpaid | ...
-        const estado = paymentStatus === "active" ? "activa" : paymentStatus === "canceled" ? "cancelada" : undefined;
+        const estado = paymentStatus === "active"
+          ? "activa"
+          : paymentStatus === "canceled"
+          ? "cancelada"
+          : undefined;
         let updateQuery = admin
           .from("suscripciones")
           .update({
-            payment_status: ["active", "past_due", "canceled", "unpaid"].includes(paymentStatus)
-              ? paymentStatus
-              : "unpaid",
+            payment_status:
+              ["active", "past_due", "canceled", "unpaid"].includes(
+                  paymentStatus,
+                )
+                ? paymentStatus
+                : "unpaid",
             ...(estado ? { estado } : {}),
-            ...(paymentStatus === "canceled" ? { fecha_fin: new Date().toISOString() } : {}),
+            ...(paymentStatus === "canceled"
+              ? { fecha_fin: new Date().toISOString() }
+              : {}),
           })
           .eq("referencia_externa", subscription.id);
         if (paymentStatus !== "canceled") {
@@ -140,7 +156,11 @@ Deno.serve(async (req) => {
         const subscription = event.data.object as Stripe.Subscription;
         await admin
           .from("suscripciones")
-          .update({ estado: "cancelada", payment_status: "canceled", fecha_fin: new Date().toISOString() })
+          .update({
+            estado: "cancelada",
+            payment_status: "canceled",
+            fecha_fin: new Date().toISOString(),
+          })
           .eq("referencia_externa", subscription.id);
         break;
       }
@@ -148,7 +168,10 @@ Deno.serve(async (req) => {
         break;
     }
 
-    await admin.from("stripe_webhook_events").insert({ id: event.id, type: event.type });
+    await admin.from("stripe_webhook_events").insert({
+      id: event.id,
+      type: event.type,
+    });
     logEvent("info", "stripe-webhook", "Evento procesado", {
       event_id: event.id,
       event_type: event.type,

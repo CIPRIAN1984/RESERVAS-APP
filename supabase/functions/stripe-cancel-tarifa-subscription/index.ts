@@ -41,7 +41,10 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Suscripción no encontrada." }, 404);
     }
     if (suscripcion.alumno_id !== caller.userId) {
-      return jsonResponse({ error: "No puedes cancelar esta suscripción." }, 403);
+      return jsonResponse(
+        { error: "No puedes cancelar esta suscripción." },
+        403,
+      );
     }
     if (["cancelada", "expirada"].includes(suscripcion.estado)) {
       return jsonResponse({ cancelled: true, already_cancelled: true });

@@ -89,6 +89,7 @@ class MainShell extends ConsumerWidget {
   static const _rutaPadre = <String, String>{
     Routes.equipo: Routes.academia,
     Routes.ajustesReservas: Routes.academia,
+    Routes.cobros: Routes.academia,
     Routes.tarifas: Routes.herramientas,
   };
 
