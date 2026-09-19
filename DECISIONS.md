@@ -1968,6 +1968,39 @@ un sitio, un alumno de baja sigue contando en el ranking, en las listas o
 en las estadísticas. Por eso la migración va acompañada de pruebas que
 recorren esos sitios uno a uno.
 
+## 2026-09-19 — Preparar Stripe para conectar, sin activarlo con dinero real
+
+Cipri pidió "preparar todo para conectar Stripe" como parte de una tanda de
+cuatro encargos (horario semanal, Stripe, tienda y préstamos, documentos).
+Se entiende como: dejar el código listo, probado y desplegado, sin dar
+ningún paso que mueva dinero real — eso sigue exigiendo su autorización
+explícita en el momento, como cualquier cambio de producción, y sigue
+esperando semanas de funcionamiento en paralelo con MAAT antes de activarse
+(decisión de agosto de 2026, sin cambios).
+
+Al auditar el código (que llevaba desde agosto sin desplegarse ni pasar por
+`deno check`) aparecieron tres fallos reales, nunca detectados porque nunca
+se había comprobado:
+
+- `apiVersion` fijada a una versión de la API de Stripe que ya no compilaba
+  contra el propio paquete `stripe@17` instalado.
+- Dos parámetros de una llamada a Stripe mezclados en el sitio que no era,
+  al reanudar un pago de suscripción a medias.
+- La URL de vuelta tras conectar Stripe apuntaba a un dominio de una
+  maqueta antigua, no al de producción.
+
+Los tres, corregidos. El CI (`edge-functions`) pasó de comprobar solo
+`send-push` a comprobar las seis funciones de Stripe con `deno fmt` y
+`deno check`, para que un fallo así no vuelva a pasar semanas sin
+detectarse.
+
+Las seis funciones se desplegaron a producción y se probaron sin ningún
+secreto de Stripe configurado: todo lo que exige sesión da 401, el webhook
+sin firma da 400, y nada llega a poder cobrar nada porque falta
+`STRIPE_SECRET_KEY`. La pantalla de Cobros se descongeló (Academia →
+Cobros, solo Dueño); el checklist completo para activarlo de verdad —con
+las claves de test primero— queda en `OPERATIONS.md`.
+
 ## 2026-09-19 — Tienda y préstamos: se descongela, sin esperar a Stripe real
 
 Cipri pidió avanzar con "Tienda y préstamos de material" en la misma tanda

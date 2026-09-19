@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/widgets/pantalla.dart';
+import '../../horario/presentation/horario_screen.dart';
 import '../../tarifas/presentation/tarifas_screen.dart';
 import '../../tienda/presentation/tienda_screen.dart';
 
@@ -19,6 +20,18 @@ class HerramientasScreen extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [
+        // No confundir con el calendario de Hoy: aquí se fija la plantilla
+        // que se repite sola cada semana («BJJ lunes 19:00»); el día a día
+        // —crear una clase suelta, cancelar un día concreto— sigue en Hoy.
+        TarjetaAcceso(
+          icono: Icons.event_repeat_outlined,
+          titulo: 'Horario semanal',
+          descripcion:
+              'Las clases fijas de cada semana: se generan solas, sin '
+              'tener que volver a crearlas.',
+          destino: const HorarioScreen(),
+        ),
+        const SizedBox(height: 12),
         TarjetaAcceso(
           icono: Icons.card_membership_outlined,
           titulo: 'Tarifas y planes',
