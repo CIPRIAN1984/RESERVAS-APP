@@ -120,8 +120,6 @@ tocar Stripe de verdad porque falta `STRIPE_SECRET_KEY`.
 - El botón "Suscribirse" en Tarifas (activaría la hoja de pago Stripe si
   la academia tuviera `stripeChargesEnabled`) — sigue sin ese acceso; el
   alta de cuota sigue siendo solo en mano (`dar_cuota_sheet.dart`).
-- El pago con Stripe en Tienda — depende de que Tienda salga de su propio
-  congelamiento (sección 3).
 
 **Qué está visible ahora:**
 - Academia → **Cobros**: pantalla `ConectarStripeScreen`, solo para el
@@ -140,33 +138,40 @@ tocar Stripe de verdad porque falta `STRIPE_SECRET_KEY`.
 
 ---
 
-## 3. Tienda y Productos
+## 3. Tienda y Productos — DESCONGELADA (19/09/2026)
 
-**Estado:** Esquema en BD, pantalla UI incompleta.
+**Estado:** completa y expuesta en Herramientas (gestor) y Perfil (alumno).
 
-**Por qué se congela:**
-- Stock NO es atómico.
-- Pagos de productos NO están conectados.
-- No hay comprobante de compra.
-- Falta integración con cuotas y suscripciones.
+Al revisarla a fondo para decidir si merecía seguir congelada, resultó que
+la nota de más abajo (de 13/08/2026) estaba desactualizada: el trabajo de
+fiabilidad de pagos de esa misma época ya había resuelto los dos motivos
+técnicos del congelamiento, solo que nadie actualizó este documento.
 
-**Qué está oculto:**
-- Ruta `/tienda` en navegación principal (si existe).
-- Pantalla de carrito si está incompleta.
-- Botón "Comprar" en productos.
-- **2026-08-13:** la tarjeta "Tienda y material" en Perfil y en Herramientas
-  saltaba directamente a `TiendaScreen()` con `Navigator.push`, sin pasar por
-  el router — por eso el bloqueo de rutas no la alcanzaba. Se quitan ambas.
+- **Stock SÍ es atómico:** `descontar_stock_al_reservar()` decrementa con un
+  `UPDATE ... SET stock = stock - cantidad` protegido por el
+  `check (stock >= 0)` de la tabla — dos pagos simultáneos sobre la última
+  unidad hacen fallar a uno, nunca dejan stock negativo. Su simétrico,
+  `reponer_stock_al_cancelar()`, repone el stock cuando un pedido pagado se
+  cancela (reembolso). Ambos están cubiertos por pgTAP
+  (`reconciliacion_pagos_test.sql`).
+- **El pago SÍ está conectado:** `catalogo_tab.dart` abre la hoja de pago de
+  Stripe (`flutter_stripe`) cuando la academia tiene cobros configurados, y
+  si no los tiene, lo dice con un aviso claro en vez de intentarlo — por
+  eso es seguro exponer la Tienda ya, antes incluso de activar Stripe de
+  verdad (ver §2): sin cuenta conectada, comprar simplemente no se ofrece.
+- El comprobante de compra es el propio pedido, visible en "Mis pedidos"
+  (alumno) y "Pedidos" (staff), con su estado de pago.
 
-**Qué está activo:**
-- Tablas `productos`, `pedidos`, `prestamos` en BD.
-- Lectura de productos desde API (para futura implementación).
+**Qué se ha reactivado el 19/09/2026:**
+- Tarjeta "Tienda y material" en Herramientas (gestor: Catálogo, Pedidos,
+  Préstamos) y en Perfil (alumno: Catálogo, Mis pedidos).
+- Inicialización de `flutter_stripe` en `main.dart` (inerte sin clave
+  publicable configurada — ver §2).
 
-**Qué hacer para retomarlo:**
-- Implementar stock con transacción única.
-- Conectar con Stripe o cobro en mano.
-- Crear comprobante de compra.
-- Integrar con lista de espera si aplica.
+**Qué sigue pendiente, no bloquea el lanzamiento:**
+- Integrar la compra de tienda con la lista de espera de clases, si algún
+  día se vincula material a inscripción (no hay ninguna decisión de
+  producto que lo pida).
 
 ---
 

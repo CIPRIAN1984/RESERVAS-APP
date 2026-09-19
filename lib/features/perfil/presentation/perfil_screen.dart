@@ -9,6 +9,7 @@ import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../tarifas/presentation/tarifas_screen.dart';
+import '../../tienda/presentation/tienda_screen.dart';
 import '../application/profile_providers.dart';
 
 class PerfilScreen extends ConsumerStatefulWidget {
@@ -301,6 +302,13 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                       titulo: 'Mi cuota',
                       descripcion: 'Consulta tu plan, cámbialo o date de baja.',
                       destino: const TarifasScreen(),
+                    ),
+                    const SizedBox(height: 12),
+                    TarjetaAcceso(
+                      icono: Icons.storefront_outlined,
+                      titulo: 'Tienda y material',
+                      descripcion: 'Catálogo de la academia y tus pedidos.',
+                      destino: const TiendaScreen(),
                     ),
                     const SizedBox(height: 12),
                     // Mi familia es para todos, no solo para quien ya tiene
