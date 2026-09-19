@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/color_tokens.dart';
+import '../../../core/auth/auth_state.dart';
 import '../../../core/models/profile.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/pantalla.dart';
+import '../../documentos/presentation/documentos_seccion.dart';
 import '../application/miembros_providers.dart';
 import 'miembros_screen.dart'
     show esInactivo, etiquetaCinturon, etiquetaInactividad;
 
 /// Ficha de un alumno: cuánto lleva entrenando en su cinturón actual y
 /// cuánto le falta para el siguiente — lo que Cipri pidió mirando la
-/// pestaña «Promociones» de MAAT. El resto de la ficha (contacto,
-/// documentos, notas, gráficas de actividad) queda para otra tanda: son
-/// datos que hoy no guardamos.
+/// pestaña «Promociones» de MAAT. También certificado médico y descargo de
+/// responsabilidad (19/09/2026). El resto (contacto, notas, gráficas de
+/// actividad) queda para otra tanda: son datos que hoy no guardamos.
 class FichaMiembroScreen extends ConsumerWidget {
   const FichaMiembroScreen({required this.alumno, super.key});
 
@@ -180,6 +182,7 @@ class FichaMiembroScreen extends ConsumerWidget {
     final ultima = ref
         .watch(ultimaAsistenciaMiembrosProvider)
         .value?[alumno.id];
+    final staffId = ref.watch(currentUserIdProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(alumno.nombreCompleto)),
@@ -258,6 +261,20 @@ class FichaMiembroScreen extends ConsumerWidget {
                     child: const Text('Promover a un nuevo cinturón'),
                   ),
                 ],
+
+                const SizedBox(height: 28),
+                Text(
+                  'Documentos',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 12),
+                if (staffId != null)
+                  SeccionDocumentos(
+                    alumnoId: alumno.id,
+                    subidoPorId: staffId,
+                    puedeSubir: true,
+                    puedeBorrar: true,
+                  ),
 
                 // Abajo del todo y separado: es la acción que menos se usa y
                 // la que peor sienta pulsar sin querer.
