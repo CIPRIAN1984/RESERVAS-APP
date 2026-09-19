@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:itaca/app/theme/app_theme.dart';
+import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/profile.dart';
+import 'package:itaca/features/documentos/application/documentos_providers.dart';
 import 'package:itaca/features/miembros/application/miembros_providers.dart';
 import 'package:itaca/features/miembros/data/miembros_repository.dart';
 import 'package:itaca/features/miembros/domain/progreso_cinturon.dart';
@@ -48,6 +50,8 @@ Widget _app({
   final ficha = FichaMiembroScreen(alumno: alumno);
   return ProviderScope(
     overrides: [
+      currentUserIdProvider.overrideWithValue('staff1'),
+      documentosDeProvider(alumno.id).overrideWith((ref) async => const []),
       progresoCinturonProvider((
         alumnoId: alumno.id,
         cinturon: alumno.cinturon,
@@ -204,4 +208,30 @@ void main() {
       );
     },
   );
+
+  // Certificado médico y descargo de responsabilidad (19/09/2026): el staff
+  // tiene que poder verlos y gestionarlos desde la propia ficha, no solo el
+  // alumno o su tutor desde Perfil.
+  testWidgets('el staff ve la sección de documentos del alumno', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        alumno: _alumno(),
+        progreso: const ProgresoCinturon(
+          asistencias: 5,
+          requeridas: 312,
+          proximoCinturon: 'azul',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Documentos'), findsOneWidget);
+    expect(find.text('Certificado médico'), findsOneWidget);
+    expect(find.text('Descargo de responsabilidad'), findsOneWidget);
+    // Sin ninguno subido, el staff aún puede subirlo (llega en papel a
+    // recepción): dos botones "Subir", uno por tipo de documento.
+    expect(find.text('Subir'), findsNWidgets(2));
+  });
 }

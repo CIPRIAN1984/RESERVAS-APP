@@ -8,6 +8,7 @@ import '../../../app/routes.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/pantalla.dart';
+import '../../documentos/presentation/mis_documentos_screen.dart';
 import '../../tarifas/presentation/tarifas_screen.dart';
 import '../../tienda/presentation/tienda_screen.dart';
 import '../application/profile_providers.dart';
@@ -309,6 +310,15 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                       titulo: 'Tienda y material',
                       descripcion: 'Catálogo de la academia y tus pedidos.',
                       destino: const TiendaScreen(),
+                    ),
+                    const SizedBox(height: 12),
+                    TarjetaAcceso(
+                      icono: Icons.assignment_outlined,
+                      titulo: 'Documentos',
+                      descripcion:
+                          'Certificado médico y descargo de '
+                          'responsabilidad, tuyos y de tus hijos.',
+                      destino: const MisDocumentosScreen(),
                     ),
                     const SizedBox(height: 12),
                     // Mi familia es para todos, no solo para quien ya tiene

@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/profile.dart';
+import 'package:itaca/features/documentos/application/documentos_providers.dart';
 import 'package:itaca/features/miembros/application/miembros_providers.dart';
 import 'package:itaca/features/miembros/domain/progreso_cinturon.dart';
 import 'package:itaca/features/miembros/presentation/ficha_miembro_screen.dart';
@@ -55,6 +56,8 @@ Widget _lista(List<Profile> alumnos) => ProviderScope(
 
 Widget _ficha(Profile alumno) => ProviderScope(
   overrides: [
+    currentUserIdProvider.overrideWithValue('staff1'),
+    documentosDeProvider(alumno.id).overrideWith((ref) async => const []),
     ultimaAsistenciaMiembrosProvider.overrideWith((ref) async => const {}),
     progresoCinturonProvider.overrideWith(
       (ref, arg) async => const ProgresoCinturon(
@@ -105,6 +108,7 @@ void main() {
     await tester.pumpWidget(_ficha(_alumno('a', 'Marta', 'azul')));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Dar de baja'));
     await tester.tap(find.text('Dar de baja'));
     await tester.pumpAndSettle();
 

@@ -43,6 +43,7 @@ void main() {
 
     expect(find.text('Mi cuota'), findsOneWidget);
     expect(find.text('Tienda y material'), findsOneWidget);
+    expect(find.text('Documentos'), findsOneWidget);
   });
 
   testWidgets('un dueño también lo tiene: entrena en la misma academia', (
@@ -54,6 +55,7 @@ void main() {
 
     expect(find.text('Mi cuota'), findsOneWidget);
     expect(find.text('Tienda y material'), findsOneWidget);
+    expect(find.text('Documentos'), findsOneWidget);
   });
 
   // Familias y cambio de escuela siguen congelados para v1 (ver FREEZE.md):
@@ -81,6 +83,7 @@ void main() {
 
       expect(find.text('Mi cuota'), findsNothing);
       expect(find.text('Tienda y material'), findsNothing);
+      expect(find.text('Documentos'), findsNothing);
     },
   );
 
@@ -104,6 +107,7 @@ void main() {
     await tester.pumpWidget(_app(_perfil(rol: 'alumno')));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Cerrar sesión'));
     await tester.tap(find.text('Cerrar sesión'));
     await tester.pumpAndSettle();
 

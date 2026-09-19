@@ -61,3 +61,17 @@ El backend procesa una cola desacoplada. Los tokens inválidos se eliminan y los
 errores transitorios permanecen pendientes para reintento. Si falta la
 configuración de Firebase o el secreto del programador, el envío queda
 bloqueado sin afectar al inicio ni al resto de funciones de la aplicación.
+
+## Documentos: certificado médico y descargo de responsabilidad
+
+Cada alumno (o su tutor, en el caso de un menor) puede subir desde su perfil
+una foto de su certificado médico y del descargo de responsabilidad firmado.
+Un tutor sube también los de cada hijo a su cargo. El Dueño o Profesor puede
+hacer lo mismo desde la ficha del alumno en Miembros — habitual cuando el
+justificante llega en papel a recepción — y es el único que puede quitar un
+documento ya subido, para corregir un error de subida.
+
+Solo hay un documento vigente por tipo: volver a subirlo sustituye al
+anterior, sin guardar versiones previas. Los archivos se guardan en un
+almacén privado (nunca con URL pública, por tratarse de datos de salud) y
+solo puede verlos el propio alumno, su tutor, y el equipo de su academia.

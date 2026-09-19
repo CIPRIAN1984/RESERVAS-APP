@@ -2031,3 +2031,52 @@ reactiva también la inicialización de `flutter_stripe` en `main.dart`
 **Qué NO cambia:** nada en la base de datos. El esquema, los triggers de
 stock y las políticas RLS de `productos`/`pedidos`/`prestamos` ya estaban
 en producción desde julio y siguen sin tocarse.
+
+## 2026-09-19 — Certificado médico y descargo de responsabilidad
+
+Último de los cuatro encargos de la tanda ("horario semanal, preparar
+Stripe, Tienda y préstamos, certificado médico / descargo de
+responsabilidad"). A diferencia de los otros tres, esto no existía nada:
+tabla nueva, bucket de Storage nuevo y pantallas nuevas.
+
+**Qué guarda.** Dos tipos de documento por alumno, ni uno más:
+`certificado_medico` y `descargo_responsabilidad`. Como mucho un archivo
+vigente por tipo — volver a subirlo sustituye al anterior (mismo patrón que
+el avatar de perfil), sin guardar historial de versiones. No hay flujo de
+aprobación (pendiente/aprobado/rechazado): lo único que pide el lanzamiento
+es saber si está subido o no, y poder verlo. Si algún día hace falta
+aprobarlo, se añade entonces — no antes.
+
+**Quién puede subir, y por qué también el staff.** El propio alumno, su
+tutor (reutilizando `es_padre_de()` de las familias), o el Dueño/Profesor
+de su academia. Se decidió incluir al staff porque en un gimnasio pequeño
+es habitual que el certificado llegue en papel a recepción: sin esto, el
+Dueño no tendría forma de registrar un documento que el alumno nunca sube
+él mismo desde el móvil. Solo el staff (o el Administrador de plataforma)
+puede **borrar** uno, para corregir un error de subida — un alumno no puede
+quitarse de encima su propio justificante.
+
+**Por qué el bucket es privado y no como "avatars".** Un certificado
+médico es un dato de salud: nunca debe quedar servido con una URL pública,
+a diferencia de la foto de perfil. El cliente lo ve con URLs firmadas de
+corta duración (`createSignedUrl`, 5 minutos), que respetan la misma RLS
+que protege la fila en `documentos_alumno`. La ruta de cada archivo es
+`<alumno_id>/<tipo>.<ext>` — sin el id de la academia en la ruta, a
+propósito: si el `id` de la carpeta fuera lo único que decide qué academia
+ve el archivo, un alumno podría subir a una ruta con el id de una academia
+ajena y colarse en su listado. La política comprueba la academia real del
+alumno (`academia_id_de()`), no lo que diga la ruta.
+
+**Dónde se ve.** En Perfil (el alumno/tutor sube y ve los suyos y los de
+sus hijos) y en la ficha de Miembros (el staff ve y gestiona los de
+cualquier alumno de su academia). Mismo widget (`SeccionDocumentos`) en los
+dos sitios, con permisos de subir/borrar como únicos parámetros que
+cambian — para no mantener la misma lógica de subida duplicada dos veces.
+
+**Lo que se sube es una foto**, no un selector de ficheros: `image_picker`
+(cámara o galería), igual que el avatar de perfil. El bucket sí admite PDF
+además de imagen a nivel de Storage, por si hace falta subir uno desde el
+código más adelante, pero la pantalla de hoy solo ofrece hacer o elegir una
+foto — es el caso real de un gimnasio pequeño, y añadir un selector de
+ficheros (con su propia dependencia) para un caso que no se ha pedido habría
+sido anticipar trabajo que no hace falta todavía.
