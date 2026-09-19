@@ -147,9 +147,9 @@ class _FilaDocumentoState extends ConsumerState<_FilaDocumento> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(mensajeErrorAmigable(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(mensajeErrorAmigable(e))));
       }
     } finally {
       if (mounted) setState(() => _procesando = false);
@@ -166,9 +166,9 @@ class _FilaDocumentoState extends ConsumerState<_FilaDocumento> {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(mensajeErrorAmigable(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(mensajeErrorAmigable(e))));
       }
     }
   }
@@ -214,9 +214,9 @@ class _FilaDocumentoState extends ConsumerState<_FilaDocumento> {
       ref.invalidate(documentosDeProvider(widget.alumnoId));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(mensajeErrorAmigable(e))),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(mensajeErrorAmigable(e))));
       }
     } finally {
       if (mounted) setState(() => _procesando = false);

@@ -39,14 +39,12 @@ class DocumentosRepository {
           fileOptions: const sb.FileOptions(upsert: true),
         );
 
-    await _client
-        .from('documentos_alumno')
-        .upsert({
-          'alumno_id': alumnoId,
-          'tipo': tipo,
-          'storage_path': path,
-          'subido_por': subidoPor,
-        }, onConflict: 'alumno_id,tipo');
+    await _client.from('documentos_alumno').upsert({
+      'alumno_id': alumnoId,
+      'tipo': tipo,
+      'storage_path': path,
+      'subido_por': subidoPor,
+    }, onConflict: 'alumno_id,tipo');
   }
 
   /// URL de corta duración para ver o descargar el documento. El bucket es
