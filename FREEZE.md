@@ -177,12 +177,26 @@ técnicos del congelamiento, solo que nadie actualizó este documento.
 
 ## 4. Registro Público de Academias
 
-**Estado:** Código en rutas, flujo de aprobación.
+**Estado:** Código en rutas, flujo de aprobación. Desde el 20/09/2026,
+cerrado también en el servidor, no solo en la app.
 
 **Por qué se congela:**
 - ITACA es app exclusiva (academia única).
 - El selector de academia en el registro debe desaparecer.
 - La aprobación de academias (rol admin) no aplica.
+
+**Corregido el 20/09/2026:** una auditoría externa encontró que esconder
+la pantalla `RegistroAcademiaScreen` nunca cerró la puerta de verdad. El
+disparador que crea el perfil al registrarse (`handle_new_user`) seguía
+aceptando el flujo `registro_academia` completo: cualquiera que llamara al
+registro de Supabase Auth con los metadatos correctos (`flujo:
+'registro_academia'`, `nombre_academia: '...'`) se creaba una academia
+nueva y un perfil de dueño pendiente de aprobar, sin pasar por ninguna
+pantalla ni tocar ningún botón de la app — le bastaba con la clave pública
+del proyecto, que va incrustada en el propio cliente. Se cierra ahora en
+el propio disparador (migración `20260920090000_cerrar_alta_de_academias`):
+ese flujo lanza un error en vez de crear nada. Cubierto por pgTAP
+(`cerrar_alta_de_academias_test.sql`).
 
 **Qué está oculto:**
 - Pantalla de registro: opción "Nueva academia" (solo "Unirse a academia existente").
@@ -195,18 +209,18 @@ técnicos del congelamiento, solo que nadie actualizó este documento.
 - Perfil inicial cargado con ITACA.
 
 **Qué hacer para retomarlo:**
-- No hacer nada. Una vez que sea multiacademia de nuevo, el flujo vuelve.
+- Quitar el `raise exception` del flujo `registro_academia` en
+  `handle_new_user` y volver a montar la pantalla de alta. El resto
+  (aprobación, tabla `academias`) nunca se tocó.
 
 **Pendiente de decisión (2026-08-13):** la pantalla `AdminAcademiasScreen`
 ("Academias", con botones Aprobar/Rechazar) sigue activa y es la primera
-pestaña del Administrador de plataforma — no se ha tocado en este cierre.
-No la puede ver ningún Alumno/Dueño/Profesor (solo quien tenga el rol
-`administrador`, hoy solo Cipri), y hoy no muestra nunca nada pendiente
-porque el único camino para crear una academia nueva (`RegistroAcademiaScreen`)
-está congelado sin ningún acceso vivo. Se deja fuera de este PR porque
-apagar del todo el modo Administrador es una decisión de producto, no un
-descuido — está pendiente de que Cipri diga si quiere clausurarlo también
-o dejarlo tal cual para el piloto.
+pestaña del Administrador de plataforma. No la puede ver ningún
+Alumno/Dueño/Profesor (solo quien tenga el rol `administrador`, hoy solo
+Cipri), y ahora sí es cierto que nunca va a mostrar nada pendiente,
+porque el único camino para crear una academia nueva está cerrado también
+en el servidor. Sigue pendiente de que Cipri diga si quiere clausurar
+también este modo o dejarlo tal cual para el piloto.
 
 ---
 
