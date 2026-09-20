@@ -2080,3 +2080,35 @@ código más adelante, pero la pantalla de hoy solo ofrece hacer o elegir una
 foto — es el caso real de un gimnasio pequeño, y añadir un selector de
 ficheros (con su propia dependencia) para un caso que no se ha pedido habría
 sido anticipar trabajo que no hace falta todavía.
+
+## 2026-09-20 — Una asistencia exige una reserva 'inscrito' real
+
+Punto 5 de la auditoría externa de seguridad de septiembre de 2026. La
+política de INSERT de `asistencias` comprobaba quién validaba (profesor o
+dueño de la propia academia, sobre una clase de esa academia), pero nunca
+que el alumno marcado tuviera de verdad una plaza. Desde la app no se
+explota — `_marcarAsistencia` en `clase_detalle_screen.dart` solo se
+ofrece sobre `listarParticipantes` (los ya inscritos) — pero cualquiera
+con el token de un profesor o dueño podía llamar directamente a la API y
+marcar presente a un alumno que nunca reservó esa clase, o que seguía en
+lista de espera, o que había cancelado. Eso infla sin límite las clases
+contadas de ese alumno para el ranking y la graduación, sin que ocupara
+ninguna plaza real.
+
+**Se cierra en el servidor, no solo en la pantalla.** La política
+`asistencias_insert` exige ahora una fila en `inscripciones` con
+`estado = 'inscrito'` para el mismo alumno y la misma clase. Estar en
+`'espera'` no vale — nunca llegó a tener plaza — ni tampoco una reserva ya
+`'cancelado'`.
+
+**Qué NO cambia:** el flujo normal de "Validar" o "Confirmar todos" en la
+ficha de la clase sigue funcionando exactamente igual, porque ya solo
+ofrecía marcar a quien estaba inscrito.
+
+**Verificación:** `supabase/tests/candado_asistencia_reserva_valida_test.sql`,
+5 pruebas pgTAP: el dueño valida sin problema a un inscrito, y falla con
+"viola la política de seguridad de fila" al intentarlo sobre un alumno sin
+ninguna reserva, uno en lista de espera y uno con la reserva cancelada — y
+ninguno de esos tres intentos deja rastro en la tabla. Sabotaje comprobado:
+al devolver la política a su versión anterior (sin el `exists` sobre
+`inscripciones`), 4 de las 5 pruebas nuevas se ponen en rojo.
