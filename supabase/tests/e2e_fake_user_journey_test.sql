@@ -38,25 +38,38 @@ select is(
   'El Administrador inicial queda disponible para aprobar academias'
 );
 
--- El trigger de Auth crea atómicamente la academia y el perfil del Dueño.
-insert into auth.users (
-  id,
-  email,
-  email_confirmed_at,
-  raw_user_meta_data
-) values (
+-- El alta de academias nuevas por autorregistro está cerrada en el servidor
+-- (ver cerrar_alta_de_academias_test.sql): se siembra aquí directamente,
+-- como haría un operador a mano, para poder seguir probando el resto del
+-- recorrido (aprobación, equipo, tarifas, clases...) sobre una academia
+-- todavía pendiente.
+insert into auth.users (id, email, email_confirmed_at) values (
   '00000000-0000-0000-0000-00000000ef02',
   'dueno-recorrido@test.dev',
-  now(),
-  jsonb_build_object(
-    'flujo', 'registro_academia',
-    'nombre', 'Dueño',
-    'apellidos', 'Ficticio',
-    'nombre_academia', 'Academia Recorrido Ficticio',
-    'direccion', 'Calle de Prueba 1',
-    'telefono', '+34000000000',
-    'email_contacto', 'academia-recorrido@test.dev'
-  )
+  now()
+);
+
+insert into public.academias (
+  id, nombre, direccion, telefono, email_contacto, estado, created_by
+) values (
+  '00000000-0000-0000-0000-00000000eea1',
+  'Academia Recorrido Ficticio',
+  'Calle de Prueba 1',
+  '+34000000000',
+  'academia-recorrido@test.dev',
+  'pending',
+  '00000000-0000-0000-0000-00000000ef02'
+);
+
+insert into public.profiles (
+  id, academia_id, rol, nombre, apellidos, estado
+) values (
+  '00000000-0000-0000-0000-00000000ef02',
+  '00000000-0000-0000-0000-00000000eea1',
+  'dueño',
+  'Dueño',
+  'Ficticio',
+  'pendiente_aprobacion'
 );
 
 select ok(
@@ -69,7 +82,7 @@ select ok(
       and a.estado = 'pending'
       and a.created_by = p.id
   ),
-  'El alta del Dueño crea su academia pendiente en la misma transacción'
+  'La academia sembrada queda pendiente, lista para que el Administrador la revise'
 );
 
 select ok(
