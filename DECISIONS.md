@@ -2080,3 +2080,27 @@ código más adelante, pero la pantalla de hoy solo ofrece hacer o elegir una
 foto — es el caso real de un gimnasio pequeño, y añadir un selector de
 ficheros (con su propia dependencia) para un caso que no se ha pedido habría
 sido anticipar trabajo que no hace falta todavía.
+
+## 2026-09-20 — Las pruebas de 1 día respetan el límite de clases de su tarifa
+
+Una auditoría externa (revisada y confirmada contra el código real, no de
+memoria) encontró que `_saldo_clases()` solo reconocía suscripciones con
+estado `'activa'` al calcular cuántas clases le quedan a alguien. Una
+prueba nace con estado `'prueba'` (decidido el 27/08/2026: "cuenta como
+cuota al reservar, igual que 'activa'"), así que esta función nunca la
+encontraba y devolvía `tiene_cuota: false` para cualquiera con una prueba
+en marcha.
+
+El efecto en cadena: `reservar_clase()` sí exige cuota activa o de prueba
+para el primer filtro (si la academia lo pide), pero el segundo filtro —
+el que bloquea cuando ya no quedan clases del ciclo — solo se aplicaba
+`if tiene_cuota`, y con una prueba esa condición siempre era falsa.
+**Quien estaba de prueba podía reservar todas las clases que quisiera**,
+aunque la tarifa de prueba tuviera `clases_incluidas` puesto a 1.
+
+Se corrige en el único sitio que hace falta: `_saldo_clases()` pasa a
+buscar también `estado = 'prueba'`. `clases_restantes()` y
+`reservar_clase()` delegan en ella, así que quedan corregidos sin tocarlos.
+No cambia nada del significado de "prueba": sigue siendo gratis, sigue
+caducando sola a las 24 horas — ahora también respeta cuántas clases
+incluye.
