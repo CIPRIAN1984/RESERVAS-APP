@@ -2081,6 +2081,38 @@ foto — es el caso real de un gimnasio pequeño, y añadir un selector de
 ficheros (con su propia dependencia) para un caso que no se ha pedido habría
 sido anticipar trabajo que no hace falta todavía.
 
+## 2026-09-20 — Cerrar en el servidor el alta de academias nuevas
+
+Una auditoría externa (revisada y confirmada punto por punto contra el
+código y la base de datos real, no de memoria) encontró que congelar
+`RegistroAcademiaScreen` en agosto nunca cerró la puerta de verdad: el
+disparador `handle_new_user` seguía aceptando el flujo completo
+`registro_academia` — cualquiera con la clave pública del proyecto (que va
+incrustada en el propio cliente Flutter, es normal que sea pública) podía
+llamar al registro de Supabase Auth con los metadatos correctos y crear
+una academia nueva y un perfil de dueño pendiente de aprobar, sin tocar
+ni un botón de la app.
+
+**Se cierra en el único sitio donde de verdad se puede cerrar**: el propio
+disparador. El flujo `registro_academia` ahora lanza un error en vez de
+crear nada (migración `20260920090000_cerrar_alta_de_academias`). No se
+toca ninguna tabla ni columna del esquema multi-academia — sigue
+conservado por debajo, como está decidido desde julio — solo se deja de
+aceptar la creación de una academia nueva mientras ITACA sea la única
+operativa.
+
+**Qué se corrigió de paso:** el test de recorrido integral
+(`e2e_fake_user_journey_test.sql`) sembraba su academia y dueño de prueba
+pasando por este mismo flujo, ahora cerrado. Se cambió a sembrarlos
+directamente (como haría un operador a mano), sin perder cobertura de lo
+que de verdad importa: la aprobación, el equipo, las tarifas, las clases.
+
+**Prioridad de la corrección:** ver la auditoría del 19-20/09/2026 (no
+está en este documento por ser una conversación, no una decisión de
+producto) — cerrar esto y poner el repositorio en privado se hacen antes
+que el resto de hallazgos por ser los más baratos y, a la vez, los más
+graves: uno es una grieta de seguridad real, no una preferencia de diseño.
+
 ## 2026-09-20 — Las pruebas de 1 día respetan el límite de clases de su tarifa
 
 Una auditoría externa (revisada y confirmada contra el código real, no de
