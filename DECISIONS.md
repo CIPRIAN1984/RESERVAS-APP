@@ -2137,6 +2137,46 @@ No cambia nada del significado de "prueba": sigue siendo gratis, sigue
 caducando sola a las 24 horas — ahora también respeta cuántas clases
 incluye.
 
+## 2026-09-20 — Los avisos de un hijo sin cuenta llegan a su tutor
+
+Punto 4 de la auditoría externa de seguridad de septiembre de 2026, con la
+corrección de Cipri: no era solo que el aviso "se perdiera" para el menor
+— la estructura de familias (`profiles.tiene_cuenta`,
+`relaciones_familia`) asocia esos avisos a una cuenta que un hijo sin
+cuenta propia no tiene. `cancelar_clase`, `editar_clase`,
+`cancelar_reserva` (al promocionar desde lista de espera) y
+`encolar_push_nueva_novedad` encolaban siempre `user_id = alumno_id` en
+`notificaciones_outbox`. Para un hijo eso es un `user_id` sin ninguna fila
+en `auth.users`: la comprobación de sabotaje de esta misma migración lo
+confirma — revertir el arreglo no produce solo un aviso silencioso, sino
+que **revienta la transacción entera** (violación de la clave foránea de
+`notificaciones_outbox` hacia `auth.users`), así que cancelar o editar una
+clase con un menor apuntado dejaba de funcionar del todo, no solo de
+avisar.
+
+**La solución es la que pidió Cipri: avisar al tutor, no al menor.** Nueva
+función interna `destinatario_notificacion(alumno_id)`: devuelve el propio
+alumno si tiene cuenta, o su tutor (`relaciones_familia.parent_id`) si no
+la tiene. Los cuatro sitios que encolaban avisos pasan a resolver primero
+el destinatario real, con `distinct` para que un tutor con varios hijos
+en la misma clase, o que además es alumno independiente, reciba un único
+aviso por evento, no uno por hijo.
+
+**Qué NO cambia:** ninguna regla de quién puede reservar, cancelar o
+editar una clase — solo a quién le llega el aviso de que ha pasado. Los
+adultos con cuenta propia (incluido un tutor sobre sus propias reservas)
+siguen recibiendo sus avisos exactamente igual que antes.
+
+**Verificación:** `supabase/tests/avisos_a_tutores_test.sql`, 10 pruebas
+pgTAP con una academia de una tutora con dos hijos sin cuenta y un adulto
+independiente: cancelar clase, editar horario, promoción desde lista de
+espera y novedad nueva, comprobando en los cuatro casos que el hijo nunca
+aparece como `user_id` de ningún aviso y que el tutor sí, sin duplicados.
+Sabotaje comprobado: al devolver `destinatario_notificacion` al
+`alumno_id` sin resolver, la suite entera se cae por la violación de clave
+foránea explicada arriba — la prueba detecta el fallo real, no solo un
+matiz de qué texto lleva el aviso.
+
 ## 2026-09-20 — Una asistencia exige una reserva 'inscrito' real
 
 Punto 5 de la auditoría externa de seguridad de septiembre de 2026. La
