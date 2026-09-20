@@ -2176,3 +2176,55 @@ Sabotaje comprobado: al devolver `destinatario_notificacion` al
 `alumno_id` sin resolver, la suite entera se cae por la violación de clave
 foránea explicada arriba — la prueba detecta el fallo real, no solo un
 matiz de qué texto lleva el aviso.
+
+## 2026-09-20 — Política de consumo de clases: reserva, cancelación y no presentados
+
+Punto 6 de la auditoría externa, con la decisión de negocio de Cipri: el
+crédito de una clase se retiene al reservar, se devuelve si se cancela con
+margen, y se consume para siempre al confirmar asistencia o al no
+presentarse — un no presentado consume la clase automáticamente al
+terminar, salvo que el Dueño o el Profesor lo corrijan a mano.
+
+**Lo que ya funcionaba:** reservar retiene el crédito (`_saldo_clases`
+cuenta lo "reservado" igual que lo "gastado") y cancelar con margen ya lo
+devolvía. Eso no se toca.
+
+**Lo que faltaba, y no era una preferencia sino un agujero de facturación:**
+una clase ya terminada donde el alumno seguía `'inscrito'` sin que nadie
+marcara asistencia **no consumía nada** — `_saldo_clases` solo miraba
+`fecha_hora_inicio > now()` para "reservado" y la tabla `asistencias` para
+"gastado", así que un no presentado desaparecía de las dos cuentas. Se
+podía no presentarse sin límite sin gastar ni una clase de la tarifa.
+Tampoco consumía nada cancelar fuera de plazo: `cancelar_reserva` ya
+marcaba `cancelacion_tardia = true`, pero `_saldo_clases` nunca miraba esa
+columna — cancelar tarde y cancelar con margen liberaban la plaza exactamente
+igual.
+
+**La corrección, sin tocar reservar ni marcar asistencia:**
+- `_saldo_clases` cuenta ahora "gastadas" como la unión de tres orígenes,
+  cada clase una sola vez: asistencia confirmada, no presentado (clase ya
+  terminada, seguía `'inscrito'`, sin asistencia) y cancelación con
+  `cancelacion_tardia = true`.
+- `cancelar_reserva` distingue quién cancela: si el Dueño o el Profesor
+  cancelan en nombre de OTRO alumno, es una corrección administrativa —
+  nunca se marca como tardía, así que siempre devuelve el crédito, aunque
+  la clase ya haya pasado. Cancelar la propia reserva (incluida la de un
+  Dueño o Profesor que también entrena) sigue las reglas normales de
+  siempre.
+
+**Límite conocido, no resuelto aquí:** si el propio alumno cancela tarde
+por su cuenta y luego el staff quiere perdonarle esa cancelación en
+concreto (no un no presentado, sino una cancelación tardía ya registrada),
+`cancelar_reserva` no tiene nada que deshacer — solo actúa sobre reservas
+`'inscrito'`/`'espera'`. Es un caso raro (justificante médico, etc.); si
+hace falta, se corrige con SQL directo por ahora, no con una pantalla.
+
+**Verificación:** `supabase/tests/ciclo_consumo_clases_test.sql`, 7
+pruebas pgTAP: un no presentado consume solo, cancelar dentro del margen
+de aviso consume igual que un no presentado, cancelar con margen de sobra
+no consume nada, el Dueño corrigiendo un no presentado devuelve el
+crédito y nunca queda marcado como tardío, y el propio alumno cancelando
+su propio no presentado sigue consumiéndolo (la corrección es solo del
+staff). Sabotaje comprobado en dos pasos: revertir la unión de orígenes en
+`_saldo_clases` tira 5 de las 7 pruebas; revertir la excepción de
+`cancelar_reserva` para el staff tira las 3 que dependen de ella.
