@@ -2260,3 +2260,49 @@ su propio no presentado sigue consumiéndolo (la corrección es solo del
 staff). Sabotaje comprobado en dos pasos: revertir la unión de orígenes en
 `_saldo_clases` tira 5 de las 7 pruebas; revertir la excepción de
 `cancelar_reserva` para el staff tira las 3 que dependen de ella.
+
+## 2026-09-25 — El saldo de clases se calcula en el ciclo real de cada clase
+
+Auditoría externa del 23/09/2026, verificada punto por punto contra la base
+de datos. Cuatro fallos de la cuenta de «cuántas clases te quedan», ninguno
+de permisos, todos de facturación:
+
+1. **`ciclo_vigente()` ignoraba la periodicidad.** Salvo la suelta, todas las
+   tarifas se trataban como mensuales: el «bono 10 sesiones» (trimestral)
+   reponía las 10 clases cada mes. Estaba así desde el 31/07/2026 y ninguna
+   prueba lo cazó porque ninguna comprobaba un ciclo de 3 meses. Ahora
+   mensual = 1 mes, trimestral = 3, anual = 12, contados desde el inicio de
+   la cuota (`ciclo_en`). Los meses se suman siempre desde esa fecha, no uno
+   tras otro, para que los finales de mes no se desplacen.
+2. **Se miraba siempre el ciclo de hoy.** Reservar una clase del ciclo
+   siguiente comprobaba el saldo del actual: podía bloquear una reserva
+   legítima o dejar reservar sin límite en el ciclo siguiente. Ahora
+   `_saldo_clases(alumno, fecha)` calcula el ciclo que contiene la fecha de
+   la clase.
+3. **Hueco durante la clase.** Entre el inicio y el final, una plaza sin
+   confirmar no contaba ni como reservada ni como ausencia. Ahora «reservada»
+   dura hasta que la clase termina, y justo ahí pasa a ausencia.
+4. **Dos reservas a la vez gastaban el mismo crédito.** `reservar_clase`
+   bloqueaba la clase, no al alumno. Ahora toma un candado por alumno
+   (`pg_advisory_xact_lock(7301, …)`), y la promoción desde lista de espera
+   también, comprobando de nuevo el saldo con el candado puesto. Orden de
+   candados, siempre el mismo: primero la clase, después el alumno.
+
+**Consecuencia decidida, no accidental:** la cuota que manda es la que cubre
+el día de la clase. Si la clase cae después de que acabe la cuota pagada, ese
+día no hay cuota: con `exigir_cuota_para_reservar` apagado (ITACA) se reserva
+igual y sale «sin cuota», como decidió Cipri; con el ajuste encendido se
+rechaza. Antes bastaba con tener cuota hoy para reservar clases de dentro de
+un mes. Por lo mismo, una prueba de 1 día solo cubre las clases de ese día.
+
+**Textos:** la app ya no dice «este mes» (falso en una trimestral): dice
+«hasta el 15 de octubre», con la fecha real de fin del ciclo, y el error de
+reserva dice «para esa fecha».
+
+**Verificación:** `saldo_por_ciclo_test.sql` (22 pruebas) más los ajustes de
+`limite_clases_en_prueba_test` y `prueba_pausada_test` (sus clases caían
+fuera del día de prueba). Sabotaje en cuatro pasos: ignorar la periodicidad
+(5 en rojo), volver al ciclo de hoy (la batería entera cae), devolver el
+hueco (2 en rojo), quitar el candado (1 en rojo). Y la prueba que pgTAP no
+puede hacer, con dos sesiones de verdad reservando a la vez con 1 crédito:
+con candado, 1 reserva y la otra rechazada; sin él, 2 reservas.

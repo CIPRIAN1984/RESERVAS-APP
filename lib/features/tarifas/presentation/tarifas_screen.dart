@@ -296,10 +296,14 @@ class _SaldoClasesTexto extends ConsumerWidget {
           return const SizedBox.shrink();
         }
         final disponibles = saldo.disponibles ?? 0;
+        final fin = saldo.cicloFin;
+        final plazo = fin == null
+            ? 'en este periodo'
+            : 'hasta el ${DateFormat("d 'de' MMMM", 'es_ES').format(fin.toLocal())}';
         return Text(
           disponibles > 0
-              ? 'Te quedan $disponibles de ${saldo.incluidas} clases este mes.'
-              : 'Sin clases disponibles este mes. Renueva o compra una suelta.',
+              ? 'Te quedan $disponibles de ${saldo.incluidas} clases $plazo.'
+              : 'Sin clases disponibles $plazo. Renueva o compra una suelta.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: disponibles > 0 ? AppColors.subtle : AppColors.destructive,
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:itaca/app/app_mode.dart';
 import 'package:itaca/app/theme/app_theme.dart';
@@ -57,34 +58,45 @@ Widget _app(SaldoClases saldo) => ProviderScope(
 );
 
 void main() {
-  testWidgets('con clases disponibles, enseña cuántas quedan', (tester) async {
+  setUpAll(() => initializeDateFormatting('es_ES'));
+
+  // El ciclo puede ser de 1, 3 o 12 meses: la app dice hasta cuándo, no
+  // «este mes», que en una tarifa trimestral sería mentira.
+  testWidgets('con clases disponibles, enseña cuántas quedan y hasta cuándo', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _app(
-        const SaldoClases(
+        SaldoClases(
           tieneCuota: true,
           ilimitada: false,
           incluidas: 8,
           gastadas: 2,
           reservadas: 1,
           disponibles: 5,
+          cicloFin: DateTime(2026, 10, 15, 12),
         ),
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Te quedan 5 de 8 clases este mes.'), findsOneWidget);
+    expect(
+      find.text('Te quedan 5 de 8 clases hasta el 15 de octubre.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('sin clases disponibles, avisa en rojo', (tester) async {
     await tester.pumpWidget(
       _app(
-        const SaldoClases(
+        SaldoClases(
           tieneCuota: true,
           ilimitada: false,
           incluidas: 8,
           gastadas: 8,
           reservadas: 0,
           disponibles: 0,
+          cicloFin: DateTime(2026, 10, 15, 12),
         ),
       ),
     );
@@ -92,10 +104,45 @@ void main() {
 
     final aviso = tester.widget<Text>(
       find.text(
-        'Sin clases disponibles este mes. Renueva o compra una suelta.',
+        'Sin clases disponibles hasta el 15 de octubre. Renueva o compra una '
+        'suelta.',
       ),
     );
     expect(aviso.style?.color, AppColors.destructive);
+  });
+
+  testWidgets('sin fecha de fin del ciclo, no se inventa una', (tester) async {
+    await tester.pumpWidget(
+      _app(
+        const SaldoClases(
+          tieneCuota: true,
+          ilimitada: false,
+          incluidas: 1,
+          gastadas: 0,
+          reservadas: 0,
+          disponibles: 1,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Te quedan 1 de 1 clases en este periodo.'),
+      findsOneWidget,
+    );
+  });
+
+  test('«infinity» de Postgres no rompe la lectura del saldo', () {
+    final saldo = SaldoClases.fromRpc({
+      'tiene_cuota': true,
+      'ilimitada': false,
+      'incluidas': 1,
+      'gastadas': 0,
+      'reservadas': 0,
+      'disponibles': 1,
+      'ciclo_fin': 'infinity',
+    });
+    expect(saldo.cicloFin, isNull);
   });
 
   testWidgets('con tarifa ilimitada, no enseña ningún número', (tester) async {
