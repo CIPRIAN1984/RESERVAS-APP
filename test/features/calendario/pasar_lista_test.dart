@@ -10,6 +10,7 @@ import 'package:itaca/features/calendario/application/clases_providers.dart';
 import 'package:itaca/features/calendario/data/clase_resumen.dart';
 import 'package:itaca/features/calendario/data/clases_repository.dart';
 import 'package:itaca/features/calendario/data/inscrito_alumno.dart';
+import 'package:itaca/features/calendario/domain/pasar_lista.dart';
 import 'package:itaca/features/calendario/presentation/clase_detalle_screen.dart';
 import 'package:itaca/features/tarifas/application/tarifas_providers.dart';
 import 'package:itaca/features/tarifas/data/tarifa.dart';
@@ -18,6 +19,10 @@ import 'package:itaca/features/tarifas/data/tarifa.dart';
 /// personas. Un solo botón confirma a todos los que aún no tienen la
 /// asistencia validada — es lo que pidió Cipri, «un botón para confirmar a
 /// todos los apuntados de golpe», con una confirmación antes por si acaso.
+///
+/// Desde la auditoría del 23/09/2026 solo se puede con la clase a punto de
+/// empezar (media hora antes) o ya empezada: antes, marcaba presente a gente
+/// que aún no había venido.
 
 InscritoAlumno _alumno({
   required String id,
@@ -57,8 +62,10 @@ class _RepoFalso implements ClasesRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-ClaseResumen _clase() {
-  final inicio = DateTime.now().add(const Duration(days: 1));
+/// Por defecto, una clase que empezó hace diez minutos: solo entonces se
+/// puede pasar lista.
+ClaseResumen _clase({Duration desdeAhora = const Duration(minutes: -10)}) {
+  final inicio = DateTime.now().add(desdeAhora);
   return ClaseResumen(
     id: 'c1',
     titulo: 'Iniciación no gi',
@@ -71,7 +78,7 @@ ClaseResumen _clase() {
   );
 }
 
-Widget _app(_RepoFalso repo) => ProviderScope(
+Widget _app(_RepoFalso repo, {ClaseResumen? clase}) => ProviderScope(
   overrides: [
     currentUserIdProvider.overrideWithValue('d1'),
     currentProfileProvider.overrideWith(
@@ -90,7 +97,7 @@ Widget _app(_RepoFalso repo) => ProviderScope(
   child: MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: AppTheme.light,
-    home: ClaseDetalleScreen(clase: _clase()),
+    home: ClaseDetalleScreen(clase: clase ?? _clase()),
   ),
 );
 
@@ -151,7 +158,7 @@ void main() {
     await tester.pumpWidget(_app(repo));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Confirmar los 1 que faltan'));
+    await tester.tap(find.text('Confirmar al que falta'));
     await tester.pumpAndSettle();
 
     // Pide confirmación antes de tocar nada.
@@ -184,5 +191,72 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.vecesLlamado, isEmpty);
+  });
+
+  testWidgets('con la clase de mañana no se puede pasar lista todavía', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 900));
+    final repo = _RepoFalso(
+      ParticipantesClase(
+        inscritos: [
+          _alumno(id: 'a1', nombre: 'Uno', validada: false),
+          _alumno(id: 'a2', nombre: 'Dos', validada: false),
+        ],
+        listaEspera: const [],
+      ),
+    );
+    await tester.pumpWidget(
+      _app(repo, clase: _clase(desdeAhora: const Duration(days: 1))),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Confirmar'), findsNothing);
+    expect(find.text('Validar'), findsNothing);
+    expect(
+      find.text('Podrás pasar lista media hora antes de que empiece.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a veinte minutos de empezar, ya se puede', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(412, 900));
+    final repo = _RepoFalso(
+      ParticipantesClase(
+        inscritos: [_alumno(id: 'a1', nombre: 'Uno', validada: false)],
+        listaEspera: const [],
+      ),
+    );
+    await tester.pumpWidget(
+      _app(repo, clase: _clase(desdeAhora: const Duration(minutes: 20))),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Confirmar todos'), findsOneWidget);
+    expect(find.text('Validar'), findsOneWidget);
+    expect(find.textContaining('Podrás pasar lista'), findsNothing);
+  });
+
+  testWidgets('el aviso dice que confirmar solo si han venido todos', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 900));
+    final repo = _RepoFalso(
+      ParticipantesClase(
+        inscritos: [
+          _alumno(id: 'a1', nombre: 'Uno', validada: false),
+          _alumno(id: 'a2', nombre: 'Dos', validada: false),
+        ],
+        listaEspera: const [],
+      ),
+    );
+    await tester.pumpWidget(_app(repo));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Confirmar todos'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(avisoConfirmarTodos(2)), findsOneWidget);
+    expect(find.textContaining('solo si han venido todos'), findsOneWidget);
   });
 }
