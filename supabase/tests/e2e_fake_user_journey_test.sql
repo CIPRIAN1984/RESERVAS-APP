@@ -479,6 +479,15 @@ select is(
   'La promoción automática encola su notificación'
 );
 
+-- Llega el día de la clase. Desde el 25/09/2026 no se puede pasar lista de
+-- una clase que aún no ha empezado (ver
+-- 20260925100000_pasar_lista_solo_con_la_clase_empezada.sql): se simula que
+-- ya está en marcha.
+update public.clases
+   set fecha_hora_inicio = now() - interval '10 minutes',
+       fecha_hora_fin = now() + interval '50 minutes'
+ where id = '00000000-0000-0000-0000-00000000efc1';
+
 select pg_temp.actuar_como(
   '00000000-0000-0000-0000-00000000ef03'
 );

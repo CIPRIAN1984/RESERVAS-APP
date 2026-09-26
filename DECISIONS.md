@@ -2260,3 +2260,33 @@ su propio no presentado sigue consumiéndolo (la corrección es solo del
 staff). Sabotaje comprobado en dos pasos: revertir la unión de orígenes en
 `_saldo_clases` tira 5 de las 7 pruebas; revertir la excepción de
 `cancelar_reserva` para el staff tira las 3 que dependen de ella.
+
+## 2026-09-25 — Solo se pasa lista con la clase a punto de empezar o empezada
+
+**Qué fallaba (auditoría externa del 23/09/2026, punto 4):** «Confirmar
+todos» —y el «Validar» de cada alumno— funcionaban con una clase de mañana
+o de la semana siguiente. Marcaban presente a gente que aún no había
+venido: historial, ranking y graduación contaban entrenos que no habían
+pasado. Y el aviso («Se confirma la asistencia de N alumnos») invitaba a
+usarlo sin mirar, cuando desde el 20/09 una ausencia ya descuenta la clase
+sola y confirmar a quien no vino no hace falta para cobrar.
+
+**Decisión:**
+- Se puede pasar lista **desde media hora antes** del inicio (para marcar
+  a la gente según llega) y en cualquier momento después (pasar lista
+  tarde es normal). Antes, nunca.
+- Lo impone el servidor: la política `asistencias_insert` exige
+  `fecha_hora_inicio <= now() + 30 min`
+  (`20260925100000_pasar_lista_solo_con_la_clase_empezada.sql`). La app
+  (`margenPasarLista` en `lib/features/calendario/domain/pasar_lista.dart`)
+  solo esconde los botones y avisa «Podrás pasar lista media hora antes de
+  que empiece». Si solo lo hiciera la app, bastaría una llamada directa.
+- «Confirmar todos» se conserva —lo pidió Cipri para clases de 20-40— pero
+  el aviso ahora dice la verdad: «Hazlo solo si han venido todos: a quien
+  no venga ya se le descuenta la clase sin confirmar nada».
+
+**Verificación:** `supabase/tests/pasar_lista_a_su_hora_test.sql` (5
+pruebas: mañana y dentro de 2 h rechazadas; a 20 min y ya empezada,
+permitidas). Quitar la condición de hora de la política tira 3 de las 5.
+En la app, hacer que `sePuedePasarLista` devuelva siempre `true` tira 2
+pruebas de widget (detalle y tarjeta del día).
