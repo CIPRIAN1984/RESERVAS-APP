@@ -519,7 +519,7 @@ class _CabeceraInicio extends ConsumerWidget {
             child: const Text(
               'I+',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.onInk,
                 fontSize: 17,
                 fontWeight: FontWeight.w800,
               ),

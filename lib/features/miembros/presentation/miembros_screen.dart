@@ -671,7 +671,7 @@ class _BotonCinturon extends StatelessWidget {
         // Con un cinturón elegido el botón se marca en negro, para que se
         // note de un vistazo que la lista está filtrada.
         side: BorderSide(
-          color: cinturon == null ? const Color(0x400A0A0A) : AppColors.ink,
+          color: cinturon == null ? AppColors.inkBorder : AppColors.ink,
           width: cinturon == null ? 1 : 1.5,
         ),
       ),
@@ -783,7 +783,7 @@ class _CinturonChip extends StatelessWidget {
             Text(
               texto.toUpperCase(),
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: seleccionado ? Colors.white : AppColors.ink,
+                color: seleccionado ? AppColors.onInk : AppColors.ink,
               ),
             ),
           ],

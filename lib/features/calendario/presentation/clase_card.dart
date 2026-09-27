@@ -78,7 +78,7 @@ class ClaseCard extends StatelessWidget {
                     child: const Text(
                       'I+',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.onInk,
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                       ),

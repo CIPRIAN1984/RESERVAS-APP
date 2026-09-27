@@ -49,13 +49,13 @@ class InvitarScreen extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.ground,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: QrImageView(
                 data: enlace,
                 size: 220,
-                backgroundColor: Colors.white,
+                backgroundColor: AppColors.onInk,
               ),
             ),
           ),

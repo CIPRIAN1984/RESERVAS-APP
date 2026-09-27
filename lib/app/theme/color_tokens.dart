@@ -26,6 +26,13 @@ class AppColors {
   /// Tinta: texto principal, iconos activos y botones primarios.
   static const Color ink = Color(0xFF0A0A0A);
 
+  /// Texto e iconos sobre tinta: botones primarios, pestaña activa,
+  /// indicadores de carga dentro de un botón negro.
+  static const Color onInk = Color(0xFFFFFFFF);
+
+  /// Borde del botón secundario: la tinta al 25 %.
+  static const Color inkBorder = Color(0x400A0A0A);
+
   /// Texto secundario y iconos inactivos.
   static const Color subtle = Color(0xFF71717A);
 
@@ -36,6 +43,9 @@ class AppColors {
   /// Amarillo eléctrico: día seleccionado y avisos críticos. Único color de
   /// marca; se usa con cuentagotas y siempre con texto [ink] encima.
   static const Color acid = Color(0xFFE9FF3D);
+
+  /// Corona ámbar del primero del podio del ranking.
+  static const Color crown = Color(0xFFE9A800);
 
   // ── Semánticos (pastel, con su color de texto) ─────────────────────────
   static const Color successBg = Color(0xFFD1FAE5);

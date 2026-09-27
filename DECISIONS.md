@@ -2260,3 +2260,16 @@ su propio no presentado sigue consumiéndolo (la corrección es solo del
 staff). Sabotaje comprobado en dos pasos: revertir la unión de orígenes en
 `_saldo_clases` tira 5 de las 7 pruebas; revertir la excepción de
 `cancelar_reserva` para el staff tira las 3 que dependen de ella.
+
+## 2026-09-27 — Auditoría de diseño: ningún color fuera de los tokens
+
+Había 19 colores escritos a mano fuera de `color_tokens.dart` (casi todos
+`Colors.white` para texto sobre negro), contra la regla §8 de la skill
+`diseno-i-plus`. Se añaden tres tokens con **el mismo valor exacto** que
+ya se pintaba —`onInk` (#FFFFFF), `inkBorder` (tinta al 25 %) y `crown`
+(corona del podio, #E9A800)— y se sustituyen todos: no cambia ningún
+píxel. `test/app/colores_solo_de_tokens_test.dart` falla, con fichero y
+línea, si vuelve a colarse uno.
+
+Revisado y conforme: tipografías incrustadas (sin `google_fonts`), ningún
+error crudo mostrado al usuario, ningún `ListTile` con botón al lado.

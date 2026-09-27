@@ -122,7 +122,7 @@ class _AgregarHijoSheetState extends ConsumerState<_AgregarHijoSheet> {
                         height: 22,
                         child: CircularProgressIndicator(
                           strokeWidth: 2.4,
-                          color: Colors.white,
+                          color: AppColors.onInk,
                         ),
                       )
                     : const Text('Dar de alta'),

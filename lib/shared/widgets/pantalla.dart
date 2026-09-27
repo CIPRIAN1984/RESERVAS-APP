@@ -170,7 +170,7 @@ class _Pildora extends StatelessWidget {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: activa ? Colors.white : AppColors.subtle,
+              color: activa ? AppColors.onInk : AppColors.subtle,
             ),
           ),
         ),
