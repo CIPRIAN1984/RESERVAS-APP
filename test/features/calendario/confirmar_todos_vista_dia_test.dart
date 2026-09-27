@@ -11,6 +11,7 @@ import 'package:itaca/features/calendario/application/clases_providers.dart';
 import 'package:itaca/features/calendario/data/clase_resumen.dart';
 import 'package:itaca/features/calendario/data/clases_repository.dart';
 import 'package:itaca/features/calendario/presentation/calendario_screen.dart';
+import 'package:itaca/features/calendario/presentation/clase_card.dart';
 
 /// Primera fase de mejoras tras el piloto, punto 2: «Confirmar todos» vivía
 /// solo dentro del detalle de cada clase. Cipri lo quiere también en la
@@ -43,9 +44,11 @@ class _ModoFijo extends AppModeNotifier {
   AppMode build() => AppMode.gestor;
 }
 
-ClaseResumen _clase({int pendientes = 3}) {
+/// Una clase de hoy que ya ha empezado (a medianoche, para que lo esté a
+/// cualquier hora que se ejecute la prueba): antes no se puede pasar lista.
+ClaseResumen _clase({int pendientes = 3, DateTime? inicioClase}) {
   final hoy = DateTime.now();
-  final inicio = DateTime(hoy.year, hoy.month, hoy.day, 17);
+  final inicio = inicioClase ?? DateTime(hoy.year, hoy.month, hoy.day);
   return ClaseResumen(
     id: 'c1',
     titulo: 'Iniciación no gi',
@@ -129,4 +132,26 @@ void main() {
       ]);
     },
   );
+
+  testWidgets('con la clase aún lejos, la tarjeta no ofrece confirmar', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 900));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(
+          body: ClaseCard(
+            clase: _clase(
+              inicioClase: DateTime.now().add(const Duration(hours: 2)),
+            ),
+            onConfirmarTodos: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Confirmar'), findsNothing);
+  });
 }

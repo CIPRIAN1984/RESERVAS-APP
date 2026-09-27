@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../data/clase_resumen.dart';
+import '../domain/pasar_lista.dart';
 
 /// Una sesión concreta en el listado del día.
 ///
@@ -192,8 +193,11 @@ class ClaseCard extends StatelessWidget {
                   ),
                 ],
               ],
+              // Solo con la clase a punto de empezar o ya empezada: una
+              // clase de mañana no se puede confirmar hoy.
               if (onConfirmarTodos != null &&
-                  clase.pendientesConfirmar > 0) ...[
+                  clase.pendientesConfirmar > 0 &&
+                  sePuedePasarLista(clase.fechaHoraInicio)) ...[
                 const SizedBox(height: 14),
                 confirmandoTodos
                     ? const SizedBox(
