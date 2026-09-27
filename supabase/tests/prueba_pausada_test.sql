@@ -218,10 +218,14 @@ select is(
   'Vuelve a activa'
 );
 
+-- Desde 20260926090000: vuelve con lo que le quedaba (30 días), no sin
+-- fecha de fin — eso la dejaba sin caducar nunca.
 select ok(
-  (select fecha_fin from public.suscripciones
-    where alumno_id = '00000000-0000-0000-0000-0000000eb103') is null,
-  'Sin fecha de caducidad propia al reanudar'
+  (select fecha_fin between now() + interval '29 days 23 hours'
+                        and now() + interval '30 days'
+     from public.suscripciones
+    where alumno_id = '00000000-0000-0000-0000-0000000eb103'),
+  'Al reanudar recupera los 30 días que le quedaban'
 );
 
 select pg_temp.actuar_como('00000000-0000-0000-0000-0000000eb103');
@@ -260,9 +264,9 @@ update public.suscripciones
  where alumno_id = '00000000-0000-0000-0000-0000000eb102';
 
 select results_eq(
-  $$ select pausas_reanudadas, pruebas_expiradas
+  $$ select pausas_reanudadas, pruebas_expiradas, cuotas_caducadas
        from public.expirar_pruebas_y_pausas() $$,
-  $$ values (1, 1) $$,
+  $$ values (1, 1, 0) $$,
   'El job reanuda 1 pausa vencida y expira 1 prueba vencida'
 );
 

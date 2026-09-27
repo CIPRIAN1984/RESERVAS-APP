@@ -156,6 +156,24 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                           color: AppColors.subtle,
                         ),
                       ),
+                    ] else if (suscripcion.proveedorPago == 'efectivo') ...[
+                      // Cobrada en mano: no hay domiciliación que cancelar.
+                      // El botón llamaba a Stripe y fallaba con un error.
+                      const SizedBox(height: 8),
+                      _SaldoClasesTexto(alumnoId: widget.alumnoId),
+                      const SizedBox(height: 8),
+                      Text(
+                        suscripcion.fechaFin == null
+                            ? 'Pagada en la academia. Para darte de baja, '
+                                  'habla con tu academia.'
+                            : 'Pagada en la academia hasta el '
+                                  '${DateFormat("d 'de' MMMM 'de' y", 'es_ES').format(suscripcion.fechaFin!.toLocal())}. '
+                                  'Para renovarla o darte de baja, habla con '
+                                  'tu academia.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.subtle,
+                        ),
+                      ),
                     ] else ...[
                       const SizedBox(height: 8),
                       _SaldoClasesTexto(alumnoId: widget.alumnoId),
