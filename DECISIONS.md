@@ -2260,3 +2260,22 @@ su propio no presentado sigue consumiéndolo (la corrección es solo del
 staff). Sabotaje comprobado en dos pasos: revertir la unión de orígenes en
 `_saldo_clases` tira 5 de las 7 pruebas; revertir la excepción de
 `cancelar_reserva` para el staff tira las 3 que dependen de ella.
+
+## 2026-09-27 — Auditoría completa: toda función fija su search_path; índices por alumno
+
+- `set_documento_alumno_academia` era la única función sin `search_path`
+  fijo (aviso del asesor de Supabase). Se fija y
+  `todas_las_funciones_fijan_search_path_test.sql` falla si alguna función
+  nueva de `public` se olvida. Sabotaje comprobado: quitar el `set
+  search_path` la pone roja nombrando la función.
+- Índices `inscripciones (alumno_id, estado)` y `asistencias (alumno_id)`:
+  el saldo de clases filtra por alumno en cada reserva y no había índice
+  que empezara por esa columna.
+- Revisado y **no** se cambia: los avisos «RLS sin políticas» de
+  `notificaciones_outbox` y `stripe_webhook_events` (solo las toca el
+  servidor, a propósito); `listar_academias_aprobadas` ejecutable sin
+  sesión (la pantalla de alta la necesita); las 30 funciones security
+  definer ejecutables con sesión (todas comprueban quién llama; revisadas
+  las que reciben el id de otra persona). Los 22 avisos de rendimiento
+  «auth.uid() por fila» no se tocan: con este volumen no se notan y
+  reescribir 22 políticas es más riesgo que beneficio.
