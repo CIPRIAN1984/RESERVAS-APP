@@ -2336,3 +2336,37 @@ pruebas: mañana y dentro de 2 h rechazadas; a 20 min y ya empezada,
 permitidas). Quitar la condición de hora de la política tira 3 de las 5.
 En la app, hacer que `sePuedePasarLista` devuelva siempre `true` tira 2
 pruebas de widget (detalle y tarjeta del día).
+
+## 2026-09-26 — Las cuotas en efectivo caducan de verdad; una pausa congela el tiempo que quedaba
+
+**Qué fallaba (auditoría externa del 23/09/2026, punto 5):**
+- Una cuota en efectivo con la fecha de fin pasada seguía en `'activa'`
+  para siempre (solo se cerraba al dar otra). La reserva y Miembros
+  miraban las fechas; Equipo solo el estado y la enseñaba «al día». En
+  producción había 10 así.
+- Reanudar una pausa dejaba `fecha_fin = null`: la cuota ya no caducaba
+  nunca. Pausar dos días regalaba clases para siempre.
+- «1 año» en el cobro en efectivo eran 12 × 30 = 360 días, y «1 mes» desde
+  el 31 de enero caía en marzo.
+- «Cancelar suscripción» salía también en cuotas cobradas en mano: llamaba
+  a Stripe y el alumno veía un error.
+
+**Decisión:**
+- El job de cada 15 min (`expirar_pruebas_y_pausas`) pasa a `'expirada'`
+  las cuotas **en efectivo** `'activa'` con la fecha de fin pasada. Las de
+  Stripe no: su estado lo manda el webhook. No se borra nada: la fila, la
+  fecha y que se cobró se conservan.
+- Al pausar se guarda lo que le quedaba (`suscripciones.resto_al_pausar`);
+  al reanudar —a mano o sola en su fecha— se le devuelve ese resto. Una
+  cuota sin fecha de fin sigue sin ella. No se puede pausar una ya caducada.
+- Equipo usa las mismas fechas que Miembros y la reserva.
+- La duración de la cuota son meses de calendario (`finDeCuota`), igual
+  que los ciclos del servidor; si el día no existe, el último del mes.
+- En «Mi cuota», una cuota en efectivo no tiene botón de cancelar: dice
+  hasta cuándo está pagada y que para renovarla o darse de baja se hable
+  con la academia.
+
+**Verificación:** `supabase/tests/cuotas_efectivo_caducan_test.sql` (14) y
+`prueba_pausada_test.sql` actualizada. Sabotaje: quitar la caducidad del
+job y volver a reanudar sin fecha tira 4 pruebas en 2 suites. En la app,
+volver a 30 días por mes tira 3 y quitar la condición de efectivo tira 1.
