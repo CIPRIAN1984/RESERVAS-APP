@@ -39,6 +39,67 @@ pasado un tiempo, o antes de que pase X"*.
 - **Fuente:** `DECISIONS.md`, decisión "Identidad y firma de las
   aplicaciones móviles" (2026-07-27).
 
+### El repositorio de GitHub sigue siendo público
+
+- **Por qué importa:** cualquiera puede leer todo el código, las
+  migraciones (el diseño completo de permisos) y el historial de
+  decisiones. No hay claves dentro —el CI lo vigila—, pero regala a un
+  atacante el mapa de la app que va a manejar datos de 166 alumnos y sus
+  cobros. Lo señaló la auditoría externa del 23/09/2026.
+- **Cada cuánto:** en cada sesión de revisión, hasta que sea privado.
+- **Qué comprobar:** `search_repositories` con
+  `repo:CIPRIAN1984/RESERVAS-APP` → `"private": true`. Solo lo puede
+  cambiar Cipri: GitHub → el repositorio → Settings → abajo del todo,
+  «Danger Zone» → Change visibility → Make private. Vercel y Supabase
+  siguen funcionando igual.
+- **Cuándo dejar de repetirlo:** cuando salga `private: true`.
+- **Fuente:** auditoría externa del 23/09/2026; comprobado de nuevo el
+  28/09/2026: sigue público.
+
+### Protección contra contraseñas filtradas en Supabase (desactivada)
+
+- **Por qué importa:** sin ella, un alumno puede registrarse con una
+  contraseña que ya circula en filtraciones públicas; es la puerta más
+  fácil para que alguien entre en su cuenta. Es el único aviso de
+  seguridad de Supabase que no se arregla desde código.
+- **Cada cuánto:** en cada sesión de revisión, hasta que esté activada.
+- **Qué comprobar:** asesor de seguridad de Supabase (`get_advisors`,
+  tipo security): no debe salir `auth_leaked_password_protection`. Lo
+  activa Cipri en el panel de Supabase → Authentication → Sign In /
+  Providers → Email → «Prevent use of leaked passwords».
+- **Cuándo dejar de repetirlo:** cuando el asesor deje de mostrarlo.
+- **Fuente:** auditoría completa del 27/09/2026 (`DECISIONS.md`).
+
+### La web bloquea hoy los pagos de Stripe (a propósito)
+
+- **Por qué importa:** la política de seguridad de la web (`vercel.json`)
+  no deja cargar `js.stripe.com` ni conectar con la API de Stripe, y
+  `Permissions-Policy` lleva `payment=()`. Mientras Stripe no esté
+  conectado es lo correcto; el día que se conecte, **el pago con tarjeta
+  fallará en la web** hasta abrir esas tres cosas.
+- **Cada cuánto:** antes de conectar Stripe real (decisión que solo toma
+  Cipri, tras semanas en paralelo con MAAT).
+- **Qué comprobar:** en `vercel.json`, añadir `https://js.stripe.com` a
+  `script-src` y `frame-src`, `https://api.stripe.com` a `connect-src`, y
+  quitar `payment=()`. Probar un pago en modo test en la vista previa.
+- **Cuándo dejar de repetirlo:** cuando un pago de prueba funcione en la
+  web de producción.
+- **Fuente:** auditoría completa del 27/09/2026.
+
+### Rendimiento de las políticas RLS al crecer
+
+- **Por qué importa:** el asesor de rendimiento marca 22 políticas que
+  evalúan `auth.uid()` fila a fila. Con ~166 alumnos no se nota; con
+  varias academias o años de historial, las listas grandes (asistencias,
+  inscripciones) se volverán lentas.
+- **Cada cuánto:** cada tres meses, o si alguien dice que una lista tarda.
+- **Qué comprobar:** `get_advisors` tipo performance y el tiempo de
+  `listar_clases_semana` y de la pantalla Miembros. Si hace falta,
+  reescribir las políticas con `(select auth.uid())`, con su pgTAP.
+- **Cuándo dejar de repetirlo:** cuando se reescriban, o si la app se
+  queda en una sola academia pequeña y nunca pasa de lento.
+- **Fuente:** auditoría completa del 27/09/2026 (`DECISIONS.md`).
+
 ---
 
 ## Cómo añadir algo aquí
