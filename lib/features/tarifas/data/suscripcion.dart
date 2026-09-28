@@ -15,6 +15,10 @@ abstract class Suscripcion with _$Suscripcion {
     required String paymentStatus,
     required DateTime fechaInicio,
     DateTime? fechaFin,
+
+    /// 'stripe' o 'efectivo'. Una cuota cobrada en mano no se cancela
+    /// desde la app: no hay nada que cancelar en Stripe.
+    String? proveedorPago,
   }) = _Suscripcion;
 
   /// Parses a row from a select with a `tarifa:tarifas(nombre, precio, periodicidad)` embed.
@@ -33,6 +37,7 @@ abstract class Suscripcion with _$Suscripcion {
       fechaFin: row['fecha_fin'] == null
           ? null
           : DateTime.parse(row['fecha_fin'] as String),
+      proveedorPago: row['proveedor_pago'] as String?,
     );
   }
 }

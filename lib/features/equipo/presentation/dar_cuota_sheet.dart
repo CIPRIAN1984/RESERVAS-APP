@@ -7,6 +7,7 @@ import '../../../core/models/profile.dart';
 import '../../../core/utils/error_messages.dart';
 import '../../tarifas/application/tarifas_providers.dart';
 import '../application/equipo_providers.dart';
+import '../domain/fin_de_cuota.dart';
 
 /// Reconocer una cuota cobrada en mano.
 ///
@@ -44,7 +45,7 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
   int _meses = 1;
   bool _guardando = false;
 
-  DateTime get _hasta => DateTime.now().add(Duration(days: 30 * _meses));
+  DateTime get _hasta => finDeCuota(DateTime.now(), _meses);
 
   Future<void> _guardar() async {
     final tarifaId = _tarifaId;

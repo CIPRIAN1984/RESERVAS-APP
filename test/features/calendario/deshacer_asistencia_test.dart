@@ -62,7 +62,8 @@ class _RepoFalso implements ClasesRepository {
 }
 
 ClaseResumen _clase() {
-  final inicio = DateTime.now().add(const Duration(days: 1));
+  // Ya empezada: antes no se puede pasar lista.
+  final inicio = DateTime.now().subtract(const Duration(minutes: 10));
   return ClaseResumen(
     id: 'c1',
     titulo: 'Iniciación no gi',
