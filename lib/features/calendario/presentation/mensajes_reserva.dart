@@ -25,9 +25,9 @@ String mensajeReserva(Object error, {String? nombre}) {
   }
   if (texto.contains('No te quedan clases')) {
     return nombre == null
-        ? 'No te quedan clases en tu tarifa este mes. Renueva o compra una '
-              'clase suelta.'
-        : 'A $nombre no le quedan clases en su tarifa este mes.';
+        ? 'No te quedan clases en tu tarifa para esa fecha. Renueva o compra '
+              'una clase suelta.'
+        : 'A $nombre no le quedan clases en su tarifa para esa fecha.';
   }
   if (texto.contains('Ya estás inscrito') ||
       texto.contains('Ya tienes una reserva')) {

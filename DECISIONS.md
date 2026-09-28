@@ -2261,6 +2261,116 @@ staff). Sabotaje comprobado en dos pasos: revertir la unión de orígenes en
 `_saldo_clases` tira 5 de las 7 pruebas; revertir la excepción de
 `cancelar_reserva` para el staff tira las 3 que dependen de ella.
 
+## 2026-09-25 — El saldo de clases se calcula en el ciclo real de cada clase
+
+Auditoría externa del 23/09/2026, verificada punto por punto contra la base
+de datos. Cuatro fallos de la cuenta de «cuántas clases te quedan», ninguno
+de permisos, todos de facturación:
+
+1. **`ciclo_vigente()` ignoraba la periodicidad.** Salvo la suelta, todas las
+   tarifas se trataban como mensuales: el «bono 10 sesiones» (trimestral)
+   reponía las 10 clases cada mes. Estaba así desde el 31/07/2026 y ninguna
+   prueba lo cazó porque ninguna comprobaba un ciclo de 3 meses. Ahora
+   mensual = 1 mes, trimestral = 3, anual = 12, contados desde el inicio de
+   la cuota (`ciclo_en`). Los meses se suman siempre desde esa fecha, no uno
+   tras otro, para que los finales de mes no se desplacen.
+2. **Se miraba siempre el ciclo de hoy.** Reservar una clase del ciclo
+   siguiente comprobaba el saldo del actual: podía bloquear una reserva
+   legítima o dejar reservar sin límite en el ciclo siguiente. Ahora
+   `_saldo_clases(alumno, fecha)` calcula el ciclo que contiene la fecha de
+   la clase.
+3. **Hueco durante la clase.** Entre el inicio y el final, una plaza sin
+   confirmar no contaba ni como reservada ni como ausencia. Ahora «reservada»
+   dura hasta que la clase termina, y justo ahí pasa a ausencia.
+4. **Dos reservas a la vez gastaban el mismo crédito.** `reservar_clase`
+   bloqueaba la clase, no al alumno. Ahora toma un candado por alumno
+   (`pg_advisory_xact_lock(7301, …)`), y la promoción desde lista de espera
+   también, comprobando de nuevo el saldo con el candado puesto. Orden de
+   candados, siempre el mismo: primero la clase, después el alumno.
+
+**Consecuencia decidida, no accidental:** la cuota que manda es la que cubre
+el día de la clase. Si la clase cae después de que acabe la cuota pagada, ese
+día no hay cuota: con `exigir_cuota_para_reservar` apagado (ITACA) se reserva
+igual y sale «sin cuota», como decidió Cipri; con el ajuste encendido se
+rechaza. Antes bastaba con tener cuota hoy para reservar clases de dentro de
+un mes. Por lo mismo, una prueba de 1 día solo cubre las clases de ese día.
+
+**Textos:** la app ya no dice «este mes» (falso en una trimestral): dice
+«hasta el 15 de octubre», con la fecha real de fin del ciclo, y el error de
+reserva dice «para esa fecha».
+
+**Verificación:** `saldo_por_ciclo_test.sql` (22 pruebas) más los ajustes de
+`limite_clases_en_prueba_test` y `prueba_pausada_test` (sus clases caían
+fuera del día de prueba). Sabotaje en cuatro pasos: ignorar la periodicidad
+(5 en rojo), volver al ciclo de hoy (la batería entera cae), devolver el
+hueco (2 en rojo), quitar el candado (1 en rojo). Y la prueba que pgTAP no
+puede hacer, con dos sesiones de verdad reservando a la vez con 1 crédito:
+con candado, 1 reserva y la otra rechazada; sin él, 2 reservas.
+
+## 2026-09-25 — Solo se pasa lista con la clase a punto de empezar o empezada
+
+**Qué fallaba (auditoría externa del 23/09/2026, punto 4):** «Confirmar
+todos» —y el «Validar» de cada alumno— funcionaban con una clase de mañana
+o de la semana siguiente. Marcaban presente a gente que aún no había
+venido: historial, ranking y graduación contaban entrenos que no habían
+pasado. Y el aviso («Se confirma la asistencia de N alumnos») invitaba a
+usarlo sin mirar, cuando desde el 20/09 una ausencia ya descuenta la clase
+sola y confirmar a quien no vino no hace falta para cobrar.
+
+**Decisión:**
+- Se puede pasar lista **desde media hora antes** del inicio (para marcar
+  a la gente según llega) y en cualquier momento después (pasar lista
+  tarde es normal). Antes, nunca.
+- Lo impone el servidor: la política `asistencias_insert` exige
+  `fecha_hora_inicio <= now() + 30 min`
+  (`20260925100000_pasar_lista_solo_con_la_clase_empezada.sql`). La app
+  (`margenPasarLista` en `lib/features/calendario/domain/pasar_lista.dart`)
+  solo esconde los botones y avisa «Podrás pasar lista media hora antes de
+  que empiece». Si solo lo hiciera la app, bastaría una llamada directa.
+- «Confirmar todos» se conserva —lo pidió Cipri para clases de 20-40— pero
+  el aviso ahora dice la verdad: «Hazlo solo si han venido todos: a quien
+  no venga ya se le descuenta la clase sin confirmar nada».
+
+**Verificación:** `supabase/tests/pasar_lista_a_su_hora_test.sql` (5
+pruebas: mañana y dentro de 2 h rechazadas; a 20 min y ya empezada,
+permitidas). Quitar la condición de hora de la política tira 3 de las 5.
+En la app, hacer que `sePuedePasarLista` devuelva siempre `true` tira 2
+pruebas de widget (detalle y tarjeta del día).
+
+## 2026-09-26 — Las cuotas en efectivo caducan de verdad; una pausa congela el tiempo que quedaba
+
+**Qué fallaba (auditoría externa del 23/09/2026, punto 5):**
+- Una cuota en efectivo con la fecha de fin pasada seguía en `'activa'`
+  para siempre (solo se cerraba al dar otra). La reserva y Miembros
+  miraban las fechas; Equipo solo el estado y la enseñaba «al día». En
+  producción había 10 así.
+- Reanudar una pausa dejaba `fecha_fin = null`: la cuota ya no caducaba
+  nunca. Pausar dos días regalaba clases para siempre.
+- «1 año» en el cobro en efectivo eran 12 × 30 = 360 días, y «1 mes» desde
+  el 31 de enero caía en marzo.
+- «Cancelar suscripción» salía también en cuotas cobradas en mano: llamaba
+  a Stripe y el alumno veía un error.
+
+**Decisión:**
+- El job de cada 15 min (`expirar_pruebas_y_pausas`) pasa a `'expirada'`
+  las cuotas **en efectivo** `'activa'` con la fecha de fin pasada. Las de
+  Stripe no: su estado lo manda el webhook. No se borra nada: la fila, la
+  fecha y que se cobró se conservan.
+- Al pausar se guarda lo que le quedaba (`suscripciones.resto_al_pausar`);
+  al reanudar —a mano o sola en su fecha— se le devuelve ese resto. Una
+  cuota sin fecha de fin sigue sin ella. No se puede pausar una ya caducada.
+- Equipo usa las mismas fechas que Miembros y la reserva.
+- La duración de la cuota son meses de calendario (`finDeCuota`), igual
+  que los ciclos del servidor; si el día no existe, el último del mes.
+- En «Mi cuota», una cuota en efectivo no tiene botón de cancelar: dice
+  hasta cuándo está pagada y que para renovarla o darse de baja se hable
+  con la academia.
+
+**Verificación:** `supabase/tests/cuotas_efectivo_caducan_test.sql` (14) y
+`prueba_pausada_test.sql` actualizada. Sabotaje: quitar la caducidad del
+job y volver a reanudar sin fecha tira 4 pruebas en 2 suites. En la app,
+volver a 30 días por mes tira 3 y quitar la condición de efectivo tira 1.
+
 ## 2026-09-27 — Auditoría de diseño: ningún color fuera de los tokens
 
 Había 19 colores escritos a mano fuera de `color_tokens.dart` (casi todos

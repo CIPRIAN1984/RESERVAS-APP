@@ -106,6 +106,7 @@ class EquipoRepository {
     Map<String, ({String id, String tarifa, bool efectivo, String estado})>
   >
   cuotasActivas(String academiaId) async {
+    final ahora = DateTime.now().toUtc().toIso8601String();
     final rows =
         await _client
                 .from('suscripciones')
@@ -115,6 +116,11 @@ class EquipoRepository {
                 .eq('academia_id', academiaId)
                 .inFilter('estado', ['activa', 'prueba', 'pausada'])
                 .eq('payment_status', 'active')
+                // Mismas fechas que Miembros y que la reserva: una cuota con
+                // la fecha de fin pasada no está «al día» aunque el job aún
+                // no la haya cerrado. En una pausada, fecha_fin es cuándo se
+                // reanuda, así que a esa no se le aplica.
+                .or('estado.eq.pausada,fecha_fin.is.null,fecha_fin.gt.$ahora')
             as List;
 
     return {

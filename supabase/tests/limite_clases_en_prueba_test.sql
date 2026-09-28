@@ -32,10 +32,13 @@ insert into public.tarifas (id, academia_id, nombre, precio, periodicidad, clase
 );
 
 -- Dos clases futuras de aforo amplio: lo que se pone a prueba es el saldo
--- de la tarifa, no el aforo de la clase.
+-- de la tarifa, no el aforo de la clase. Las dos caen DENTRO del día que dura
+-- la prueba: desde el 25/09/2026 la cuota que manda es la que cubre el día
+-- de la clase (ver 20260925090000_saldo_por_ciclo_real.sql), y una clase de
+-- pasado mañana ya no es «de la prueba».
 insert into public.clases (id, academia_id, profesor_id, titulo, fecha_hora_inicio, fecha_hora_fin, aforo_maximo) values
-  ('00000000-0000-0000-0000-000000000ca1', '00000000-0000-0000-0000-000000000ea1', '00000000-0000-0000-0000-0000000000d1', 'Clase LP 1', now() + interval '1 day', now() + interval '1 day 1 hour', 10),
-  ('00000000-0000-0000-0000-000000000ca2', '00000000-0000-0000-0000-000000000ea1', '00000000-0000-0000-0000-0000000000d1', 'Clase LP 2', now() + interval '2 days', now() + interval '2 days 1 hour', 10);
+  ('00000000-0000-0000-0000-000000000ca1', '00000000-0000-0000-0000-000000000ea1', '00000000-0000-0000-0000-0000000000d1', 'Clase LP 1', now() + interval '6 hours', now() + interval '7 hours', 10),
+  ('00000000-0000-0000-0000-000000000ca2', '00000000-0000-0000-0000-000000000ea1', '00000000-0000-0000-0000-0000000000d1', 'Clase LP 2', now() + interval '12 hours', now() + interval '13 hours', 10);
 
 create or replace function pg_temp.actuar_como(p_uid uuid) returns void language plpgsql as $$
 begin
@@ -78,7 +81,7 @@ select is(
 
 select throws_ok(
   $$ select public.reservar_clase('00000000-0000-0000-0000-000000000ca2') $$,
-  'No te quedan clases en tu tarifa este mes. Renueva o compra una clase suelta.',
+  'No te quedan clases en tu tarifa para esa fecha. Renueva o compra una clase suelta.',
   'La segunda clase se rechaza: la prueba respeta el límite de su tarifa'
 );
 

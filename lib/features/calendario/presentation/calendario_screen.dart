@@ -10,6 +10,7 @@ import '../../../shared/widgets/pantalla.dart';
 import '../../perfil/application/profile_providers.dart';
 import '../application/clases_providers.dart';
 import '../data/clase_resumen.dart';
+import '../domain/pasar_lista.dart';
 import 'clase_card.dart';
 import 'clase_detalle_screen.dart';
 import 'companeros_clase_screen.dart';
@@ -92,11 +93,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar la clase entera'),
-        content: Text(
-          clase.pendientesConfirmar == 1
-              ? 'Se confirma la asistencia de 1 alumno.'
-              : 'Se confirma la asistencia de ${clase.pendientesConfirmar} alumnos.',
-        ),
+        content: Text(avisoConfirmarTodos(clase.pendientesConfirmar)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

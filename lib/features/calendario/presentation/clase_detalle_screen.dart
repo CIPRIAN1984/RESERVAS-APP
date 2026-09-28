@@ -12,6 +12,7 @@ import '../application/clases_providers.dart';
 import '../data/clase_resumen.dart';
 import '../data/clases_repository.dart';
 import '../data/inscrito_alumno.dart';
+import '../domain/pasar_lista.dart';
 import 'crear_clase_screen.dart';
 
 /// Profesor/Dueño/Administrador view of a class: confirmed roster, attendance
@@ -218,9 +219,9 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
   }
 
   /// Pasar lista de golpe: confirma a todos los inscritos que aún no tienen
-  /// la asistencia validada. Marca a todo el mundo presente — quien reserva
-  /// y no viene pierde la clase igual (regla ya en DECISIONS.md), así que no
-  /// hay «ausentes» que marcar aparte.
+  /// la asistencia validada. Desde el 20/09/2026 una ausencia ya descuenta la
+  /// clase sola: confirmar a quien no vino no hace falta para cobrar y
+  /// falsea historial, ranking y graduación. El aviso lo dice.
   Future<void> _confirmarTodos(List<InscritoAlumno> pendientes) async {
     final userId = ref.read(currentUserIdProvider);
     if (userId == null || pendientes.isEmpty) return;
@@ -229,11 +230,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar la clase entera'),
-        content: Text(
-          pendientes.length == 1
-              ? 'Se confirma la asistencia de 1 alumno.'
-              : 'Se confirma la asistencia de ${pendientes.length} alumnos.',
-        ),
+        content: Text(avisoConfirmarTodos(pendientes.length)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -295,6 +292,8 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
     if (cobrado) _recargar();
   }
 
+  bool get _sePuedePasarLista => sePuedePasarLista(_clase.fechaHoraInicio);
+
   Widget _buildInscrito(
     BuildContext context,
     InscritoAlumno alumno,
@@ -355,7 +354,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
               icon: const Icon(Icons.check_circle, color: AppColors.successFg),
               tooltip: 'Deshacer confirmación',
             )
-          else
+          else if (_sePuedePasarLista)
             // Acotado a propósito: por tema, los botones de la app son de
             // ancho completo (`minimumSize: Size.fromHeight`, y eso deja el
             // ancho en infinito). Suelto dentro de una fila, se lo queda
@@ -517,7 +516,16 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                         ),
                       ),
                     ],
-                    if (pendientes.isNotEmpty) ...[
+                    if (pendientes.isNotEmpty && !_sePuedePasarLista) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        'Podrás pasar lista media hora antes de que empiece.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.subtle,
+                        ),
+                      ),
+                    ],
+                    if (pendientes.isNotEmpty && _sePuedePasarLista) ...[
                       const SizedBox(height: 14),
                       OutlinedButton(
                         onPressed: _confirmandoTodos
@@ -534,6 +542,8 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                             : Text(
                                 pendientes.length == inscritos.length
                                     ? 'Confirmar todos'
+                                    : pendientes.length == 1
+                                    ? 'Confirmar al que falta'
                                     : 'Confirmar los ${pendientes.length} que faltan',
                               ),
                       ),

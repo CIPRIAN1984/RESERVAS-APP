@@ -41,6 +41,10 @@ insert into public.tarifas
   ('00000000-0000-0000-0000-0000000eba02',
    '00000000-0000-0000-0000-0000000eb0bb', 'Mensual B', 60, 'mensual', true);
 
+-- La clase cae dentro del día que dura la prueba: desde el 25/09/2026, si la
+-- academia exige cuota, la cuota tiene que cubrir el DÍA DE LA CLASE (ver
+-- 20260925090000_saldo_por_ciclo_real.sql). Una clase de pasado mañana ya
+-- no la cubre una prueba de 24 horas.
 insert into public.clases
   (id, academia_id, profesor_id, titulo, fecha_hora_inicio, fecha_hora_fin,
    aforo_maximo)
@@ -48,7 +52,7 @@ values
   ('00000000-0000-0000-0000-0000000ebc01',
    '00000000-0000-0000-0000-0000000eb0aa',
    '00000000-0000-0000-0000-0000000eb101', 'Clase A',
-   now() + interval '2 days', now() + interval '2 days 1 hour', 20);
+   now() + interval '12 hours', now() + interval '13 hours', 20);
 
 create or replace function pg_temp.actuar_como(p_uid uuid)
 returns void
@@ -218,10 +222,14 @@ select is(
   'Vuelve a activa'
 );
 
+-- Desde 20260926090000: vuelve con lo que le quedaba (30 días), no sin
+-- fecha de fin — eso la dejaba sin caducar nunca.
 select ok(
-  (select fecha_fin from public.suscripciones
-    where alumno_id = '00000000-0000-0000-0000-0000000eb103') is null,
-  'Sin fecha de caducidad propia al reanudar'
+  (select fecha_fin between now() + interval '29 days 23 hours'
+                        and now() + interval '30 days'
+     from public.suscripciones
+    where alumno_id = '00000000-0000-0000-0000-0000000eb103'),
+  'Al reanudar recupera los 30 días que le quedaban'
 );
 
 select pg_temp.actuar_como('00000000-0000-0000-0000-0000000eb103');
@@ -260,9 +268,9 @@ update public.suscripciones
  where alumno_id = '00000000-0000-0000-0000-0000000eb102';
 
 select results_eq(
-  $$ select pausas_reanudadas, pruebas_expiradas
+  $$ select pausas_reanudadas, pruebas_expiradas, cuotas_caducadas
        from public.expirar_pruebas_y_pausas() $$,
-  $$ values (1, 1) $$,
+  $$ values (1, 1, 0) $$,
   'El job reanuda 1 pausa vencida y expira 1 prueba vencida'
 );
 

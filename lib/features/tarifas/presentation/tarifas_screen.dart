@@ -156,6 +156,24 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                           color: AppColors.subtle,
                         ),
                       ),
+                    ] else if (suscripcion.proveedorPago == 'efectivo') ...[
+                      // Cobrada en mano: no hay domiciliación que cancelar.
+                      // El botón llamaba a Stripe y fallaba con un error.
+                      const SizedBox(height: 8),
+                      _SaldoClasesTexto(alumnoId: widget.alumnoId),
+                      const SizedBox(height: 8),
+                      Text(
+                        suscripcion.fechaFin == null
+                            ? 'Pagada en la academia. Para darte de baja, '
+                                  'habla con tu academia.'
+                            : 'Pagada en la academia hasta el '
+                                  '${DateFormat("d 'de' MMMM 'de' y", 'es_ES').format(suscripcion.fechaFin!.toLocal())}. '
+                                  'Para renovarla o darte de baja, habla con '
+                                  'tu academia.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.subtle,
+                        ),
+                      ),
                     ] else ...[
                       const SizedBox(height: 8),
                       _SaldoClasesTexto(alumnoId: widget.alumnoId),
@@ -296,10 +314,14 @@ class _SaldoClasesTexto extends ConsumerWidget {
           return const SizedBox.shrink();
         }
         final disponibles = saldo.disponibles ?? 0;
+        final fin = saldo.cicloFin;
+        final plazo = fin == null
+            ? 'en este periodo'
+            : 'hasta el ${DateFormat("d 'de' MMMM", 'es_ES').format(fin.toLocal())}';
         return Text(
           disponibles > 0
-              ? 'Te quedan $disponibles de ${saldo.incluidas} clases este mes.'
-              : 'Sin clases disponibles este mes. Renueva o compra una suelta.',
+              ? 'Te quedan $disponibles de ${saldo.incluidas} clases $plazo.'
+              : 'Sin clases disponibles $plazo. Renueva o compra una suelta.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: disponibles > 0 ? AppColors.subtle : AppColors.destructive,
           ),
