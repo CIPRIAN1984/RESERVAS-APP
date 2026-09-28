@@ -2389,3 +2389,16 @@ volver a 30 días por mes tira 3 y quitar la condición de efectivo tira 1.
   las que reciben el id de otra persona). Los 22 avisos de rendimiento
   «auth.uid() por fila» no se tocan: con este volumen no se notan y
   reescribir 22 políticas es más riesgo que beneficio.
+
+## 2026-09-27 — Auditoría de diseño: ningún color fuera de los tokens
+
+Había 19 colores escritos a mano fuera de `color_tokens.dart` (casi todos
+`Colors.white` para texto sobre negro), contra la regla §8 de la skill
+`diseno-i-plus`. Se añaden tres tokens con **el mismo valor exacto** que
+ya se pintaba —`onInk` (#FFFFFF), `inkBorder` (tinta al 25 %) y `crown`
+(corona del podio, #E9A800)— y se sustituyen todos: no cambia ningún
+píxel. `test/app/colores_solo_de_tokens_test.dart` falla, con fichero y
+línea, si vuelve a colarse uno.
+
+Revisado y conforme: tipografías incrustadas (sin `google_fonts`), ningún
+error crudo mostrado al usuario, ningún `ListTile` con botón al lado.

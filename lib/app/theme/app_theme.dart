@@ -29,14 +29,14 @@ class AppTheme {
   static ThemeData get light {
     const scheme = ColorScheme.light(
       primary: AppColors.ink,
-      onPrimary: Colors.white,
+      onPrimary: AppColors.onInk,
       secondary: AppColors.acid,
       onSecondary: AppColors.ink,
       surface: AppColors.ground,
       onSurface: AppColors.ink,
       surfaceContainerHighest: AppColors.surface,
       error: AppColors.destructive,
-      onError: Colors.white,
+      onError: AppColors.onInk,
       outline: AppColors.line,
     );
 
@@ -128,7 +128,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.ink,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.onInk,
           disabledBackgroundColor: AppColors.surfaceStrong,
           disabledForegroundColor: AppColors.disabled,
           elevation: 0,
@@ -150,7 +150,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.ink,
           minimumSize: const Size.fromHeight(52),
-          side: const BorderSide(color: Color(0x400A0A0A)),
+          side: const BorderSide(color: AppColors.inkBorder),
           textStyle: const TextStyle(
             fontFamily: fontSans,
             fontSize: 15,
@@ -176,7 +176,7 @@ class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.ink,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.onInk,
           minimumSize: const Size.fromHeight(52),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -186,7 +186,7 @@ class AppTheme {
 
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.ink,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.onInk,
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(18)),
@@ -231,7 +231,7 @@ class AppTheme {
         contentTextStyle: const TextStyle(
           fontFamily: fontSans,
           fontSize: 14,
-          color: Colors.white,
+          color: AppColors.onInk,
         ),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -255,9 +255,8 @@ class AppTheme {
       ),
 
       switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? Colors.white : Colors.white,
-        ),
+        // Blanco en los dos estados: lo que cambia es la pista.
+        thumbColor: const WidgetStatePropertyAll(AppColors.onInk),
         trackColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected)
               ? AppColors.ink

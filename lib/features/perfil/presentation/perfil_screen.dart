@@ -249,13 +249,13 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                                     height: 16,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Colors.white,
+                                      color: AppColors.onInk,
                                     ),
                                   )
                                 : const Icon(
                                     Icons.camera_alt,
                                     size: 16,
-                                    color: Colors.white,
+                                    color: AppColors.onInk,
                                   ),
                           ),
                         ),

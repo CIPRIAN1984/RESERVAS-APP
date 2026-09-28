@@ -197,7 +197,7 @@ class _Pedestal extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         if (primero)
-          const Icon(Icons.emoji_events, size: 26, color: Color(0xFFE9A800)),
+          const Icon(Icons.emoji_events, size: 26, color: AppColors.crown),
         if (primero) const SizedBox(height: 6),
         _Avatar(entry: entry, radio: primero ? 32 : 26),
         const SizedBox(height: 8),

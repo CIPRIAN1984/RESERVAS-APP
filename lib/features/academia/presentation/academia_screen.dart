@@ -43,7 +43,7 @@ class AcademiaScreen extends ConsumerWidget {
                   child: const Text(
                     'I+',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.onInk,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                     ),
