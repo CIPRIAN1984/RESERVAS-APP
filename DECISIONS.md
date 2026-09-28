@@ -2371,6 +2371,25 @@ pruebas de widget (detalle y tarjeta del día).
 job y volver a reanudar sin fecha tira 4 pruebas en 2 suites. En la app,
 volver a 30 días por mes tira 3 y quitar la condición de efectivo tira 1.
 
+## 2026-09-27 — Auditoría completa: toda función fija su search_path; índices por alumno
+
+- `set_documento_alumno_academia` era la única función sin `search_path`
+  fijo (aviso del asesor de Supabase). Se fija y
+  `todas_las_funciones_fijan_search_path_test.sql` falla si alguna función
+  nueva de `public` se olvida. Sabotaje comprobado: quitar el `set
+  search_path` la pone roja nombrando la función.
+- Índices `inscripciones (alumno_id, estado)` y `asistencias (alumno_id)`:
+  el saldo de clases filtra por alumno en cada reserva y no había índice
+  que empezara por esa columna.
+- Revisado y **no** se cambia: los avisos «RLS sin políticas» de
+  `notificaciones_outbox` y `stripe_webhook_events` (solo las toca el
+  servidor, a propósito); `listar_academias_aprobadas` ejecutable sin
+  sesión (la pantalla de alta la necesita); las 30 funciones security
+  definer ejecutables con sesión (todas comprueban quién llama; revisadas
+  las que reciben el id de otra persona). Los 22 avisos de rendimiento
+  «auth.uid() por fila» no se tocan: con este volumen no se notan y
+  reescribir 22 políticas es más riesgo que beneficio.
+
 ## 2026-09-27 — Auditoría de diseño: ningún color fuera de los tokens
 
 Había 19 colores escritos a mano fuera de `color_tokens.dart` (casi todos
