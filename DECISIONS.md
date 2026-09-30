@@ -2465,3 +2465,36 @@ siempre: solo las reservas de la propia academia, que ya enseñaban quién
 canceló tarde. Lo nuevo visible es qué miembro del staff perdonó. Se acepta
 así; si algún día molesta, hay que revocar el SELECT de tabla y conceder
 columnas (la lección de la migración 0013), no un revoke de columna suelto.
+
+## 2026-09-30 — Cada cuota guarda las condiciones con las que se compró; registro de caja
+
+**Qué fallaba (auditoría externa del 30/09/2026, punto 4):**
+- Editar una tarifa cambiaba las cuotas ya vendidas: el saldo leía las
+  clases incluidas y la periodicidad de la tarifa **de hoy**. Subir una
+  tarifa de 8 a 12 clases regalaba 4 a quien ya había pagado 8.
+- Activar una cuota en efectivo no apuntaba cuánto dinero se recibió ni
+  quién lo cobró: no servía como registro de caja.
+
+**Decisión:**
+- `suscripciones` guarda una copia de `tarifa_nombre`, `precio`,
+  `periodicidad` y `clases_incluidas` al crearse (disparador
+  `copiar_condiciones_tarifa`, también si cambia `tarifa_id`). El saldo y la
+  app usan esa copia. Una compra nueva sale con las condiciones nuevas.
+- Las cuotas que ya existían se rellenan con las condiciones actuales de su
+  tarifa: es lo único que se puede reconstruir (no consta cuándo se edita
+  una tarifa). En producción eran 12 cuotas, casi todas ya caducadas.
+- `activar_cuota_efectivo` recibe `p_importe` (opcional; sin él, el precio
+  de la tarifa) y guarda `importe_cobrado`, `cobrado_por` y `cobrado_at`. Una
+  prueba de 1 día queda con 0 €. En la hoja de cobro, el importe se propone
+  como precio × meses y el Dueño lo cambia si hace descuento.
+- Nadie puede cambiar desde la app ni el importe ni las condiciones: la
+  tabla no tiene UPDATE para `authenticated`.
+
+**Queda fuera:** una pantalla de «caja» que liste lo cobrado por día o por
+mes. El dato ya está guardado; la pantalla, cuando Cipri la pida.
+
+**Verificación:** `condiciones_de_cada_compra_test.sql` (14). Sabotaje:
+que el saldo lea la tarifa de hoy → 3 en rojo; que el cobro no apunte el
+importe → 3 en rojo (el primer intento de sabotaje del saldo no hizo nada
+porque la consulta seguía leyendo las columnas de la cuota: se rehízo). En
+la app, pisar el importe escrito al cambiar de meses → 1 en rojo.

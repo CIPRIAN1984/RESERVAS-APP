@@ -9,6 +9,8 @@ import 'package:itaca/app/routes.dart';
 import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/profile.dart';
+import 'package:itaca/features/equipo/application/equipo_providers.dart';
+import 'package:itaca/features/equipo/data/equipo_repository.dart';
 import 'package:itaca/features/equipo/presentation/dar_cuota_sheet.dart';
 import 'package:itaca/features/tarifas/application/tarifas_providers.dart';
 import 'package:itaca/features/tarifas/data/tarifa.dart';
@@ -45,6 +47,26 @@ List<Tarifa> _tarifas() => [
     ),
 ];
 
+/// Apunta lo que se le pide al servidor, sin llamarlo.
+class _RepoFalso implements EquipoRepository {
+  double? importe;
+  String? tarifaId;
+
+  @override
+  Future<void> activarCuotaEfectivo({
+    required String alumnoId,
+    required String tarifaId,
+    required DateTime hasta,
+    required double importe,
+  }) async {
+    this.importe = importe;
+    this.tarifaId = tarifaId;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _ModoGestor extends AppModeNotifier {
   @override
   AppMode build() => AppMode.gestor;
@@ -64,7 +86,7 @@ class _Lanzadera extends StatelessWidget {
   );
 }
 
-Widget _app() {
+Widget _app([_RepoFalso? repo]) {
   final router = GoRouter(
     initialLocation: Routes.inicio,
     routes: [
@@ -92,6 +114,7 @@ Widget _app() {
       ),
       appModeProvider.overrideWith(_ModoGestor.new),
       tarifasProvider(true).overrideWith((ref) async => _tarifas()),
+      if (repo != null) equipoRepositoryProvider.overrideWithValue(repo),
     ],
     child: MaterialApp.router(
       debugShowCheckedModeBanner: false,
@@ -159,5 +182,77 @@ void main() {
       find.widgetWithText(FilledButton, 'Registrar cobro'),
     );
     expect(activado.onPressed, isNotNull);
+  });
+
+  // Auditoría del 30/09/2026: activar una cuota no dejaba constancia de
+  // cuánto dinero se había recibido.
+  group('importe recibido', () {
+    Future<_RepoFalso> abrir(WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(412, 900));
+      final repo = _RepoFalso();
+      await tester.pumpWidget(_app(repo));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Abrir'));
+      await tester.pumpAndSettle();
+      return repo;
+    }
+
+    String importe(WidgetTester tester) =>
+        tester.widget<TextField>(find.byType(TextField)).controller!.text;
+
+    testWidgets('propone el precio de la tarifa por los meses', (tester) async {
+      await abrir(tester);
+      await tester.tap(find.text('white'));
+      await tester.pumpAndSettle();
+      expect(importe(tester), '50,00');
+
+      await tester.tap(find.text('3 meses'));
+      await tester.pumpAndSettle();
+      expect(importe(tester), '150,00');
+    });
+
+    testWidgets('con descuento se registra lo que se escribe, no el precio', (
+      tester,
+    ) async {
+      final repo = await abrir(tester);
+      await tester.tap(find.text('white'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), '45,50');
+      await tester.pumpAndSettle();
+      // Cambiar de meses ya no pisa lo que ha escrito el Dueño.
+      await tester.tap(find.text('3 meses'));
+      await tester.pumpAndSettle();
+      expect(importe(tester), '45,50');
+
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Registrar cobro'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Registrar cobro'));
+      await tester.pumpAndSettle();
+
+      expect(repo.tarifaId, 't4');
+      expect(repo.importe, 45.5);
+    });
+
+    testWidgets('un importe que no es un número no deja registrar', (
+      tester,
+    ) async {
+      await abrir(tester);
+      await tester.tap(find.text('white'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'cincuenta');
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Escribe un importe, por ejemplo 50 o 45,50.'),
+        findsOneWidget,
+      );
+      final boton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Registrar cobro'),
+      );
+      expect(boton.onPressed, isNull);
+    });
   });
 }

@@ -28,9 +28,13 @@ abstract class Suscripcion with _$Suscripcion {
       id: row['id'] as String,
       alumnoId: row['alumno_id'] as String,
       tarifaId: row['tarifa_id'] as String,
-      tarifaNombre: tarifa?['nombre'] as String?,
-      tarifaPrecio: tarifa?['precio'] as num?,
-      tarifaPeriodicidad: tarifa?['periodicidad'] as String?,
+      // Las condiciones con las que se compró (30/09/2026); las de la
+      // tarifa de hoy solo si la fila es anterior y no las trae.
+      tarifaNombre:
+          row['tarifa_nombre'] as String? ?? tarifa?['nombre'] as String?,
+      tarifaPrecio: row['precio'] as num? ?? tarifa?['precio'] as num?,
+      tarifaPeriodicidad:
+          row['periodicidad'] as String? ?? tarifa?['periodicidad'] as String?,
       estado: row['estado'] as String,
       paymentStatus: row['payment_status'] as String? ?? 'pending',
       fechaInicio: DateTime.parse(row['fecha_inicio'] as String),
