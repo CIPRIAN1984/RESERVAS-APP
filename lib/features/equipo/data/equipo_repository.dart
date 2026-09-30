@@ -39,10 +39,14 @@ class EquipoRepository {
 
   /// Reconoce una cuota cobrada en mano. El servidor comprueba que quien
   /// llama es el Dueño y que alumno y tarifa son de su academia.
+  ///
+  /// [importe] es lo que se ha recibido de verdad: queda apuntado, con quién
+  /// lo cobró y cuándo, como registro de caja.
   Future<void> activarCuotaEfectivo({
     required String alumnoId,
     required String tarifaId,
     required DateTime hasta,
+    required double importe,
   }) async {
     await _client.rpc(
       'activar_cuota_efectivo',
@@ -50,6 +54,7 @@ class EquipoRepository {
         'p_alumno_id': alumnoId,
         'p_tarifa_id': tarifaId,
         'p_fecha_fin': hasta.toUtc().toIso8601String(),
+        'p_importe': importe,
       },
     );
   }
@@ -111,7 +116,7 @@ class EquipoRepository {
         await _client
                 .from('suscripciones')
                 .select(
-                  'id, alumno_id, proveedor_pago, estado, tarifa:tarifas(nombre)',
+                  'id, alumno_id, proveedor_pago, estado, tarifa_nombre, tarifa:tarifas(nombre)',
                 )
                 .eq('academia_id', academiaId)
                 .inFilter('estado', ['activa', 'prueba', 'pausada'])
@@ -127,7 +132,9 @@ class EquipoRepository {
       for (final row in rows.cast<Map<String, dynamic>>())
         row['alumno_id'] as String: (
           id: row['id'] as String,
+          // El nombre con el que se compró; la tarifa pudo renombrarse luego.
           tarifa:
+              row['tarifa_nombre'] as String? ??
               (row['tarifa'] as Map<String, dynamic>?)?['nombre'] as String? ??
               'Cuota',
           efectivo: row['proveedor_pago'] == 'efectivo',
