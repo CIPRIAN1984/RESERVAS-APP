@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:itaca/app/app_mode.dart';
+import 'package:itaca/core/auth/auth_state.dart';
 
 void main() {
   group('AppMode', () {
@@ -15,13 +16,17 @@ void main() {
     });
 
     test('se arranca siempre en Entrenamiento', () {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [currentUserIdProvider.overrideWithValue('u1')],
+      );
       addTearDown(container.dispose);
       expect(container.read(appModeProvider), AppMode.entrenamiento);
     });
 
     test('alternar cambia el estado y devuelve el modo nuevo', () {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [currentUserIdProvider.overrideWithValue('u1')],
+      );
       addTearDown(container.dispose);
 
       final nuevo = container.read(appModeProvider.notifier).alternar();
