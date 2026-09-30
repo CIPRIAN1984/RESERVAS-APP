@@ -2481,8 +2481,8 @@ columnas (la lección de la migración 0013), no un revoke de columna suelto.
   `copiar_condiciones_tarifa`, también si cambia `tarifa_id`). El saldo y la
   app usan esa copia. Una compra nueva sale con las condiciones nuevas.
 - Las cuotas que ya existían se rellenan con las condiciones actuales de su
-  tarifa (lo único que se puede reconstruir; ninguna tarifa con cuotas se
-  había editado en producción).
+  tarifa: es lo único que se puede reconstruir (no consta cuándo se edita
+  una tarifa). En producción eran 12 cuotas, casi todas ya caducadas.
 - `activar_cuota_efectivo` recibe `p_importe` (opcional; sin él, el precio
   de la tarifa) y guarda `importe_cobrado`, `cobrado_por` y `cobrado_at`. Una
   prueba de 1 día queda con 0 €. En la hoja de cobro, el importe se propone
