@@ -7,10 +7,16 @@ class ParticipantesClase {
   const ParticipantesClase({
     required this.inscritos,
     required this.listaEspera,
+    this.cancelacionesTardias = const [],
   });
 
   final List<InscritoAlumno> inscritos;
   final List<InscritoAlumno> listaEspera;
+
+  /// Quien canceló dentro del margen de aviso: esa clase le cuenta como
+  /// gastada. El Dueño o el Profesor pueden perdonársela
+  /// ([ClasesRepository.perdonarCancelacionTardia]).
+  final List<InscritoAlumno> cancelacionesTardias;
 }
 
 class ClasesRepository {
@@ -179,10 +185,13 @@ class ClasesRepository {
         await _client
                 .from('inscripciones')
                 .select(
-                  'estado, alumno_id, alumno:profiles(nombre, apellidos, foto_url, cinturon)',
+                  'estado, cancelacion_tardia, alumno_id, alumno:profiles(nombre, apellidos, foto_url, cinturon)',
                 )
                 .eq('clase_id', claseId)
-                .inFilter('estado', ['inscrito', 'espera'])
+                // Las cancelaciones tardías también, para poder perdonarlas.
+                .or(
+                  'estado.eq.inscrito,estado.eq.espera,cancelacion_tardia.eq.true',
+                )
                 .order('created_at')
             as List;
 
@@ -203,9 +212,17 @@ class ClasesRepository {
 
     final inscritos = <InscritoAlumno>[];
     final listaEspera = <InscritoAlumno>[];
+    final tardias = <String, InscritoAlumno>{};
 
     for (final raw in inscripciones) {
       final row = raw as Map<String, dynamic>;
+      if (row['estado'] == 'cancelado') {
+        // Una por alumno aunque cancelara tarde dos veces la misma clase:
+        // se perdonan juntas.
+        tardias[row['alumno_id'] as String] =
+            InscritoAlumno.fromInscripcionJson(row, asistenciaValidada: false);
+        continue;
+      }
       final enEspera = row['estado'] == 'espera';
       final alumno = InscritoAlumno.fromInscripcionJson(
         row,
@@ -219,7 +236,23 @@ class ClasesRepository {
       }
     }
 
-    return ParticipantesClase(inscritos: inscritos, listaEspera: listaEspera);
+    return ParticipantesClase(
+      inscritos: inscritos,
+      listaEspera: listaEspera,
+      cancelacionesTardias: tardias.values.toList(),
+    );
+  }
+
+  /// Devuelve la clase a quien canceló tarde. Solo el Dueño o un Profesor
+  /// de la academia (lo comprueba el servidor), y queda apuntado quién fue.
+  Future<void> perdonarCancelacionTardia({
+    required String claseId,
+    required String alumnoId,
+  }) async {
+    await _client.rpc(
+      'perdonar_cancelacion_tardia',
+      params: {'p_clase_id': claseId, 'p_alumno_id': alumnoId},
+    );
   }
 
   /// Quién de estos alumnos tiene la cuota al día.

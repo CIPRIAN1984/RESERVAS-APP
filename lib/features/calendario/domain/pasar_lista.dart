@@ -20,3 +20,8 @@ String avisoConfirmarTodos(int alumnos) {
       'todos: a quien no venga ya se le descuenta la clase sin confirmar '
       'nada.';
 }
+
+/// El aviso antes de perdonar una cancelación tardía.
+String textoPerdonar(String nombre) =>
+    'A $nombre se le devuelve la clase: la cancelación dejará de contar como '
+    'tardía. Queda apuntado que la has perdonado tú.';

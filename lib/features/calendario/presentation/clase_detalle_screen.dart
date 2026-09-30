@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/models/profile.dart';
+import '../../../core/utils/error_messages.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../equipo/presentation/dar_cuota_sheet.dart';
 import '../application/clases_providers.dart';
@@ -294,6 +295,101 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
 
   bool get _sePuedePasarLista => sePuedePasarLista(_clase.fechaHoraInicio);
 
+  /// Devolver la clase a quien canceló tarde (una lesión, un justificante…).
+  /// Lo pueden hacer el Dueño y el Profesor (decisión de Cipri, 30/09/2026);
+  /// el servidor lo comprueba y apunta quién fue.
+  Future<void> _perdonar(InscritoAlumno alumno) async {
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Perdonar la cancelación'),
+        content: Text(textoPerdonar(alumno.nombreCompleto)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Perdonar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true) return;
+
+    setState(() => _marcando.add(alumno.alumnoId));
+    try {
+      await ref
+          .read(clasesRepositoryProvider)
+          .perdonarCancelacionTardia(
+            claseId: widget.clase.id,
+            alumnoId: alumno.alumnoId,
+          );
+      _recargar();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              mensajeErrorAmigable(
+                e,
+                generico: 'No se ha podido perdonar la cancelación.',
+              ),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _marcando.remove(alumno.alumnoId));
+    }
+  }
+
+  Widget _buildTardia(BuildContext context, InscritoAlumno alumno) {
+    final perdonando = _marcando.contains(alumno.alumnoId);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  alumno.nombreCompleto,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Canceló tarde: se le descuenta la clase',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          if (perdonando)
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else
+            // Acotado: ver el comentario del botón «Validar».
+            SizedBox(
+              width: 110,
+              child: OutlinedButton(
+                onPressed: () => _perdonar(alumno),
+                child: const Text('Perdonar'),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInscrito(
     BuildContext context,
     InscritoAlumno alumno,
@@ -472,6 +568,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
               const ParticipantesClase(inscritos: [], listaEspera: []);
           final inscritos = participantes.inscritos;
           final listaEspera = participantes.listaEspera;
+          final tardias = participantes.cancelacionesTardias;
           final sinCuota = inscritos.where((a) => a.sinCuota).length;
           final pendientes = inscritos
               .where((a) => !a.asistenciaValidada)
@@ -553,7 +650,8 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
               ),
               const Divider(height: 1, color: AppColors.line),
               Expanded(
-                child: inscritos.isEmpty && listaEspera.isEmpty
+                child:
+                    inscritos.isEmpty && listaEspera.isEmpty && tardias.isEmpty
                     ? Center(
                         child: Text(
                           'Todavía no hay participantes.',
@@ -576,6 +674,12 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                             const _SectionTitle(title: 'Lista de espera'),
                             for (var i = 0; i < listaEspera.length; i++)
                               _buildEspera(listaEspera[i], i + 1),
+                          ],
+                          if (tardias.isNotEmpty) ...[
+                            const Divider(height: 24, color: AppColors.line),
+                            const _SectionTitle(title: 'Cancelaron tarde'),
+                            for (final alumno in tardias)
+                              _buildTardia(context, alumno),
                           ],
                         ],
                       ),
