@@ -116,7 +116,9 @@ select ok(
   'El ciclo sigue siendo mensual aunque la tarifa pase a trimestral'
 );
 
--- Una cuota nueva sí se vende con las condiciones nuevas.
+-- Una cuota nueva sí se vende con las condiciones nuevas. (cc003 tiene aún
+-- la actual en vigor: desde el 30/09 la renovación queda programada para
+-- cuando acabe, ver renovacion_y_pausa_test.sql.)
 select pg_temp.actuar_como('00000000-0000-0000-0000-0000000cc001');
 select public.activar_cuota_efectivo(
   '00000000-0000-0000-0000-0000000cc003', '00000000-0000-0000-0000-0000000cc0f1',
@@ -125,7 +127,7 @@ reset role;
 select ok(
   (select clases_incluidas = 12 and periodicidad = 'trimestral' and precio = 70
      from public.suscripciones
-    where alumno_id = '00000000-0000-0000-0000-0000000cc003' and estado = 'activa'),
+    where alumno_id = '00000000-0000-0000-0000-0000000cc003' and estado = 'programada'),
   'La siguiente compra sale con las condiciones nuevas'
 );
 

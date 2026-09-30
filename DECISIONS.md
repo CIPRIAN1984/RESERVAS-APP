@@ -2499,6 +2499,51 @@ importe → 3 en rojo (el primer intento de sabotaje del saldo no hizo nada
 porque la consulta seguía leyendo las columnas de la cuota: se rehízo). En
 la app, pisar el importe escrito al cambiar de meses → 1 en rojo.
 
+## 2026-09-30 — Renovar antes de tiempo no pierde días; la pausa conserva también las clases
+
+**Decisión de Cipri (30/09/2026):** si se renueva una cuota que aún está en
+vigor, **la nueva empieza cuando acaba la actual**.
+
+**Qué fallaba (auditoría externa del 30/09/2026, punto 3):**
+- Renovar cerraba la cuota vigente y la nueva empezaba ese día: renovar 10
+  días antes perdía esos 10 días pagados.
+- La pausa (26/09) conservaba el tiempo que quedaba, pero los ciclos de
+  clases seguían contándose desde la fecha de inicio original. Al volver de
+  una pausa que cruzaba el cambio de ciclo salía un ciclo nuevo con todas
+  las clases: 3 gastadas + pausa + 8 nuevas = 11 por un mes pagado.
+
+**Decisión técnica:**
+- Estado nuevo de suscripción, `'programada'`: la renovación de una cuota en
+  efectivo `'activa'` con fecha de fin futura se crea programada, con
+  `fecha_inicio` = fin de la actual. Como mucho una programada por alumno.
+  El job de cada 15 min la activa cuando empieza (después de caducar la
+  anterior, y solo si el alumno no tiene otra en curso). El saldo y
+  `_cuota_cubre` la tienen en cuenta: reservar una clase de después del fin
+  de la actual cuenta contra la renovación.
+- `activar_cuota_efectivo` recibe `p_meses` y calcula él las fechas (meses
+  de calendario desde el inicio real, que puede ser el fin de la actual).
+- Cada pausa queda registrada en `pausas_suscripcion (desde, hasta)`. El
+  ciclo se calcula en «tiempo efectivo» (el tiempo sin contar las pausas) y
+  se vuelve a fechas reales: un ciclo que cruza una pausa se alarga lo que
+  duró la pausa. Las clases de dentro de una pausa (a las que se puede ir
+  «sin cuota») no gastan de la cuota.
+- Al reanudar (a mano o sola) la renovación programada se desplaza para
+  empezar cuando acaba la cuota reanudada.
+- Si la cuota en curso pasa a `'cancelada'` (baja o «retirar cuota»), su
+  renovación programada se cancela también (disparador).
+
+**Verificación:** `supabase/tests/renovacion_y_pausa_test.sql` (18). Sabotaje
+en cuatro pasos: que renovar sustituya a la actual como antes → 9 en rojo;
+que el ciclo ignore las pausas → 2; que las clases de dentro de una pausa
+cuenten → 1; que reanudar no mueva la renovación → 2. En la app, contar la
+cuota nueva desde hoy en la hoja de cobro → 1 en rojo. De paso, el job no
+puede romperse aunque una fecha de reanudación quedara antes del inicio de
+su pausa (lo destapó `cuotas_efectivo_caducan_test`): si fallara, dejaría
+también de caducar las pruebas de 1 día.
+
+**Queda fuera:** «Mi cuota» todavía no enseña al alumno que tiene una
+renovación esperando; la ve en su saldo cuando empieza.
+
 ## 2026-09-30 — El tutor ve la cuota y el saldo de cada hijo
 
 **Qué fallaba (auditoría externa del 30/09/2026, punto 5):** los hijos no

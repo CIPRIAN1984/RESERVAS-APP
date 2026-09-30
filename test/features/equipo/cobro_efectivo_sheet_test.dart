@@ -51,16 +51,18 @@ List<Tarifa> _tarifas() => [
 class _RepoFalso implements EquipoRepository {
   double? importe;
   String? tarifaId;
+  int? meses;
 
   @override
   Future<void> activarCuotaEfectivo({
     required String alumnoId,
     required String tarifaId,
-    required DateTime hasta,
+    required int meses,
     required double importe,
   }) async {
     this.importe = importe;
     this.tarifaId = tarifaId;
+    this.meses = meses;
   }
 
   @override
@@ -86,7 +88,10 @@ class _Lanzadera extends StatelessWidget {
   );
 }
 
-Widget _app([_RepoFalso? repo]) {
+Widget _app([
+  _RepoFalso? repo,
+  ({DateTime fin, bool renovacionPendiente})? enVigor,
+]) {
   final router = GoRouter(
     initialLocation: Routes.inicio,
     routes: [
@@ -115,6 +120,7 @@ Widget _app([_RepoFalso? repo]) {
       appModeProvider.overrideWith(_ModoGestor.new),
       tarifasProvider(true).overrideWith((ref) async => _tarifas()),
       if (repo != null) equipoRepositoryProvider.overrideWithValue(repo),
+      cuotaEnVigorProvider('a1').overrideWith((ref) async => enVigor),
     ],
     child: MaterialApp.router(
       debugShowCheckedModeBanner: false,
@@ -247,6 +253,74 @@ void main() {
 
       expect(
         find.text('Escribe un importe, por ejemplo 50 o 45,50.'),
+        findsOneWidget,
+      );
+      final boton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Registrar cobro'),
+      );
+      expect(boton.onPressed, isNull);
+    });
+  });
+
+  // Decisión de Cipri (30/09/2026): renovar con la cuota en vigor no pierde
+  // días; la nueva empieza cuando acaba la actual.
+  group('renovar antes de que acabe', () {
+    Future<_RepoFalso> abrir(
+      WidgetTester tester, {
+      bool renovacionPendiente = false,
+    }) async {
+      await tester.binding.setSurfaceSize(const Size(412, 900));
+      final repo = _RepoFalso();
+      await tester.pumpWidget(
+        _app(repo, (
+          fin: DateTime(2030, 10, 15, 12),
+          renovacionPendiente: renovacionPendiente,
+        )),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Abrir'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('white'));
+      await tester.pumpAndSettle();
+      return repo;
+    }
+
+    testWidgets('dice que empieza cuando acaba la actual, y hasta cuándo', (
+      tester,
+    ) async {
+      await abrir(tester);
+
+      expect(
+        find.text(
+          'Empieza cuando acabe la cuota actual, el 15 de octubre de 2030, '
+          'y podrá reservar hasta el 15 de noviembre de 2030.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('manda los meses al servidor, no una fecha contada desde hoy', (
+      tester,
+    ) async {
+      final repo = await abrir(tester);
+      await tester.tap(find.text('3 meses'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Registrar cobro'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Registrar cobro'));
+      await tester.pumpAndSettle();
+
+      expect(repo.meses, 3);
+    });
+
+    testWidgets('con una renovación ya esperando, no deja registrar otra', (
+      tester,
+    ) async {
+      await abrir(tester, renovacionPendiente: true);
+
+      expect(
+        find.textContaining('Ya tiene una renovación pagada'),
         findsOneWidget,
       );
       final boton = tester.widget<FilledButton>(

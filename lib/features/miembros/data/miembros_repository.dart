@@ -33,7 +33,7 @@ class MiembrosRepository {
                 .from('suscripciones')
                 .select('alumno_id')
                 .eq('academia_id', academiaId)
-                .inFilter('estado', ['activa', 'prueba'])
+                .inFilter('estado', ['activa', 'prueba', 'programada'])
                 .eq('payment_status', 'active')
                 .lte('fecha_inicio', ahora)
                 .or('fecha_fin.is.null,fecha_fin.gt.$ahora')

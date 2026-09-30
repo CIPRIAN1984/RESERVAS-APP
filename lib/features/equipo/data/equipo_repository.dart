@@ -45,17 +45,48 @@ class EquipoRepository {
   Future<void> activarCuotaEfectivo({
     required String alumnoId,
     required String tarifaId,
-    required DateTime hasta,
+    required int meses,
     required double importe,
   }) async {
+    // Los meses, no una fecha: si tiene una cuota en vigor, la nueva empieza
+    // cuando acabe esa (decisión de Cipri, 30/09/2026) y el servidor es
+    // quien sabe cuándo es.
     await _client.rpc(
       'activar_cuota_efectivo',
       params: {
         'p_alumno_id': alumnoId,
         'p_tarifa_id': tarifaId,
-        'p_fecha_fin': hasta.toUtc().toIso8601String(),
+        'p_meses': meses,
         'p_importe': importe,
       },
+    );
+  }
+
+  /// La cuota en efectivo que tiene en vigor, si la tiene: una renovación
+  /// empezará cuando acabe. [renovacionPendiente] si ya hay una esperando
+  /// (el servidor no admite dos).
+  Future<({DateTime fin, bool renovacionPendiente})?> cuotaEnVigor(
+    String alumnoId,
+  ) async {
+    final ahora = DateTime.now().toUtc().toIso8601String();
+    final filas =
+        await _client
+                .from('suscripciones')
+                .select('estado, fecha_fin')
+                .eq('alumno_id', alumnoId)
+                .eq('proveedor_pago', 'efectivo')
+                .inFilter('estado', ['activa', 'programada'])
+                .gt('fecha_fin', ahora)
+            as List;
+    final activa = filas.cast<Map<String, dynamic>>().where(
+      (f) => f['estado'] == 'activa',
+    );
+    if (activa.isEmpty) return null;
+    return (
+      fin: DateTime.parse(activa.first['fecha_fin'] as String),
+      renovacionPendiente: filas.any(
+        (f) => (f as Map<String, dynamic>)['estado'] == 'programada',
+      ),
     );
   }
 
