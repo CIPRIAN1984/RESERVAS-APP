@@ -8,6 +8,7 @@ import '../../../core/utils/error_messages.dart';
 import '../../tarifas/application/tarifas_providers.dart';
 import '../application/equipo_providers.dart';
 import '../domain/fin_de_cuota.dart';
+import '../domain/importe.dart';
 
 /// Reconocer una cuota cobrada en mano.
 ///
@@ -45,11 +46,33 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
   int _meses = 1;
   bool _guardando = false;
 
+  /// Lo que se ha recibido de verdad (auditoría del 30/09/2026: activar una
+  /// cuota no dejaba constancia del dinero). Se propone precio × meses; si
+  /// el Dueño lo cambia —un descuento— ya no se le pisa al cambiar de
+  /// tarifa o de meses.
+  final _importe = TextEditingController();
+  bool _importeTocado = false;
+
   DateTime get _hasta => finDeCuota(DateTime.now(), _meses);
+
+  @override
+  void dispose() {
+    _importe.dispose();
+    super.dispose();
+  }
+
+  void _proponerImporte() {
+    if (_importeTocado) return;
+    final tarifas = ref.read(tarifasProvider(true)).value ?? const [];
+    final tarifa = tarifas.where((t) => t.id == _tarifaId).firstOrNull;
+    if (tarifa == null) return;
+    _importe.text = importeSugerido(tarifa.precio, _meses);
+  }
 
   Future<void> _guardar() async {
     final tarifaId = _tarifaId;
-    if (tarifaId == null) return;
+    final importe = leerImporte(_importe.text);
+    if (tarifaId == null || importe == null) return;
 
     setState(() => _guardando = true);
     try {
@@ -59,6 +82,7 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
             alumnoId: widget.alumno.id,
             tarifaId: tarifaId,
             hasta: _hasta,
+            importe: importe,
           );
       ref.invalidate(cuotasActivasProvider);
       if (mounted) Navigator.of(context).pop(true);
@@ -140,7 +164,10 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
                           // mientras se guarda, en vez de quitarlo.
                           onChanged: (v) {
                             if (_guardando) return;
-                            setState(() => _tarifaId = v);
+                            setState(() {
+                              _tarifaId = v;
+                              _proponerImporte();
+                            });
                           },
                           child: Column(
                             children: [
@@ -176,13 +203,38 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
                       selected: {_meses},
                       onSelectionChanged: _guardando
                           ? null
-                          : (s) => setState(() => _meses = s.first),
+                          : (s) => setState(() {
+                              _meses = s.first;
+                              _proponerImporte();
+                            }),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       'Podrá reservar hasta el '
                       '${DateFormat("d 'de' MMMM 'de' y", 'es_ES').format(_hasta)}.',
                       style: t.bodySmall?.copyWith(color: AppColors.subtle),
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Importe recibido', style: t.titleMedium),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _importe,
+                      enabled: !_guardando,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: InputDecoration(
+                        suffixText: '€',
+                        helperText:
+                            'Lo que te ha dado en mano. Si le haces '
+                            'descuento, cámbialo.',
+                        errorText:
+                            _importe.text.isEmpty ||
+                                leerImporte(_importe.text) != null
+                            ? null
+                            : 'Escribe un importe, por ejemplo 50 o 45,50.',
+                      ),
+                      onChanged: (_) => setState(() => _importeTocado = true),
                     ),
                   ],
                 ),
@@ -191,7 +243,12 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
 
             const SizedBox(height: 24),
             FilledButton(
-              onPressed: (_tarifaId == null || _guardando) ? null : _guardar,
+              onPressed:
+                  (_tarifaId == null ||
+                      _guardando ||
+                      leerImporte(_importe.text) == null)
+                  ? null
+                  : _guardar,
               child: _guardando
                   ? const SizedBox(
                       height: 20,

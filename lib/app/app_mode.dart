@@ -38,11 +38,15 @@ enum AppMode {
   };
 }
 
-/// Modo activo. Vive solo durante la sesión: al volver a abrir la app se
-/// entra siempre en Entrenamiento, que es lo que hace la mayoría.
+/// Modo activo. Vive solo durante la sesión: al volver a abrir la app —o al
+/// entrar otra persona en el mismo móvil— se entra siempre en Entrenamiento,
+/// que es lo que hace la mayoría.
 class AppModeNotifier extends Notifier<AppMode> {
   @override
-  AppMode build() => AppMode.entrenamiento;
+  AppMode build() {
+    ref.watch(currentUserIdProvider);
+    return AppMode.entrenamiento;
+  }
 
   /// Salta al otro modo y devuelve el nuevo, para poder navegar acto seguido.
   AppMode alternar() => state = state.contrario;
