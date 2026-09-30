@@ -2426,3 +2426,42 @@ error crudo mostrado al usuario, ningún `ListTile` con botón al lado.
 **Verificación:** sabotaje quitando los tres arreglos: las 4 pruebas nuevas
 en rojo, y la de vigilancia nombra exactamente `appModeProvider`,
 `hijosProvider` e `hijosBorrablesProvider`.
+
+## 2026-09-30 — Excepciones del descuento de clases y perdonar una cancelación tardía
+
+**Decisión de Cipri (30/09/2026):** una cancelación tardía la pueden
+perdonar **tanto el Dueño como el Profesor** de la academia.
+
+**Qué fallaba (auditoría externa del 30/09/2026):**
+- Cancelar tarde y volver a reservar la misma clase la contaba dos veces:
+  la cancelación tardía y la reserva nueva.
+- Si la academia cancelaba la clase entera, las cancelaciones tardías que
+  hubiera de esa clase seguían descontando, aunque la clase no se diera.
+- No había forma de perdonar una cancelación tardía ya registrada (límite
+  conocido anotado el 20/09).
+
+**Decisión técnica:**
+- En `_saldo_clases` cada clase cuenta **como mucho una vez** entre gastadas
+  y reservadas, venga de donde venga (asistencia, no presentado,
+  cancelación tardía o reserva en curso).
+- Una clase con `estado = 'cancelada'` no gasta nada.
+- RPC `perdonar_cancelacion_tardia(clase, alumno)`: Dueño o Profesor activos
+  de la academia de la clase. Pone `cancelacion_tardia = false` y guarda
+  quién y cuándo (`tardia_perdonada_por`, `tardia_perdonada_at`) para que
+  quede rastro. En el detalle de la clase sale una sección «Cancelaron
+  tarde» con el botón «Perdonar».
+
+**Verificación:** `supabase/tests/descuento_excepciones_test.sql` (16
+pruebas). Sabotaje A: volver a contar cada origen por separado (`union
+all`, sin excluir la reserva de una clase ya cancelada tarde) → 4 en rojo.
+Sabotaje B: dejar que las clases canceladas cuenten → 4 en rojo. En la
+app, esconder la sección «Cancelaron tarde» → 3 pruebas de widget en rojo.
+
+**Corrección (30/09/2026, al aplicarlo en producción):** el comentario de la
+migración dice que `tardia_perdonada_por/at` «nacen cerradas». No es así:
+`authenticated` tiene SELECT de tabla completa en `inscripciones` (también
+en local; la prueba solo miraba UPDATE). Se leen con la misma RLS de
+siempre: solo las reservas de la propia academia, que ya enseñaban quién
+canceló tarde. Lo nuevo visible es qué miembro del staff perdonó. Se acepta
+así; si algún día molesta, hay que revocar el SELECT de tabla y conceder
+columnas (la lección de la migración 0013), no un revoke de columna suelto.
