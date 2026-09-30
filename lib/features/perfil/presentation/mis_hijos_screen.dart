@@ -9,7 +9,9 @@ import '../../../core/models/profile.dart';
 import '../../../core/utils/error_messages.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/pantalla.dart';
+import '../../tarifas/application/tarifas_providers.dart';
 import '../application/profile_providers.dart';
+import '../domain/cuota_hijo.dart';
 import 'agregar_hijo_sheet.dart';
 
 /// Mi familia: los hijos que un padre o tutor tiene dados de alta.
@@ -248,6 +250,7 @@ class _FilaHijo extends StatelessWidget {
                     'Cinturón ${etiquetaCinturon(cinturon)}'.toUpperCase(),
                     style: t.labelSmall,
                   ),
+                  _CuotaHijo(hijoId: hijo.id),
                 ],
               ),
             ),
@@ -268,6 +271,32 @@ class _FilaHijo extends StatelessWidget {
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// La cuota del hijo y cuántas clases le quedan. Mientras carga, o si falla,
+/// no se enseña nada: mejor un hueco que un dato falso.
+class _CuotaHijo extends ConsumerWidget {
+  const _CuotaHijo({required this.hijoId});
+
+  final String hijoId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cuota = ref.watch(suscripcionActivaProvider(hijoId));
+    final saldo = ref.watch(clasesRestantesProvider(hijoId));
+    if (!cuota.hasValue || cuota.hasError) return const SizedBox.shrink();
+
+    final resumen = resumenCuotaHijo(cuota.value, saldo.value);
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Text(
+        resumen.texto,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: resumen.aviso ? AppColors.destructive : AppColors.subtle,
         ),
       ),
     );

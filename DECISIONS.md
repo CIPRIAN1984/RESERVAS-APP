@@ -2402,3 +2402,30 @@ línea, si vuelve a colarse uno.
 
 Revisado y conforme: tipografías incrustadas (sin `google_fonts`), ningún
 error crudo mostrado al usuario, ningún `ListTile` con botón al lado.
+
+## 2026-09-30 — El tutor ve la cuota y el saldo de cada hijo
+
+**Qué fallaba (auditoría externa del 30/09/2026, punto 5):** los hijos no
+tienen cuenta propia —los gestiona el tutor—, pero ni la RLS de
+`suscripciones` ni `clases_restantes` dejaban al tutor ver la cuota de su
+hijo ni cuántas clases le quedan.
+
+**Decisión:**
+- `suscripciones_select` y `clases_restantes` admiten además
+  `es_padre_de(alumno)`: el tutor ve lo de **sus** hijos y de nadie más
+  (`relaciones_familia` no la puede escribir ningún cliente).
+- En «Mi familia», bajo cada hijo: tarifa y «le quedan X de Y clases hasta
+  el …», o «Sin cuota» / «Cuota pausada» / «Cuota caducada» en rojo.
+  Mientras carga o si falla, no se enseña nada.
+
+**Verificación:** `tutor_ve_cuota_hijos_test.sql` (7). Sabotaje: quitar
+`es_padre_de` de los dos sitios → en rojo. En la app, quitar la línea →
+1 prueba de widget en rojo. La imagen de referencia de «borrar hijo»
+(que dibuja esta pantalla) da la misma diferencia local con y sin el
+cambio: no lo toca.
+
+**De paso, en la herramienta de pruebas local (no en la app):** las
+«caídas pasajeras» del Postgres local de septiembre eran del script
+`db.sh`, que arrancaba un servidor nuevo sin parar el anterior. Ahora para
+antes de arrancar y conecta por TCP. No afecta al CI, que usa `supabase
+test db`.
