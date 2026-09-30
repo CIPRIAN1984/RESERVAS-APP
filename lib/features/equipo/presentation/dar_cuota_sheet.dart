@@ -53,7 +53,13 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
   final _importe = TextEditingController();
   bool _importeTocado = false;
 
-  DateTime get _hasta => finDeCuota(DateTime.now(), _meses);
+  /// Si tiene una cuota en efectivo en vigor, la nueva empieza cuando acabe
+  /// (decisión de Cipri, 30/09/2026): renovar antes no pierde días.
+  DateTime? get _finActual =>
+      ref.read(cuotaEnVigorProvider(widget.alumno.id)).value?.fin;
+
+  DateTime get _hasta =>
+      finDeCuota((_finActual ?? DateTime.now()).toLocal(), _meses);
 
   @override
   void dispose() {
@@ -81,7 +87,7 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
           .activarCuotaEfectivo(
             alumnoId: widget.alumno.id,
             tarifaId: tarifaId,
-            hasta: _hasta,
+            meses: _meses,
             importe: importe,
           );
       ref.invalidate(cuotasActivasProvider);
@@ -108,6 +114,8 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
     // Solo tarifas activas: cobrar una retirada dejaría al alumno con una
     // cuota que ya no se ofrece.
     final tarifasAsync = ref.watch(tarifasProvider(true));
+    final enVigor = ref.watch(cuotaEnVigorProvider(widget.alumno.id));
+    final renovacionPendiente = enVigor.value?.renovacionPendiente ?? false;
     final t = Theme.of(context).textTheme;
 
     return SafeArea(
@@ -210,10 +218,22 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Podrá reservar hasta el '
-                      '${DateFormat("d 'de' MMMM 'de' y", 'es_ES').format(_hasta)}.',
+                      textoVigencia(
+                        finActual: enVigor.value?.fin.toLocal(),
+                        hasta: _hasta,
+                      ),
                       style: t.bodySmall?.copyWith(color: AppColors.subtle),
                     ),
+                    if (renovacionPendiente) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Ya tiene una renovación pagada esperando a que acabe '
+                        'la actual. No se puede registrar otra.',
+                        style: t.bodySmall?.copyWith(
+                          color: AppColors.destructive,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     Text('Importe recibido', style: t.titleMedium),
                     const SizedBox(height: 8),
@@ -246,6 +266,7 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
               onPressed:
                   (_tarifaId == null ||
                       _guardando ||
+                      renovacionPendiente ||
                       leerImporte(_importe.text) == null)
                   ? null
                   : _guardar,
@@ -262,4 +283,16 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
       ),
     );
   }
+}
+
+/// Hasta cuándo podrá reservar, y si la cuota nueva espera a que acabe la
+/// actual.
+String textoVigencia({required DateTime? finActual, required DateTime hasta}) {
+  final formato = DateFormat("d 'de' MMMM 'de' y", 'es_ES');
+  if (finActual == null) {
+    return 'Podrá reservar hasta el ${formato.format(hasta)}.';
+  }
+  return 'Empieza cuando acabe la cuota actual, el '
+      '${formato.format(finActual)}, y podrá reservar hasta el '
+      '${formato.format(hasta)}.';
 }

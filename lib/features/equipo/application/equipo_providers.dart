@@ -31,3 +31,13 @@ final cuotasActivasProvider =
       if (academiaId == null || !(profile?.isDueno ?? false)) return const {};
       return ref.watch(equipoRepositoryProvider).cuotasActivas(academiaId);
     });
+
+/// La cuota en efectivo en vigor de un alumno, para que la hoja de cobro
+/// diga cuándo empieza de verdad una renovación.
+final cuotaEnVigorProvider = FutureProvider.autoDispose
+    .family<({DateTime fin, bool renovacionPendiente})?, String>((
+      ref,
+      alumnoId,
+    ) {
+      return ref.watch(equipoRepositoryProvider).cuotaEnVigor(alumnoId);
+    });
