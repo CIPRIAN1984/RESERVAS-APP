@@ -66,8 +66,9 @@ create trigger suscripciones_copiar_condiciones
   for each row execute function public.copiar_condiciones_tarifa();
 
 -- Las cuotas que ya existen: se copian las condiciones actuales de su
--- tarifa. Es lo mejor que se puede reconstruir (no se guardaba antes); en
--- producción, a 30/09/2026, ninguna tarifa con cuotas se había editado.
+-- tarifa. Es lo mejor que se puede reconstruir: antes no se guardaba, y
+-- tampoco consta cuándo se edita una tarifa, así que si alguna cambió
+-- después de venderse, la copia refleja la tarifa de hoy.
 -- Solo se rellenan columnas nuevas: no se toca nada de lo que ya había.
 update public.suscripciones s
    set tarifa_nombre = t.nombre,
