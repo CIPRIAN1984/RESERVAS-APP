@@ -6,6 +6,7 @@ import '../../../../app/app_mode.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../../core/auth/auth_state.dart';
+import '../../configuracion_reservas/application/configuracion_reservas_providers.dart';
 import '../application/tarifas_providers.dart';
 import '../data/tarifa.dart';
 import 'crear_tarifa_screen.dart';
@@ -149,13 +150,7 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                       ),
                     ] else if (pausada) ...[
                       const SizedBox(height: 8),
-                      Text(
-                        'No puedes reservar mientras esté pausada. Habla '
-                        'con tu academia para reanudarla.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.subtle,
-                        ),
-                      ),
+                      const _AvisoPausa(),
                     ] else if (suscripcion.proveedorPago == 'efectivo') ...[
                       // Cobrada en mano: no hay domiciliación que cancelar.
                       // El botón llamaba a Stripe y fallaba con un error.
@@ -298,6 +293,44 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
 /// el servidor pero no lo enseñaba nadie: las tarifas «de 8 clases» eran de
 /// boquilla. Si algo falla al cargarlo, no se enseña nada — no es motivo
 /// para romper la tarjeta de la tarifa.
+/// Qué supone tener la cuota pausada. Depende de la academia: si exige
+/// cuota para reservar, no se puede; si no (ITACA, decisión de Cipri de
+/// julio de 2026), se reserva igual y se sale «sin cuota» en la lista de la
+/// clase. Antes decía siempre que no, y era falso para ITACA (auditoría del
+/// 30/09/2026).
+class _AvisoPausa extends ConsumerWidget {
+  const _AvisoPausa();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final academiaId = ref.watch(currentProfileProvider).value?.academiaId;
+    final exige = academiaId == null
+        ? null
+        : ref
+              .watch(configuracionReservasProvider(academiaId))
+              .value
+              ?.exigirCuotaParaReservar;
+    final texto = textoAvisoPausa(exigeCuota: exige);
+    return Text(
+      texto,
+      style: Theme.of(
+        context,
+      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+    );
+  }
+}
+
+/// [exigeCuota] `null` mientras no se sabe: se dice solo lo seguro.
+String textoAvisoPausa({required bool? exigeCuota}) => switch (exigeCuota) {
+  true =>
+    'No puedes reservar mientras esté pausada. Habla con tu academia para '
+        'reanudarla.',
+  false =>
+    'Puedes seguir reservando, pero en la lista de la clase aparecerás sin '
+        'cuota. Habla con tu academia para reanudarla.',
+  null => 'Habla con tu academia para reanudarla.',
+};
+
 class _SaldoClasesTexto extends ConsumerWidget {
   const _SaldoClasesTexto({required this.alumnoId});
 
