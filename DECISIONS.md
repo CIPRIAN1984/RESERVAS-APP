@@ -2456,3 +2456,12 @@ pruebas). Sabotaje A: volver a contar cada origen por separado (`union
 all`, sin excluir la reserva de una clase ya cancelada tarde) → 4 en rojo.
 Sabotaje B: dejar que las clases canceladas cuenten → 4 en rojo. En la
 app, esconder la sección «Cancelaron tarde» → 3 pruebas de widget en rojo.
+
+**Corrección (30/09/2026, al aplicarlo en producción):** el comentario de la
+migración dice que `tardia_perdonada_por/at` «nacen cerradas». No es así:
+`authenticated` tiene SELECT de tabla completa en `inscripciones` (también
+en local; la prueba solo miraba UPDATE). Se leen con la misma RLS de
+siempre: solo las reservas de la propia academia, que ya enseñaban quién
+canceló tarde. Lo nuevo visible es qué miembro del staff perdonó. Se acepta
+así; si algún día molesta, hay que revocar el SELECT de tabla y conceder
+columnas (la lección de la migración 0013), no un revoke de columna suelto.
