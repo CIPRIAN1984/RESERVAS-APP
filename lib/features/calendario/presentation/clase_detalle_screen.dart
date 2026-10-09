@@ -14,6 +14,7 @@ import '../data/clase_resumen.dart';
 import '../data/clases_repository.dart';
 import '../data/inscrito_alumno.dart';
 import '../domain/pasar_lista.dart';
+import 'apuntar_sin_reserva_sheet.dart';
 import 'crear_clase_screen.dart';
 
 /// Profesor/Dueño/Administrador view of a class: confirmed roster, attendance
@@ -294,6 +295,23 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
   }
 
   bool get _sePuedePasarLista => sePuedePasarLista(_clase.fechaHoraInicio);
+
+  /// Quien llega sin reserva: el Dueño o el Profesor lo apunta desde aquí
+  /// (decisión de Cipri, 09/10/2026). El servidor respeta aforo y tarifa.
+  Future<void> _apuntarSinReserva(List<InscritoAlumno> inscritos) async {
+    final nombre = await mostrarApuntarSinReserva(
+      context,
+      claseId: _clase.id,
+      yaEnClase: {for (final a in inscritos) a.alumnoId},
+    );
+    if (nombre == null || !mounted) return;
+    _recargar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$nombre, apuntado y con la asistencia confirmada.'),
+      ),
+    );
+  }
 
   /// Devolver la clase a quien canceló tarde (una lesión, un justificante…).
   /// Lo pueden hacer el Dueño y el Profesor (decisión de Cipri, 30/09/2026);
@@ -643,6 +661,14 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                                     ? 'Confirmar al que falta'
                                     : 'Confirmar los ${pendientes.length} que faltan',
                               ),
+                      ),
+                    ],
+                    if (_sePuedePasarLista && !_clase.cancelada) ...[
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: () => _apuntarSinReserva(inscritos),
+                        icon: const Icon(Icons.person_add_alt_1_outlined),
+                        label: const Text('Apuntar a alguien que ha venido'),
                       ),
                     ],
                   ],

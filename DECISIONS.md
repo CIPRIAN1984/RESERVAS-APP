@@ -2570,3 +2570,34 @@ cambio: no lo toca.
 `db.sh`, que arrancaba un servidor nuevo sin parar el anterior. Ahora para
 antes de arrancar y conecta por TCP. No afecta al CI, que usa `supabase
 test db`.
+
+## 2026-10-09 — Apuntar desde la clase a quien llega sin reserva
+
+**Qué pasaba (auditoría externa del 09/10/2026, punto 6):** quien llegaba
+sin reservar no podía figurar en la clase: el profesor no podía reservar
+por él (`reservar_clase` solo deja por uno mismo o por los hijos), ni
+pasarle lista (una asistencia exige reserva desde el 20/09), y una vez
+empezada la clase ya no se admiten reservas.
+
+**Decisión de Cipri (09/10/2026):** el Dueño o el Profesor lo apuntan
+desde la clase, **respetando las reglas**.
+
+**Decisión técnica** (`20261009140000_apuntar_sin_reserva.sql`):
+- `apuntar_en_clase(clase, alumno)`: Dueño o Profesor activos de la
+  academia; desde media hora antes de la clase en adelante (la misma
+  ventana que pasar lista).
+- Las reglas de `reservar_clase` para alumnos: cuota si la academia la
+  exige (ITACA no: sale «sin cuota» para cobrarle), y las clases de su
+  tarifa (si no le quedan, hay que cobrarle una extra antes). El aforo lo
+  vigila el disparador `check_aforo`. Si estaba en lista de espera, pasa a
+  tener plaza (si la hay). No a quien es de otra academia, está de baja o
+  no entrena.
+- Queda la reserva 'inscrito' y la asistencia confirmada por quien lo hizo.
+  Mismo orden de candados que reservar: la clase y después el alumno.
+- En la app: botón «Apuntar a alguien que ha venido» en la clase (con la
+  clase a punto de empezar o empezada), con buscador por nombre; los
+  rechazos se explican con su motivo.
+
+**Verificación:** `apuntar_sin_reserva_test.sql` (18). Sabotajes: sin
+mirar las clases de la tarifa → 2 en rojo; sin la ventana de tiempo → 2.
+En la app, 4 pruebas nuevas; ocultar el botón → 2 en rojo.
