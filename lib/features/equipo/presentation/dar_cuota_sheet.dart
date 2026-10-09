@@ -4,11 +4,14 @@ import 'package:intl/intl.dart';
 
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/models/profile.dart';
+import '../../../core/utils/clave_unica.dart';
 import '../../../core/utils/error_messages.dart';
 import '../../tarifas/application/tarifas_providers.dart';
+import '../../tarifas/data/tarifa.dart';
 import '../application/equipo_providers.dart';
 import '../domain/fin_de_cuota.dart';
 import '../domain/importe.dart';
+import '../domain/periodos_tarifa.dart';
 
 /// Reconocer una cuota cobrada en mano.
 ///
@@ -43,8 +46,15 @@ class _DarCuotaSheet extends ConsumerStatefulWidget {
 
 class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
   String? _tarifaId;
-  int _meses = 1;
+
+  /// Periodos de la tarifa elegida (meses, trimestres, años o una clase).
+  int _periodos = 1;
   bool _guardando = false;
+
+  /// Una por cobro, la misma en cada reintento: si el primer intento llegó
+  /// a guardarse y se cortó la conexión, el servidor devuelve ese cobro en
+  /// vez de apuntar el dinero dos veces (auditoría del 09/10/2026).
+  final _clave = claveUnica();
 
   /// Lo que se ha recibido de verdad (auditoría del 30/09/2026: activar una
   /// cuota no dejaba constancia del dinero). Se propone precio × meses; si
@@ -58,8 +68,22 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
   DateTime? get _finActual =>
       ref.read(cuotaEnVigorProvider(widget.alumno.id)).value?.fin;
 
-  DateTime get _hasta =>
-      finDeCuota((_finActual ?? DateTime.now()).toLocal(), _meses);
+  Tarifa? get _tarifa => (ref.read(tarifasProvider(true)).value ?? const [])
+      .where((t) => t.id == _tarifaId)
+      .firstOrNull;
+
+  /// La opción elegida, entre las de la tarifa: el bono trimestral se cobra
+  /// por trimestres, no por meses.
+  OpcionCobro? get _opcion {
+    final tarifa = _tarifa;
+    if (tarifa == null) return null;
+    final opciones = opcionesDeCobro(tarifa.periodicidad);
+    return opciones.where((o) => o.periodos == _periodos).firstOrNull ??
+        opciones.first;
+  }
+
+  DateTime _hasta(OpcionCobro opcion) =>
+      finDeCuota((_finActual ?? DateTime.now()).toLocal(), opcion.meses);
 
   @override
   void dispose() {
@@ -69,16 +93,17 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
 
   void _proponerImporte() {
     if (_importeTocado) return;
-    final tarifas = ref.read(tarifasProvider(true)).value ?? const [];
-    final tarifa = tarifas.where((t) => t.id == _tarifaId).firstOrNull;
-    if (tarifa == null) return;
-    _importe.text = importeSugerido(tarifa.precio, _meses);
+    final tarifa = _tarifa;
+    final opcion = _opcion;
+    if (tarifa == null || opcion == null) return;
+    _importe.text = importeSugerido(tarifa.precio, opcion.periodos);
   }
 
   Future<void> _guardar() async {
     final tarifaId = _tarifaId;
+    final opcion = _opcion;
     final importe = leerImporte(_importe.text);
-    if (tarifaId == null || importe == null) return;
+    if (tarifaId == null || opcion == null || importe == null) return;
 
     setState(() => _guardando = true);
     try {
@@ -87,8 +112,9 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
           .activarCuotaEfectivo(
             alumnoId: widget.alumno.id,
             tarifaId: tarifaId,
-            meses: _meses,
+            meses: opcion.meses,
             importe: importe,
+            clave: _clave,
           );
       ref.invalidate(cuotasActivasProvider);
       if (mounted) Navigator.of(context).pop(true);
@@ -116,6 +142,10 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
     final tarifasAsync = ref.watch(tarifasProvider(true));
     final enVigor = ref.watch(cuotaEnVigorProvider(widget.alumno.id));
     final renovacionPendiente = enVigor.value?.renovacionPendiente ?? false;
+    final opcion = _opcion;
+    final opciones = _tarifa == null
+        ? const <OpcionCobro>[]
+        : opcionesDeCobro(_tarifa!.periodicidad);
     final t = Theme.of(context).textTheme;
 
     return SafeArea(
@@ -174,6 +204,9 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
                             if (_guardando) return;
                             setState(() {
                               _tarifaId = v;
+                              // Cada tarifa tiene sus periodos: se vuelve a
+                              // uno al cambiar de tarifa.
+                              _periodos = 1;
                               _proponerImporte();
                             });
                           },
@@ -185,8 +218,9 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(tarifa.nombre),
                                   subtitle: Text(
-                                    '${tarifa.precio.toStringAsFixed(2)} € · '
-                                    '${tarifa.periodicidad}',
+                                    '${tarifa.precio.toStringAsFixed(2)} € '
+                                    '${etiquetasPeriodicidad[tarifa.periodicidad] ?? ''}'
+                                    ' · ${etiquetaClasesIncluidas(tarifa.clasesIncluidas, tarifa.periodicidad)}',
                                   ),
                                 ),
                             ],
@@ -195,35 +229,42 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
                       },
                     ),
 
-                    const SizedBox(height: 16),
-                    Text('Cuánto ha pagado', style: t.titleMedium),
-                    const SizedBox(height: 8),
-                    SegmentedButton<int>(
-                      // El tic de «seleccionado» roba ancho al texto y partía «1 mes»
-                      // en dos líneas. El relleno negro ya indica cuál está elegido.
-                      showSelectedIcon: false,
-                      segments: const [
-                        ButtonSegment(value: 1, label: Text('1 mes')),
-                        ButtonSegment(value: 3, label: Text('3 meses')),
-                        ButtonSegment(value: 6, label: Text('6 meses')),
-                        ButtonSegment(value: 12, label: Text('1 año')),
-                      ],
-                      selected: {_meses},
-                      onSelectionChanged: _guardando
-                          ? null
-                          : (s) => setState(() {
-                              _meses = s.first;
-                              _proponerImporte();
-                            }),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      textoVigencia(
-                        finActual: enVigor.value?.fin.toLocal(),
-                        hasta: _hasta,
+                    if (opcion != null) ...[
+                      const SizedBox(height: 16),
+                      Text('Cuánto ha pagado', style: t.titleMedium),
+                      const SizedBox(height: 8),
+                      if (opciones.length > 1)
+                        SegmentedButton<int>(
+                          // El tic de «seleccionado» roba ancho al texto y
+                          // partía «1 mes» en dos líneas. El relleno negro ya
+                          // indica cuál está elegido.
+                          showSelectedIcon: false,
+                          segments: [
+                            for (final o in opciones)
+                              ButtonSegment(
+                                value: o.periodos,
+                                label: Text(o.etiqueta),
+                              ),
+                          ],
+                          selected: {opcion.periodos},
+                          onSelectionChanged: _guardando
+                              ? null
+                              : (s) => setState(() {
+                                  _periodos = s.first;
+                                  _proponerImporte();
+                                }),
+                        )
+                      else
+                        Text(opcion.etiqueta, style: t.bodyLarge),
+                      const SizedBox(height: 12),
+                      Text(
+                        textoVigencia(
+                          finActual: enVigor.value?.fin.toLocal(),
+                          hasta: _hasta(opcion),
+                        ),
+                        style: t.bodySmall?.copyWith(color: AppColors.subtle),
                       ),
-                      style: t.bodySmall?.copyWith(color: AppColors.subtle),
-                    ),
+                    ],
                     if (renovacionPendiente) ...[
                       const SizedBox(height: 8),
                       Text(
@@ -248,6 +289,8 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
                         helperText:
                             'Lo que te ha dado en mano. Si le haces '
                             'descuento, cámbialo.',
+                        // En una línea se cortaba en «cá…».
+                        helperMaxLines: 2,
                         errorText:
                             _importe.text.isEmpty ||
                                 leerImporte(_importe.text) != null

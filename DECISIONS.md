@@ -2570,3 +2570,39 @@ cambio: no lo toca.
 `db.sh`, que arrancaba un servidor nuevo sin parar el anterior. Ahora para
 antes de arrancar y conecta por TCP. No afecta al CI, que usa `supabase
 test db`.
+
+## 2026-10-09 — Cada tarifa se cobra por sus periodos; reintentar no duplica el cobro
+
+**Qué fallaba (auditoría externa del 09/10/2026, punto 2):**
+- La hoja «Cobro en efectivo» trataba todas las tarifas como mensuales
+  (1/3/6 meses, 1 año) y el servidor aceptaba cualquier número de meses.
+  El «bono 10 sesiones» (80 €, trimestral) cobrado «3 meses» proponía
+  240 €; cobrado «1 mes» duraba un mes con las 10 sesiones del trimestre.
+- Si se cortaba la conexión después de guardar y el Dueño volvía a pulsar,
+  el servidor veía una cuota en vigor y creaba una renovación: el mismo
+  dinero apuntado dos veces.
+- De paso: la app decía «10 clases al mes» del bono trimestral, y el
+  formulario de crear tarifa avisaba de que las clases «se cuentan por mes
+  aunque la tarifa se cobre cada trimestre». Ninguna de las dos cosas es
+  verdad desde el 25/09: el servidor cuenta por periodo de la tarifa.
+
+**Decisión:**
+- La hoja ofrece periodos enteros de la tarifa: mensual 1/3/6/12 meses;
+  trimestral 1 o 2 trimestres o 1 año; anual 1 año; suelta, una clase. El
+  importe propuesto es precio × periodos. El servidor
+  (`20261009100000_cobro_segun_tarifa.sql`) rechaza meses que no sean
+  periodos enteros y calcula igual el importe por defecto.
+- La suelta, sin cuota en vigor, es una clase que se puede usar durante un
+  mes (lo que ya hacía en la práctica). Con cuota en vigor va en su propio
+  cambio: decisión de Cipri, «hasta fin de su cuota».
+- `activar_cuota_efectivo` recibe `p_clave` (un UUID que la app genera al
+  abrir la hoja y repite en cada reintento). Con el alumno bloqueado, si
+  ya hay un cobro con esa clave, se devuelve ese. Índice único parcial en
+  `suscripciones.clave_cobro` por si acaso. La clave es la misma aunque el
+  Dueño cambie algo entre intentos: si el primero se guardó, manda ese.
+- Los textos de clases incluidas dicen «al mes / al trimestre / al año».
+
+**Verificación:** `cobro_segun_tarifa_test.sql` (16). Sabotajes: volver al
+importe precio × meses → 1 en rojo; quitar la búsqueda por clave → el
+reintento revienta contra el índice único. En la app, 4 pruebas nuevas de
+la hoja (trimestral, texto de clases, suelta, misma clave al reintentar).

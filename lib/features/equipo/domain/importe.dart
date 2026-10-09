@@ -1,8 +1,9 @@
-/// Lo que se propone cobrar por [meses] de una tarifa de [precio] al mes:
-/// el Dueño lo puede cambiar si hace descuento. En formato español, con
-/// coma decimal, que es como se escribe en la academia.
-String importeSugerido(num precio, int meses) =>
-    (precio * meses).toStringAsFixed(2).replaceAll('.', ',');
+/// Lo que se propone cobrar por [periodos] de una tarifa de [precio] cada
+/// periodo (un mes, un trimestre, un año o una clase suelta): el Dueño lo
+/// puede cambiar si hace descuento. En formato español, con coma decimal,
+/// que es como se escribe en la academia.
+String importeSugerido(num precio, int periodos) =>
+    (precio * periodos).toStringAsFixed(2).replaceAll('.', ',');
 
 /// El importe que ha escrito el Dueño, con coma o con punto. `null` si no
 /// es un número o es negativo: así no se puede registrar el cobro.
