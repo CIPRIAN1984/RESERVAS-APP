@@ -32,7 +32,11 @@ final _suscripcion = Suscripcion(
   fechaInicio: DateTime.now().subtract(const Duration(days: 3)),
 );
 
-Widget _app(SaldoClases saldo) => ProviderScope(
+Widget _app(
+  SaldoClases saldo, {
+  ({DateTime inicio, DateTime? fin, String? tarifa})? renovacion,
+  Future<SaldoClases> Function()? cargarSaldo,
+}) => ProviderScope(
   overrides: [
     currentUserIdProvider.overrideWithValue('a1'),
     currentProfileProvider.overrideWith(
@@ -47,8 +51,11 @@ Widget _app(SaldoClases saldo) => ProviderScope(
     ),
     appModeProvider.overrideWith(AppModeNotifier.new),
     suscripcionActivaProvider('a1').overrideWith((ref) async => _suscripcion),
-    clasesRestantesProvider('a1').overrideWith((ref) async => saldo),
+    clasesRestantesProvider(
+      'a1',
+    ).overrideWith((ref) => cargarSaldo?.call() ?? Future.value(saldo)),
     tarifasProvider(true).overrideWith((ref) async => const <Tarifa>[]),
+    renovacionProgramadaProvider('a1').overrideWith((ref) async => renovacion),
   ],
   child: MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -153,5 +160,75 @@ void main() {
 
     expect(find.textContaining('Te quedan'), findsNothing);
     expect(find.textContaining('Sin clases disponibles'), findsNothing);
+  });
+
+  // Auditoría del 09/10/2026: si fallaba la carga, el saldo desaparecía sin
+  // más y parecía que no tenía clases.
+  testWidgets('si no carga el saldo, lo dice y deja reintentar', (
+    tester,
+  ) async {
+    // Falla hasta que se pulsa «Reintentar» (Riverpod reintenta solo y,
+    // si fallara una sola vez, el segundo intento automático ya cargaría).
+    var conexion = false;
+    var intentos = 0;
+    await tester.pumpWidget(
+      _app(
+        const SaldoClases(tieneCuota: true, ilimitada: false),
+        cargarSaldo: () async {
+          intentos++;
+          if (!conexion) throw Exception('sin conexión');
+          return SaldoClases(
+            tieneCuota: true,
+            ilimitada: false,
+            incluidas: 8,
+            gastadas: 2,
+            reservadas: 1,
+            disponibles: 5,
+            cicloFin: DateTime(2026, 10, 15, 12),
+          );
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('No se ha podido cargar cuántas clases te quedan.'),
+      findsOneWidget,
+    );
+    final antes = intentos;
+    conexion = true;
+    await tester.tap(find.text('Reintentar'));
+    await tester.pumpAndSettle();
+
+    expect(intentos, greaterThan(antes));
+    expect(
+      find.text('Te quedan 5 de 8 clases hasta el 15 de octubre.'),
+      findsOneWidget,
+    );
+  });
+
+  // El alumno no veía su renovación ya pagada hasta que empezaba.
+  testWidgets('enseña la renovación pagada que espera', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(412, 1200));
+    await tester.pumpWidget(
+      _app(
+        const SaldoClases(tieneCuota: true, ilimitada: true),
+        renovacion: (
+          inicio: DateTime(2026, 11, 15, 12),
+          fin: DateTime(2026, 12, 15, 12),
+          tarifa: '2 días',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('RENOVACIÓN PAGADA'), findsOneWidget);
+    expect(
+      find.text(
+        'Tu próxima cuota, 2 días, empieza el 15 de noviembre de 2026, '
+        'cuando acabe la actual, y te dura hasta el 15 de diciembre de 2026.',
+      ),
+      findsOneWidget,
+    );
   });
 }

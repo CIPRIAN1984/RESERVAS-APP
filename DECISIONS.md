@@ -2570,3 +2570,67 @@ cambio: no lo toca.
 `db.sh`, que arrancaba un servidor nuevo sin parar el anterior. Ahora para
 antes de arrancar y conecta por TCP. No afecta al CI, que usa `supabase
 test db`.
+
+## 2026-10-09 — Una cuenta sin perfil no puede saltarse ningún permiso
+
+**Qué fallaba (auditoría externa del 09/10/2026, punto 1):** registrándose
+con la clave pública sin mandar `nombre`, la cuenta queda en `auth.users`
+sin perfil (`handle_new_user` lo deja pasar a propósito: así se siembra el
+Administrador desde el panel). Con esa cuenta `current_rol()` es NULL, y
+en SQL `NULL <> 'administrador'` es NULL: el `if … then raise` no salta.
+Comprobado en local:
+- `cancelar_reserva(clase, alumno)` cancelaba la reserva de cualquiera.
+- `aprobar_academia(id)` aprobaba una academia pendiente (hoy no hay
+  ninguna en producción). La auditoría no lo había visto.
+
+**Decisión:**
+- Esas comprobaciones pasan a `is distinct from` / `coalesce(…, false)`
+  (`20261009090000_permisos_sin_perfil.sql`).
+- **No** se arregla haciendo que `current_rol()` devuelva otra cosa que
+  NULL: `check_suscripcion_estado_transicion` cuenta con NULL cuando no
+  hay usuario (webhook de Stripe, trabajos programados) y los pararía.
+- `sin_perfil_no_puede_nada_test.sql` llama como cuenta sin perfil a
+  **todas** las funciones abiertas a usuarios con sesión, y empieza por el
+  catálogo: una función nueva abierta hace fallar la prueba hasta que se
+  añada. Las que solo se salvaban por una segunda comprobación (academia
+  de la clase o del alumno) quedan vigiladas por ella.
+- De paso se cierra `ciclo_vigente`: abierta, sin usar, y rota (llama a
+  `ciclo_en`, cerrada desde el 25/09).
+
+**Verificación:** sin la migración, 7 aserciones en rojo (catálogo,
+cancelar, aprobar, rechazar y los estados de después); con ella, 41
+suites en verde.
+
+## 2026-10-09 — Lo que ve el alumno: renovación pagada, fallos con «Reintentar» y «revisa tu correo»
+
+**Qué fallaba (auditoría externa del 09/10/2026, punto 6):**
+- El alumno no veía su renovación ya pagada hasta que empezaba.
+- Si fallaba la carga, el saldo de clases de «Mi cuota», la cuota de un
+  hijo en «Mi familia» y los documentos de los hijos **desaparecían**: un
+  hueco se lee como «no tengo nada».
+- Si Supabase exige confirmar el correo, al registrarse no hay sesión y la
+  pantalla se quedaba igual, sin decir nada. Y los errores del registro
+  salían en inglés, tal cual («User already registered»).
+
+**Decisión:**
+- «Mi cuota» enseña una tarjeta «Renovación pagada» con la tarifa, cuándo
+  empieza y hasta cuándo dura (`renovacionProgramadaProvider`, estado
+  `programada`).
+- `ErrorEnLinea` (`lib/shared/widgets/error_en_linea.dart`): el dato que no
+  ha cargado se dice en su sitio, con «Reintentar». Se comprueba con
+  `hasError`, no con `.when`: mientras Riverpod reintenta solo, `.when` lo
+  da por «cargando» y el fallo no se llegaba a ver.
+- `signUpAlumno` devuelve si ha entrado. Si no, el registro enseña
+  «Revisa tu correo» con el correo, qué hacer y lo del spam, y un botón
+  para ir a iniciar sesión. Los errores pasan por `mensajeRegistro`, que ya
+  traduce también el de contraseña filtrada para cuando se active esa
+  protección.
+
+**Queda fuera:** no se ha podido comprobar desde aquí si producción tiene
+activada la confirmación de correo (13 de 14 cuentas quedaron confirmadas
+al instante, lo que apunta a que no). La app funciona igual en los dos
+casos.
+
+**Verificación:** pruebas nuevas de «Mi cuota» (renovación y reintentar),
+«Mi familia» (reintentar) y registro (revisa tu correo, mensajes). Sabotaje:
+no enseñar el aviso del correo → 1 en rojo. Pantallas miradas dibujadas.
