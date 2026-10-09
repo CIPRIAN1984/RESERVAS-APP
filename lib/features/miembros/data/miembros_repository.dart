@@ -24,8 +24,9 @@ class MiembrosRepository {
   /// Quién tiene la cuota al día, con **las mismas condiciones** que
   /// comprueba `reservar_clase` en el servidor: activa o en prueba, cobrada
   /// y dentro de fechas. Si aquí se relajaran, Miembros diría «al día» de
-  /// alguien a quien el servidor considera moroso — el mismo criterio que
-  /// ya usa `ClasesRepository._alumnosConCuotaAlDia`.
+  /// alguien a quien el servidor considera moroso. Aquí es la cuota de hoy;
+  /// la lista de una clase mira la del día de la clase
+  /// (`estado_cuota_participantes`).
   Future<Set<String>> alumnosConCuotaAlDia(String academiaId) async {
     final ahora = DateTime.now().toUtc().toIso8601String();
     final rows =
