@@ -2596,7 +2596,17 @@ test db`.
 - `generar_mis_clases_recurrentes` arreglada, y su comprobación de rol
   resiste una cuenta sin perfil.
 
-**Verificación:** `horario_repetido_test.sql` (14), con tres martes que
-cruzan el 31/10/2027. Sabotajes: sumar 7 días exactos → 3 en rojo; sin
-saltarse las existentes → 2; la fecha rota de antes → la suite revienta.
-En la app, volver al bucle → 1 prueba en rojo.
+**Corrección tras la revisión externa (09/10/2026):** saltarse la que ya
+existe no bastaba si el reintento llegaba **mientras la primera petición
+aún trabajaba**: la segunda no ve las clases sin confirmar de la primera y
+las duplicaba. Reproducido con dos sesiones a la vez: 4 clases en vez de 2.
+`crear_clases` toma ahora un candado por academia
+(`pg_advisory_xact_lock(7302, …)`) antes de mirar qué existe: la segunda
+espera, y al seguir ya ve las de la primera (0 creadas, 2 en total).
+
+**Verificación:** `horario_repetido_test.sql` (15), con tres martes que
+cruzan el 31/10/2027 y la comprobación de que se toma el candado.
+Sabotajes: sumar 7 días exactos → 3 en rojo; sin saltarse las existentes →
+2; sin candado → 1 en rojo y, con dos sesiones a la vez, 4 clases; la
+fecha rota de antes → la suite revienta. En la app, volver al bucle → 1
+prueba en rojo.

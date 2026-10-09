@@ -3,7 +3,7 @@
 -- funcionar (auditoría externa del 09/10/2026, punto 5; ver
 -- 20261009130000_horario_repetido.sql).
 begin;
-select plan(14);
+select plan(15);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000ec001', 'dueno-hr@test.dev'),
@@ -39,6 +39,21 @@ select is(
   public.crear_clases('BJJ martes', null, '2027-10-26', '19:00', '20:00', 15, 3),
   3,
   'Crea las tres semanas de una vez'
+);
+-- Dos peticiones a la vez (un reintento mientras la primera aún trabaja)
+-- se ponen en fila con un candado por academia: la segunda espera y ve las
+-- clases de la primera. Probado con dos sesiones de verdad el 09/10/2026
+-- (sin candado, 4 clases; con él, 2); aquí se comprueba que se toma.
+select ok(
+  exists (
+    select 1 from pg_locks
+     where locktype = 'advisory'
+       and pid = pg_backend_pid()
+       and classid = 7302
+       and objsubid = 2
+       and objid::bigint = (hashtext('00000000-0000-0000-0000-0000000ec0aa')::bigint + 4294967296) % 4294967296
+  ),
+  'Crear clases toma el candado de su academia hasta terminar'
 );
 reset role;
 select is(

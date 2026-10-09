@@ -6,7 +6,8 @@
 --    creadas las primeras; al repetir, salían duplicadas. Ahora es una sola
 --    llamada al servidor (`crear_clases`), que crea todas o ninguna, y que
 --    se salta la que ya exista (mismo título y misma hora): repetir no
---    duplica.
+--    duplica, tampoco si el reintento llega mientras la primera petición
+--    aún trabaja (un candado por academia las pone en fila).
 -- 2. La app sumaba 7 días exactos a la fecha y hora. Al cruzar el cambio
 --    de hora (último domingo de marzo y de octubre), la clase de las 19:00
 --    pasaba a las 18:00 o a las 20:00. Ahora el servidor pone cada semana
@@ -152,6 +153,12 @@ begin
   if p_semanas is null or p_semanas < 1 or p_semanas > 52 then
     raise exception 'Se pueden repetir entre 1 y 52 semanas.';
   end if;
+
+  -- Una petición de crear clases a la vez por academia. Sin esto, un
+  -- reintento mientras la primera aún trabaja no ve sus clases (no se han
+  -- confirmado) y las duplica: comprobado con dos sesiones a la vez
+  -- (09/10/2026). Con el candado, la segunda espera y se las salta.
+  perform pg_advisory_xact_lock(7302, hashtext(v_academia::text));
 
   select zona_horaria into v_zona from public.academias where id = v_academia;
 
