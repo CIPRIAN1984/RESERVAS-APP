@@ -5,7 +5,10 @@
 -- y un `if NULL <> 'administrador' then raise` no lanza nada. Esta prueba
 -- llama como esa cuenta a TODAS las funciones que la app puede invocar.
 -- La primera aserción es el catálogo: si alguien añade una función nueva
--- llamable por usuarios con sesión, falla hasta que se añada aquí abajo.
+-- llamable por usuarios con sesión, falla hasta que se añada aquí abajo
+-- (una por línea, para que dos cambios a la vez no choquen). Las que
+-- llegaron después de esta prueba comprueban la cuenta sin perfil en su
+-- propia suite; el catálogo obliga a que nadie se olvide de hacerlo.
 begin;
 select plan(46);
 
@@ -72,18 +75,40 @@ select is(
      order by 1
   ),
   array[
-    'academia_id_de', 'activar_cuota_efectivo', 'aprobar_academia',
-    'borrar_hijo', 'cambiar_estado_clase', 'cambiar_rol_miembro',
-    'cancelar_clase', 'cancelar_reserva',
-    'clases_restantes', 'crear_hijo', 'current_academia_id', 'current_rol',
-    'dar_de_baja_alumno', 'desactivar_cuota_efectivo', 'editar_clase',
-    'es_padre_de', 'generar_mis_clases_recurrentes', 'hijos_borrables',
-    'listar_academias_aprobadas', 'listar_clases_semana',
-    'listar_mis_solicitudes_cambio', 'listar_solicitudes_pendientes_destino',
-    'mi_padre_id', 'pausar_cuota_efectivo', 'perdonar_cancelacion_tardia',
-    'progreso_graduacion_alumnos', 'promover_cinturon', 'ranking_periodo',
-    'reactivar_alumno', 'reanudar_cuota_efectivo', 'rechazar_academia',
-    'registrar_device_token', 'reservar_clase', 'resolver_cambio_escuela',
+    'academia_id_de',
+    'activar_cuota_efectivo',
+    'aprobar_academia',
+    'borrar_hijo',
+    'cambiar_estado_clase',
+    'cambiar_rol_miembro',
+    'cancelar_clase',
+    'cancelar_reserva',
+    'clases_restantes',
+    'crear_hijo',
+    'current_academia_id',
+    'current_rol',
+    'dar_de_baja_alumno',
+    'desactivar_cuota_efectivo',
+    'editar_clase',
+    'es_padre_de',
+    'generar_mis_clases_recurrentes',
+    'hijos_borrables',
+    'listar_academias_aprobadas',
+    'listar_clases_semana',
+    'listar_mis_solicitudes_cambio',
+    'listar_solicitudes_pendientes_destino',
+    'mi_padre_id',
+    'pausar_cuota_efectivo',
+    'perdonar_cancelacion_tardia',
+    'progreso_graduacion_alumnos',
+    'promover_cinturon',
+    'ranking_periodo',
+    'reactivar_alumno',
+    'reanudar_cuota_efectivo',
+    'rechazar_academia',
+    'registrar_device_token',
+    'reservar_clase',
+    'resolver_cambio_escuela',
     'ultima_asistencia_por_alumno'
   ]::text[],
   'Toda función llamable con sesión está cubierta por esta prueba'
