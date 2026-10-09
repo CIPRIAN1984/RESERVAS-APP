@@ -154,4 +154,48 @@ void main() {
     expect(find.textContaining('Te quedan'), findsNothing);
     expect(find.textContaining('Sin clases disponibles'), findsNothing);
   });
+
+  // Decisión de Cipri (09/10/2026): la suelta comprada con la cuota en
+  // vigor se suma como clase extra. «1 de 3» en una tarifa de 2 parecería
+  // un error si no se dice que hay una extra.
+  testWidgets('con una clase extra, lo dice', (tester) async {
+    await tester.pumpWidget(
+      _app(
+        SaldoClases(
+          tieneCuota: true,
+          ilimitada: false,
+          incluidas: 3,
+          gastadas: 0,
+          reservadas: 2,
+          disponibles: 1,
+          extras: 1,
+          cicloFin: DateTime(2026, 10, 15, 12),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Te quedan 1 de 3 clases (1 extra) hasta el 15 de octubre.'),
+      findsOneWidget,
+    );
+  });
+
+  test('el servidor manda las extras solo si las hay', () {
+    final sin = SaldoClases.fromRpc(const {
+      'tiene_cuota': true,
+      'ilimitada': false,
+      'incluidas': 2,
+      'disponibles': 2,
+    });
+    expect(sin.extras, 0);
+    final con = SaldoClases.fromRpc(const {
+      'tiene_cuota': true,
+      'ilimitada': false,
+      'incluidas': 3,
+      'disponibles': 1,
+      'extras': 1,
+    });
+    expect(con.extras, 1);
+  });
 }

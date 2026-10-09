@@ -15,6 +15,11 @@ abstract class SaldoClases with _$SaldoClases {
     int? reservadas,
     int? disponibles,
 
+    /// Clases extra (sueltas compradas con la cuota en vigor) que todavía
+    /// cuentan: ya van sumadas en [incluidas]. Valen hasta que acaba la
+    /// cuota (decisión de Cipri, 09/10/2026).
+    @Default(0) int extras,
+
     /// Cuándo se reponen las clases. El ciclo puede ser de uno, tres o doce
     /// meses según la tarifa: decir «este mes» sería falso en una trimestral.
     /// `null` si el servidor no lo manda o si no tiene fin (clase suelta sin
@@ -30,6 +35,7 @@ abstract class SaldoClases with _$SaldoClases {
     gastadas: json['gastadas'] as int?,
     reservadas: json['reservadas'] as int?,
     disponibles: json['disponibles'] as int?,
+    extras: json['extras'] as int? ?? 0,
     cicloFin: switch (json['ciclo_fin']) {
       final String fin => DateTime.tryParse(fin),
       _ => null,
