@@ -47,11 +47,37 @@ List<Tarifa> _tarifas() => [
     ),
 ];
 
+/// Las de producción que no son mensuales (09/10/2026).
+List<Tarifa> _tarifasNoMensuales() => [
+  const Tarifa(
+    id: 'tb',
+    academiaId: 'ac1',
+    nombre: 'bono 10 sesiones',
+    precio: 80,
+    periodicidad: 'trimestral',
+    activo: true,
+    clasesIncluidas: 10,
+  ),
+  const Tarifa(
+    id: 'ts',
+    academiaId: 'ac1',
+    nombre: 'dia suelto',
+    precio: 10,
+    periodicidad: 'suelta',
+    activo: true,
+    clasesIncluidas: 1,
+  ),
+];
+
 /// Apunta lo que se le pide al servidor, sin llamarlo.
 class _RepoFalso implements EquipoRepository {
   double? importe;
   String? tarifaId;
   int? meses;
+  final List<String> claves = [];
+
+  /// Cuántas veces más falla, como si se cortara la conexión.
+  int fallos = 0;
 
   @override
   Future<void> activarCuotaEfectivo({
@@ -59,7 +85,13 @@ class _RepoFalso implements EquipoRepository {
     required String tarifaId,
     required int meses,
     required double importe,
+    required String clave,
   }) async {
+    claves.add(clave);
+    if (fallos > 0) {
+      fallos--;
+      throw Exception('Se ha cortado la conexión');
+    }
     this.importe = importe;
     this.tarifaId = tarifaId;
     this.meses = meses;
@@ -91,6 +123,7 @@ class _Lanzadera extends StatelessWidget {
 Widget _app([
   _RepoFalso? repo,
   ({DateTime fin, bool renovacionPendiente})? enVigor,
+  List<Tarifa> Function() tarifas = _tarifas,
 ]) {
   final router = GoRouter(
     initialLocation: Routes.inicio,
@@ -118,7 +151,7 @@ Widget _app([
         ),
       ),
       appModeProvider.overrideWith(_ModoGestor.new),
-      tarifasProvider(true).overrideWith((ref) async => _tarifas()),
+      tarifasProvider(true).overrideWith((ref) async => tarifas()),
       if (repo != null) equipoRepositoryProvider.overrideWithValue(repo),
       cuotaEnVigorProvider('a1').overrideWith((ref) async => enVigor),
     ],
@@ -327,6 +360,96 @@ void main() {
         find.widgetWithText(FilledButton, 'Registrar cobro'),
       );
       expect(boton.onPressed, isNull);
+    });
+  });
+
+  // Auditoría del 09/10/2026: la hoja trataba todas las tarifas como
+  // mensuales y el bono trimestral de 80 € cobrado «3 meses» proponía 240 €.
+  group('cada tarifa se cobra por sus periodos', () {
+    Future<_RepoFalso> abrir(WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(412, 900));
+      final repo = _RepoFalso();
+      await tester.pumpWidget(_app(repo, null, _tarifasNoMensuales));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Abrir'));
+      await tester.pumpAndSettle();
+      return repo;
+    }
+
+    String importe(WidgetTester tester) =>
+        tester.widget<TextField>(find.byType(TextField)).controller!.text;
+
+    Future<void> registrar(WidgetTester tester) async {
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Registrar cobro'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Registrar cobro'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('el bono trimestral se cobra por trimestres, a su precio', (
+      tester,
+    ) async {
+      final repo = await abrir(tester);
+      await tester.tap(find.text('bono 10 sesiones'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 mes'), findsNothing);
+      expect(find.text('1 trimestre'), findsOneWidget);
+      expect(importe(tester), '80,00');
+
+      await tester.tap(find.text('2 trimestres'));
+      await tester.pumpAndSettle();
+      expect(importe(tester), '160,00');
+
+      await registrar(tester);
+      expect(repo.meses, 6);
+      expect(repo.importe, 160);
+    });
+
+    testWidgets('dice cuántas clases da por trimestre, no al mes', (
+      tester,
+    ) async {
+      await abrir(tester);
+      expect(find.textContaining('10 clases al trimestre'), findsOneWidget);
+      expect(find.textContaining('al mes'), findsNothing);
+    });
+
+    testWidgets('la suelta es una clase, sin elegir meses', (tester) async {
+      final repo = await abrir(tester);
+      await tester.tap(find.text('dia suelto'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SegmentedButton<int>), findsNothing);
+      expect(find.text('1 clase'), findsOneWidget);
+      expect(importe(tester), '10,00');
+
+      await registrar(tester);
+      expect(repo.meses, 1);
+    });
+
+    testWidgets('reintentar tras un corte manda la misma clave', (
+      tester,
+    ) async {
+      final repo = await abrir(tester);
+      repo.fallos = 1;
+      await tester.tap(find.text('bono 10 sesiones'));
+      await tester.pumpAndSettle();
+
+      await registrar(tester);
+      // Falló: la hoja sigue abierta para volver a intentarlo.
+      expect(find.text('Cobro en efectivo'), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      await registrar(tester);
+      expect(repo.claves, hasLength(2));
+      expect(
+        repo.claves.toSet(),
+        hasLength(1),
+        reason:
+            'Si el primer intento llegó a guardarse, solo una clave igual '
+            'evita que el servidor apunte el cobro dos veces.',
+      );
     });
   });
 }

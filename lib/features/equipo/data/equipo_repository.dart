@@ -47,10 +47,13 @@ class EquipoRepository {
     required String tarifaId,
     required int meses,
     required double importe,
+    required String clave,
   }) async {
     // Los meses, no una fecha: si tiene una cuota en vigor, la nueva empieza
     // cuando acabe esa (decisión de Cipri, 30/09/2026) y el servidor es
-    // quien sabe cuándo es.
+    // quien sabe cuándo es. [clave] es la misma en cada reintento del mismo
+    // cobro: si el primero llegó a guardarse, el servidor lo devuelve en vez
+    // de apuntar el dinero dos veces.
     await _client.rpc(
       'activar_cuota_efectivo',
       params: {
@@ -58,6 +61,7 @@ class EquipoRepository {
         'p_tarifa_id': tarifaId,
         'p_meses': meses,
         'p_importe': importe,
+        'p_clave': clave,
       },
     );
   }
