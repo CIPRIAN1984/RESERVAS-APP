@@ -84,6 +84,8 @@ select is(
     'cancelar_clase',
     'cancelar_reserva',
     'clases_restantes',
+    -- Sin perfil: horario_repetido_test.sql.
+    'crear_clases',
     'crear_hijo',
     'current_academia_id',
     'current_rol',
