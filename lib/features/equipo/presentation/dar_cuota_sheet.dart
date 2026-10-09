@@ -121,16 +121,9 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
     } catch (error) {
       if (mounted) {
         setState(() => _guardando = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              mensajeErrorAmigable(
-                error,
-                generico: 'No se ha podido registrar la cuota.',
-              ),
-            ),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(mensajeCobro(error))));
       }
     }
   }
@@ -143,6 +136,12 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
     final enVigor = ref.watch(cuotaEnVigorProvider(widget.alumno.id));
     final renovacionPendiente = enVigor.value?.renovacionPendiente ?? false;
     final opcion = _opcion;
+    final finActual = enVigor.value?.fin.toLocal();
+    // Una suelta con la cuota en vigor es una clase extra de esa cuota: se
+    // usa ya y caduca con ella (decisión de Cipri, 09/10/2026). No es una
+    // renovación, así que una renovación ya esperando no la impide.
+    final esExtra = _tarifa?.periodicidad == 'suelta' && finActual != null;
+    final bloqueaRenovacion = renovacionPendiente && !esExtra;
     final opciones = _tarifa == null
         ? const <OpcionCobro>[]
         : opcionesDeCobro(_tarifa!.periodicidad);
@@ -258,14 +257,16 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
                         Text(opcion.etiqueta, style: t.bodyLarge),
                       const SizedBox(height: 12),
                       Text(
-                        textoVigencia(
-                          finActual: enVigor.value?.fin.toLocal(),
-                          hasta: _hasta(opcion),
-                        ),
+                        esExtra
+                            ? textoClaseExtra(finActual)
+                            : textoVigencia(
+                                finActual: finActual,
+                                hasta: _hasta(opcion),
+                              ),
                         style: t.bodySmall?.copyWith(color: AppColors.subtle),
                       ),
                     ],
-                    if (renovacionPendiente) ...[
+                    if (bloqueaRenovacion) ...[
                       const SizedBox(height: 8),
                       Text(
                         'Ya tiene una renovación pagada esperando a que acabe '
@@ -309,7 +310,7 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
               onPressed:
                   (_tarifaId == null ||
                       _guardando ||
-                      renovacionPendiente ||
+                      bloqueaRenovacion ||
                       leerImporte(_importe.text) == null)
                   ? null
                   : _guardar,
@@ -326,6 +327,38 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
       ),
     );
   }
+}
+
+/// Una suelta cobrada con la cuota en vigor.
+String textoClaseExtra(DateTime finActual) {
+  final formato = DateFormat("d 'de' MMMM 'de' y", 'es_ES');
+  return 'Se suma a su cuota actual como clase extra: puede usarla ya, hasta '
+      'que acabe la cuota el ${formato.format(finActual)}.';
+}
+
+/// Lo que dice el servidor al rechazar un cobro, en palabras del Dueño. Los
+/// textos son los de `activar_cuota_efectivo`; lo demás, genérico.
+String mensajeCobro(Object error) {
+  final texto = error.toString();
+  if (texto.contains('clases ilimitadas')) {
+    return 'Su cuota ya tiene clases ilimitadas: no le hace falta una clase '
+        'extra.';
+  }
+  if (texto.contains('cuota pausada')) {
+    return 'Tiene la cuota pausada: mientras lo esté puede venir sin cuota. '
+        'Reanúdala antes de cobrarle una clase extra.';
+  }
+  if (texto.contains('renovación pendiente')) {
+    return 'Ya tiene una renovación pagada esperando a que acabe la actual.';
+  }
+  if (texto.contains('se cobra por periodos') ||
+      texto.contains('se cobra de una en una')) {
+    return 'Esa tarifa no se puede cobrar por ese tiempo.';
+  }
+  return mensajeErrorAmigable(
+    error,
+    generico: 'No se ha podido registrar la cuota.',
+  );
 }
 
 /// Hasta cuándo podrá reservar, y si la cuota nueva espera a que acabe la
