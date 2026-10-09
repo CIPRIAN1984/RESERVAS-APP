@@ -25,6 +25,7 @@ InscritoAlumno _alumno({
   required String id,
   required String nombre,
   required bool sinCuota,
+  bool sinClases = false,
 }) => InscritoAlumno(
   alumnoId: id,
   nombre: nombre,
@@ -32,6 +33,7 @@ InscritoAlumno _alumno({
   cinturon: 'azul',
   asistenciaValidada: false,
   sinCuota: sinCuota,
+  sinClases: sinClases,
 );
 
 class _RepoFalso implements ClasesRepository {
@@ -175,5 +177,41 @@ void main() {
 
     expect(find.text('Cobro en efectivo'), findsOneWidget);
     expect(find.textContaining('Para Moroso'), findsOneWidget);
+  });
+
+  // Decisión de Cipri (09/10/2026): una reserva que se queda sin clases
+  // después de confirmada (una pausa, una clase movida de fecha) se
+  // mantiene y sale marcada, igual que «sin cuota».
+  testWidgets('quien se ha pasado de sus clases sale «sin clases»', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 900));
+    await tester.pumpWidget(
+      _app(
+        ParticipantesClase(
+          inscritos: [
+            _alumno(
+              id: 'a1',
+              nombre: 'Pasado',
+              sinCuota: false,
+              sinClases: true,
+            ),
+            _alumno(id: 'a2', nombre: 'Moroso', sinCuota: true),
+            _alumno(id: 'a3', nombre: 'Alcorriente', sinCuota: false),
+          ],
+          listaEspera: const [],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('SIN CLASES'), findsOneWidget);
+    expect(find.text('1 SIN CLASES'), findsOneWidget);
+    // No se mezcla con «sin cuota»: cada uno con su marca.
+    expect(find.text('1 SIN CUOTA'), findsOneWidget);
+
+    await tester.tap(find.text('Pasado Ejemplo'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cobro en efectivo'), findsOneWidget);
   });
 }

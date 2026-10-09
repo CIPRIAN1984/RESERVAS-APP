@@ -91,6 +91,8 @@ select is(
     'desactivar_cuota_efectivo',
     'editar_clase',
     'es_padre_de',
+    -- Sin perfil: reservas_sin_clases_test.sql.
+    'estado_cuota_participantes',
     'generar_mis_clases_recurrentes',
     'hijos_borrables',
     'listar_academias_aprobadas',
