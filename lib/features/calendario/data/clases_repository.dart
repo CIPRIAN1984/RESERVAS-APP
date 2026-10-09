@@ -42,24 +42,37 @@ class ClasesRepository {
         .toList();
   }
 
-  Future<void> crearClase({
-    required String academiaId,
-    required String profesorId,
+  /// Crea la clase, o la misma durante [semanas] semanas, en **una sola
+  /// llamada** (`crear_clases`): se crean todas o ninguna, y repetir no
+  /// duplica. Antes era un bucle de inserciones desde aquí: si fallaba a
+  /// mitad quedaban las primeras, y al reintentar salían repetidas.
+  ///
+  /// Fecha y horas van como se ven en la pared; el servidor las coloca en
+  /// la zona horaria de la academia. Sumando 7 días exactos aquí, la clase
+  /// de las 19:00 pasaba a las 18:00 o a las 20:00 al cruzar el cambio de
+  /// hora (auditoría del 09/10/2026). Devuelve cuántas ha creado.
+  Future<int> crearClases({
     required String titulo,
     String? descripcion,
-    required DateTime fechaHoraInicio,
-    required DateTime fechaHoraFin,
+    required DateTime fecha,
+    required ({int hora, int minuto}) inicio,
+    required ({int hora, int minuto}) fin,
     required int aforoMaximo,
+    int semanas = 1,
   }) async {
-    await _client.from('clases').insert({
-      'academia_id': academiaId,
-      'profesor_id': profesorId,
-      'titulo': titulo,
-      'descripcion': descripcion,
-      'fecha_hora_inicio': fechaHoraInicio.toUtc().toIso8601String(),
-      'fecha_hora_fin': fechaHoraFin.toUtc().toIso8601String(),
-      'aforo_maximo': aforoMaximo,
-    });
+    final creadas = await _client.rpc(
+      'crear_clases',
+      params: paramsCrearClases(
+        titulo: titulo,
+        descripcion: descripcion,
+        fecha: fecha,
+        inicio: inicio,
+        fin: fin,
+        aforoMaximo: aforoMaximo,
+        semanas: semanas,
+      ),
+    );
+    return creadas as int;
   }
 
   /// Creates a weekly recurring-class template. Concrete sessions are then
@@ -390,4 +403,27 @@ class ClasesRepository {
           ignoreDuplicates: true,
         );
   }
+}
+
+/// Lo que se manda a `crear_clases`: la fecha y las horas tal cual, sin
+/// zona horaria (las pone el servidor).
+Map<String, dynamic> paramsCrearClases({
+  required String titulo,
+  String? descripcion,
+  required DateTime fecha,
+  required ({int hora, int minuto}) inicio,
+  required ({int hora, int minuto}) fin,
+  required int aforoMaximo,
+  required int semanas,
+}) {
+  String dos(int n) => n.toString().padLeft(2, '0');
+  return {
+    'p_titulo': titulo,
+    'p_descripcion': descripcion,
+    'p_fecha': '${fecha.year}-${dos(fecha.month)}-${dos(fecha.day)}',
+    'p_hora_inicio': '${dos(inicio.hora)}:${dos(inicio.minuto)}',
+    'p_hora_fin': '${dos(fin.hora)}:${dos(fin.minuto)}',
+    'p_aforo_maximo': aforoMaximo,
+    'p_semanas': semanas,
+  };
 }

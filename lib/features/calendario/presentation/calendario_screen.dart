@@ -158,12 +158,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
           ? FloatingActionButton.extended(
               onPressed: () async {
                 await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => CrearClaseScreen(
-                      academiaId: academiaId,
-                      profesorId: userId!,
-                    ),
-                  ),
+                  MaterialPageRoute(builder: (_) => const CrearClaseScreen()),
                 );
                 ref.invalidate(clasesSemanaProvider);
               },

@@ -2570,3 +2570,33 @@ cambio: no lo toca.
 `db.sh`, que arrancaba un servidor nuevo sin parar el anterior. Ahora para
 antes de arrancar y conecta por TCP. No afecta al CI, que usa `supabase
 test db`.
+
+## 2026-10-09 — Crear clases repetidas: todas o ninguna, y sin saltos de hora
+
+**Qué fallaba (auditoría externa del 09/10/2026, punto 5):**
+- «Clase periódica» creaba las semanas desde la app con un bucle de
+  inserciones. Si fallaba a mitad quedaban creadas las primeras, y al
+  repetir salían duplicadas.
+- La app sumaba 7 días exactos a la fecha y hora: al cruzar el cambio de
+  hora (último domingo de marzo y de octubre), la clase de las 19:00 pasaba
+  a las 18:00 o a las 20:00.
+- De paso: `generar_mis_clases_recurrentes` (el botón que genera ya las
+  clases del horario fijo) fallaba **siempre** por un error de fechas
+  (`fecha y hora - 1`). No se notó porque no hay horario fijo creado. Las
+  del lunes de madrugada (`generar_clases_recurrentes`) sí funcionaban.
+
+**Decisión** (`20261009130000_horario_repetido.sql`):
+- `crear_clases(título, descripción, fecha, hora inicio, hora fin, aforo,
+  semanas)`: una sola llamada, todas o ninguna. La academia y el profesor
+  son los de quien la crea (Dueño o Profesor activo).
+- Cada semana se coloca con la fecha y la hora «de la pared» en la zona
+  horaria de la academia, como ya hacía el horario fijo.
+- Repetir no duplica: se salta la que ya existe con el mismo título y la
+  misma hora (salvo canceladas).
+- `generar_mis_clases_recurrentes` arreglada, y su comprobación de rol
+  resiste una cuenta sin perfil.
+
+**Verificación:** `horario_repetido_test.sql` (14), con tres martes que
+cruzan el 31/10/2027. Sabotajes: sumar 7 días exactos → 3 en rojo; sin
+saltarse las existentes → 2; la fecha rota de antes → la suite revienta.
+En la app, volver al bucle → 1 prueba en rojo.
