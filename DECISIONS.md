@@ -2570,3 +2570,64 @@ cambio: no lo toca.
 `db.sh`, que arrancaba un servidor nuevo sin parar el anterior. Ahora para
 antes de arrancar y conecta por TCP. No afecta al CI, que usa `supabase
 test db`.
+
+## 2026-10-09 — Una cuenta sin perfil no puede saltarse ningún permiso
+
+**Qué fallaba (auditoría externa del 09/10/2026, punto 1):** registrándose
+con la clave pública sin mandar `nombre`, la cuenta queda en `auth.users`
+sin perfil (`handle_new_user` lo deja pasar a propósito: así se siembra el
+Administrador desde el panel). Con esa cuenta `current_rol()` es NULL, y
+en SQL `NULL <> 'administrador'` es NULL: el `if … then raise` no salta.
+Comprobado en local:
+- `cancelar_reserva(clase, alumno)` cancelaba la reserva de cualquiera.
+- `aprobar_academia(id)` aprobaba una academia pendiente (hoy no hay
+  ninguna en producción). La auditoría no lo había visto.
+
+**Decisión:**
+- Esas comprobaciones pasan a `is distinct from` / `coalesce(…, false)`
+  (`20261009090000_permisos_sin_perfil.sql`).
+- **No** se arregla haciendo que `current_rol()` devuelva otra cosa que
+  NULL: `check_suscripcion_estado_transicion` cuenta con NULL cuando no
+  hay usuario (webhook de Stripe, trabajos programados) y los pararía.
+- `sin_perfil_no_puede_nada_test.sql` llama como cuenta sin perfil a
+  **todas** las funciones abiertas a usuarios con sesión, y empieza por el
+  catálogo: una función nueva abierta hace fallar la prueba hasta que se
+  añada. Las que solo se salvaban por una segunda comprobación (academia
+  de la clase o del alumno) quedan vigiladas por ella.
+- De paso se cierra `ciclo_vigente`: abierta, sin usar, y rota (llama a
+  `ciclo_en`, cerrada desde el 25/09).
+
+**Verificación:** sin la migración, 7 aserciones en rojo (catálogo,
+cancelar, aprobar, rechazar y los estados de después); con ella, 41
+suites en verde.
+
+## 2026-10-09 — Apuntar desde la clase a quien llega sin reserva
+
+**Qué pasaba (auditoría externa del 09/10/2026, punto 6):** quien llegaba
+sin reservar no podía figurar en la clase: el profesor no podía reservar
+por él (`reservar_clase` solo deja por uno mismo o por los hijos), ni
+pasarle lista (una asistencia exige reserva desde el 20/09), y una vez
+empezada la clase ya no se admiten reservas.
+
+**Decisión de Cipri (09/10/2026):** el Dueño o el Profesor lo apuntan
+desde la clase, **respetando las reglas**.
+
+**Decisión técnica** (`20261009140000_apuntar_sin_reserva.sql`):
+- `apuntar_en_clase(clase, alumno)`: Dueño o Profesor activos de la
+  academia; desde media hora antes de la clase en adelante (la misma
+  ventana que pasar lista).
+- Las reglas de `reservar_clase` para alumnos: cuota si la academia la
+  exige (ITACA no: sale «sin cuota» para cobrarle), y las clases de su
+  tarifa (si no le quedan, hay que cobrarle una extra antes). El aforo lo
+  vigila el disparador `check_aforo`. Si estaba en lista de espera, pasa a
+  tener plaza (si la hay). No a quien es de otra academia, está de baja o
+  no entrena.
+- Queda la reserva 'inscrito' y la asistencia confirmada por quien lo hizo.
+  Mismo orden de candados que reservar: la clase y después el alumno.
+- En la app: botón «Apuntar a alguien que ha venido» en la clase (con la
+  clase a punto de empezar o empezada), con buscador por nombre; los
+  rechazos se explican con su motivo.
+
+**Verificación:** `apuntar_sin_reserva_test.sql` (18). Sabotajes: sin
+mirar las clases de la tarifa → 2 en rojo; sin la ventana de tiempo → 2.
+En la app, 4 pruebas nuevas; ocultar el botón → 2 en rojo.

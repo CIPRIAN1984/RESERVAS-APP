@@ -243,6 +243,20 @@ class ClasesRepository {
     );
   }
 
+  /// Apunta a quien ha llegado sin reserva y le confirma la asistencia.
+  /// Solo Dueño o Profesor, desde media hora antes de la clase; el servidor
+  /// respeta el aforo, la cuota si se exige y las clases de su tarifa
+  /// (decisión de Cipri, 09/10/2026).
+  Future<void> apuntarEnClase({
+    required String claseId,
+    required String alumnoId,
+  }) async {
+    await _client.rpc(
+      'apuntar_en_clase',
+      params: {'p_clase_id': claseId, 'p_alumno_id': alumnoId},
+    );
+  }
+
   /// Devuelve la clase a quien canceló tarde. Solo el Dueño o un Profesor
   /// de la academia (lo comprueba el servidor), y queda apuntado quién fue.
   Future<void> perdonarCancelacionTardia({
