@@ -79,6 +79,27 @@ class TarifasRepository {
     return Suscripcion.fromRow(row);
   }
 
+  /// La renovación ya pagada que espera a que acabe la cuota actual, si la
+  /// hay (estado `programada`, como mucho una por alumno). El alumno no la
+  /// veía hasta que empezaba (auditoría del 09/10/2026).
+  Future<({DateTime inicio, DateTime? fin, String? tarifa})?>
+  renovacionProgramada(String alumnoId) async {
+    final row = await _client
+        .from('suscripciones')
+        .select('fecha_inicio, fecha_fin, tarifa_nombre')
+        .eq('alumno_id', alumnoId)
+        .eq('estado', 'programada')
+        .maybeSingle();
+    if (row == null) return null;
+    return (
+      inicio: DateTime.parse(row['fecha_inicio'] as String),
+      fin: row['fecha_fin'] == null
+          ? null
+          : DateTime.parse(row['fecha_fin'] as String),
+      tarifa: row['tarifa_nombre'] as String?,
+    );
+  }
+
   Future<({String clientSecret, String stripeAccountId})> iniciarSuscripcion(
     String tarifaId,
   ) async {

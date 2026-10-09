@@ -2570,3 +2570,37 @@ cambio: no lo toca.
 `db.sh`, que arrancaba un servidor nuevo sin parar el anterior. Ahora para
 antes de arrancar y conecta por TCP. No afecta al CI, que usa `supabase
 test db`.
+
+## 2026-10-09 — Lo que ve el alumno: renovación pagada, fallos con «Reintentar» y «revisa tu correo»
+
+**Qué fallaba (auditoría externa del 09/10/2026, punto 6):**
+- El alumno no veía su renovación ya pagada hasta que empezaba.
+- Si fallaba la carga, el saldo de clases de «Mi cuota», la cuota de un
+  hijo en «Mi familia» y los documentos de los hijos **desaparecían**: un
+  hueco se lee como «no tengo nada».
+- Si Supabase exige confirmar el correo, al registrarse no hay sesión y la
+  pantalla se quedaba igual, sin decir nada. Y los errores del registro
+  salían en inglés, tal cual («User already registered»).
+
+**Decisión:**
+- «Mi cuota» enseña una tarjeta «Renovación pagada» con la tarifa, cuándo
+  empieza y hasta cuándo dura (`renovacionProgramadaProvider`, estado
+  `programada`).
+- `ErrorEnLinea` (`lib/shared/widgets/error_en_linea.dart`): el dato que no
+  ha cargado se dice en su sitio, con «Reintentar». Se comprueba con
+  `hasError`, no con `.when`: mientras Riverpod reintenta solo, `.when` lo
+  da por «cargando» y el fallo no se llegaba a ver.
+- `signUpAlumno` devuelve si ha entrado. Si no, el registro enseña
+  «Revisa tu correo» con el correo, qué hacer y lo del spam, y un botón
+  para ir a iniciar sesión. Los errores pasan por `mensajeRegistro`, que ya
+  traduce también el de contraseña filtrada para cuando se active esa
+  protección.
+
+**Queda fuera:** no se ha podido comprobar desde aquí si producción tiene
+activada la confirmación de correo (13 de 14 cuentas quedaron confirmadas
+al instante, lo que apunta a que no). La app funciona igual en los dos
+casos.
+
+**Verificación:** pruebas nuevas de «Mi cuota» (renovación y reintentar),
+«Mi familia» (reintentar) y registro (revisa tu correo, mensajes). Sabotaje:
+no enseñar el aviso del correo → 1 en rojo. Pantallas miradas dibujadas.

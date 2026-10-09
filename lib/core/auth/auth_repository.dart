@@ -21,14 +21,17 @@ class AuthRepository {
   /// creation happens atomically server-side (trigger `handle_new_user` reads
   /// this metadata), so there's no orphaned-auth-user window and the rol/estado
   /// are enforced by the server, not the client.
-  Future<void> signUpAlumno({
+  ///
+  /// Devuelve `true` si ya ha entrado. `false` si Supabase pide confirmar el
+  /// correo antes: no hay sesión todavía y hay que decírselo.
+  Future<bool> signUpAlumno({
     required String email,
     required String password,
     required String academiaId,
     required String nombre,
     String? apellidos,
   }) async {
-    await _client.auth.signUp(
+    final respuesta = await _client.auth.signUp(
       email: email,
       password: password,
       data: {
@@ -38,6 +41,7 @@ class AuthRepository {
         if (apellidos != null && apellidos.isNotEmpty) 'apellidos': apellidos,
       },
     );
+    return respuesta.session != null;
   }
 
   /// Registers a brand-new academia and its Dueño in a single atomic signup
