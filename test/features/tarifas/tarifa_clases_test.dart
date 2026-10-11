@@ -42,16 +42,40 @@ void main() {
 
   group('etiquetaClasesIncluidas', () {
     test('sin número dice que es ilimitada', () {
-      expect(etiquetaClasesIncluidas(null), 'Clases ilimitadas');
+      expect(etiquetaClasesIncluidas(null, 'mensual'), 'Clases ilimitadas');
     });
 
     test('una sola clase va en singular', () {
-      expect(etiquetaClasesIncluidas(1), '1 clase al mes');
+      expect(etiquetaClasesIncluidas(1, 'mensual'), '1 clase al mes');
     });
 
     test('varias van en plural', () {
-      expect(etiquetaClasesIncluidas(8), '8 clases al mes');
-      expect(etiquetaClasesIncluidas(12), '12 clases al mes');
+      expect(etiquetaClasesIncluidas(8, 'mensual'), '8 clases al mes');
+      expect(etiquetaClasesIncluidas(12, 'mensual'), '12 clases al mes');
+    });
+
+    // Auditoría del 09/10/2026: el servidor cuenta las clases por periodo
+    // de la tarifa desde el 25/09, y la app seguía diciendo «al mes».
+    test('el bono trimestral de 10 sesiones son 10 al trimestre', () {
+      expect(
+        etiquetaClasesIncluidas(10, 'trimestral'),
+        '10 clases al trimestre',
+      );
+      expect(etiquetaClasesIncluidas(100, 'anual'), '100 clases al año');
+      expect(etiquetaClasesIncluidas(1, 'suelta'), '1 clase');
+    });
+
+    test('el campo de crear tarifa no dice «al mes» si no es mensual', () {
+      expect(campoClasesIncluidas('mensual').etiqueta, 'Clases al mes');
+      expect(
+        campoClasesIncluidas('trimestral').etiqueta,
+        'Clases al trimestre',
+      );
+      expect(
+        campoClasesIncluidas('trimestral').ayuda,
+        isNot(contains('por mes')),
+      );
+      expect(campoClasesIncluidas('anual').etiqueta, 'Clases al año');
     });
   });
 

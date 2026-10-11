@@ -248,7 +248,10 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                           const SizedBox(height: 4),
                           // Lo que de verdad decide entre una tarifa y otra.
                           Text(
-                            etiquetaClasesIncluidas(tarifa.clasesIncluidas),
+                            etiquetaClasesIncluidas(
+                              tarifa.clasesIncluidas,
+                              tarifa.periodicidad,
+                            ),
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           if (tarifa.descripcion != null) ...[
@@ -429,7 +432,7 @@ class _TarifasGestionView extends ConsumerWidget {
                   subtitle: Text(
                     '${tarifa.precio.toStringAsFixed(2)} € '
                     '${etiquetasPeriodicidad[tarifa.periodicidad] ?? ''}'
-                    ' · ${etiquetaClasesIncluidas(tarifa.clasesIncluidas)}',
+                    ' · ${etiquetaClasesIncluidas(tarifa.clasesIncluidas, tarifa.periodicidad)}',
                   ),
                   // Tocar la fila abre la tarifa para cambiarla. El
                   // interruptor solo la retira, que es otra cosa.

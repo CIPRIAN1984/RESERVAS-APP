@@ -172,18 +172,18 @@ class _CrearTarifaScreenState extends ConsumerState<CrearTarifaScreen> {
                   TextFormField(
                     controller: _clasesController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Clases al mes',
-                      helperText:
-                          '2 días por semana son 8; 3 por semana, 12. Se '
-                          'cuentan por mes aunque la tarifa se cobre cada '
-                          'trimestre o cada año.',
+                    // Por periodo de la tarifa, que es como cuenta el
+                    // servidor. Antes decía «se cuentan por mes aunque se
+                    // cobre cada trimestre», y no era verdad desde el 25/09.
+                    decoration: InputDecoration(
+                      labelText: campoClasesIncluidas(_periodicidad).etiqueta,
+                      helperText: campoClasesIncluidas(_periodicidad).ayuda,
                     ),
                     validator: (v) {
                       if (_ilimitada) return null;
                       final n = int.tryParse((v ?? '').trim());
                       if (n == null || n < 1) {
-                        return 'Escribe cuántas clases al mes, o marca «ilimitadas»';
+                        return 'Escribe cuántas clases incluye, o marca «ilimitadas»';
                       }
                       return null;
                     },
