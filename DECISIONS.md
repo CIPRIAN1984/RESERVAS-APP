@@ -2636,3 +2636,39 @@ suites en verde.
 importe precio × meses → 1 en rojo; quitar la búsqueda por clave → el
 reintento revienta contra el índice único. En la app, 4 pruebas nuevas de
 la hoja (trimestral, texto de clases, suelta, misma clave al reintentar).
+
+## 2026-10-09 — La clase suelta comprada con la cuota en vigor se usa ya
+
+**Qué fallaba (auditoría externa del 09/10/2026, punto 3):** el alumno con
+cuota en vigor que se queda sin clases paga un «día suelto», y el servidor
+lo guardaba como renovación para cuando acabara la cuota. No le servía para
+entrenar hoy, aunque la app le decía «renueva o compra una suelta».
+
+**Decisión de Cipri (09/10/2026):** la clase extra vale **hasta que acabe
+su cuota actual**: se suma a sus clases y caduca con ella.
+
+**Decisión técnica** (`20261009110000_clases_extra.sql`):
+- Estado nuevo `'extra'` con `extra_de` → la cuota a la que se suma. Es
+  una fila de `suscripciones` como cualquier cobro (importe, quién, cuándo,
+  condiciones copiadas), así que la caja la verá igual. No entra en el
+  índice de «una cuota en curso» y la app, que siempre filtra por estado,
+  no la confunde con la cuota.
+- `_saldo_clases` suma las extras como una bolsa para toda la vida de la
+  cuota: lo que un ciclo gaste de más sale de la bolsa. En una cuota de un
+  mes es «incluidas + extras»; en una de dos meses, una extra gastada en el
+  primero no vuelve a aparecer en el segundo. El conteo de un ciclo pasa a
+  `_consumo_ciclo`, idéntico al de antes.
+- La extra no guarda su propia caducidad: vive lo que viva su cuota, también
+  si la cuota se pausa y se alarga.
+- Con la cuota **pausada** no se vende una extra (el alumno ya puede venir
+  «sin cuota», y cobrarle una suelta cerraba la cuota pausada con el tiempo
+  que le quedaba). Con clases **ilimitadas**, tampoco (no la necesita). Sin
+  cuota en vigor, la suelta sigue siendo su cuota de un mes.
+- El saldo solo manda `extras` si hay alguna; «Mi cuota» dice «Te quedan 1
+  de 3 clases (1 extra)…». La hoja de cobro dice «Se suma a su cuota actual
+  como clase extra: puede usarla ya…», y una renovación ya esperando no la
+  bloquea. Los rechazos del servidor se explican con su motivo.
+
+**Verificación:** `clases_extra_test.sql` (19). Sabotajes: sin la rama de
+extra → 4 en rojo; bolsa sin descontar los otros ciclos → 1 en rojo. En la
+app, tratar la suelta como renovación → 2 pruebas en rojo.

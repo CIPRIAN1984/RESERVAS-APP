@@ -354,9 +354,17 @@ class _SaldoClasesTexto extends ConsumerWidget {
         final plazo = fin == null
             ? 'en este periodo'
             : 'hasta el ${DateFormat("d 'de' MMMM", 'es_ES').format(fin.toLocal())}';
+        // Las extras van sumadas en «incluidas»; se dice cuántas son para
+        // que «3 de 9» en una tarifa de 8 no parezca un error.
+        final extras = switch (saldo.extras) {
+          0 => '',
+          1 => ' (1 extra)',
+          final n => ' ($n extra)',
+        };
         return Text(
           disponibles > 0
-              ? 'Te quedan $disponibles de ${saldo.incluidas} clases $plazo.'
+              ? 'Te quedan $disponibles de ${saldo.incluidas} clases$extras '
+                    '$plazo.'
               : 'Sin clases disponibles $plazo. Renueva o compra una suelta.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: disponibles > 0 ? AppColors.subtle : AppColors.destructive,

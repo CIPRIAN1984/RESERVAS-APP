@@ -452,4 +452,80 @@ void main() {
       );
     });
   });
+
+  // Auditoría del 09/10/2026, punto 3, y decisión de Cipri: la suelta con
+  // la cuota en vigor es una clase extra que se usa ya, no una renovación.
+  group('clase extra', () {
+    Future<_RepoFalso> abrir(
+      WidgetTester tester, {
+      bool renovacionPendiente = false,
+    }) async {
+      await tester.binding.setSurfaceSize(const Size(412, 900));
+      final repo = _RepoFalso();
+      await tester.pumpWidget(
+        _app(repo, (
+          fin: DateTime(2030, 10, 15, 12),
+          renovacionPendiente: renovacionPendiente,
+        ), _tarifasNoMensuales),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Abrir'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('dia suelto'));
+      await tester.pumpAndSettle();
+      return repo;
+    }
+
+    testWidgets('dice que se suma a la cuota y se usa ya', (tester) async {
+      await abrir(tester);
+      expect(
+        find.text(
+          'Se suma a su cuota actual como clase extra: puede usarla ya, '
+          'hasta que acabe la cuota el 15 de octubre de 2030.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Empieza cuando acabe'), findsNothing);
+    });
+
+    testWidgets('una renovación ya esperando no impide cobrar la extra', (
+      tester,
+    ) async {
+      await abrir(tester, renovacionPendiente: true);
+      expect(find.textContaining('Ya tiene una renovación'), findsNothing);
+      final boton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Registrar cobro'),
+      );
+      expect(boton.onPressed, isNotNull);
+    });
+
+    testWidgets('el bono trimestral sí sigue bloqueado por la renovación', (
+      tester,
+    ) async {
+      await abrir(tester, renovacionPendiente: true);
+      await tester.tap(find.text('bono 10 sesiones'));
+      await tester.pumpAndSettle();
+      final boton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Registrar cobro'),
+      );
+      expect(boton.onPressed, isNull);
+    });
+  });
+
+  test('los rechazos del servidor se explican al Dueño', () {
+    expect(
+      mensajeCobro(
+        Exception('Su cuota ya tiene clases ilimitadas: no le hace falta'),
+      ),
+      contains('ilimitadas'),
+    );
+    expect(
+      mensajeCobro(Exception('Tiene la cuota pausada: mientras lo esté')),
+      contains('Reanúdala'),
+    );
+    expect(
+      mensajeCobro(Exception('algo raro')),
+      'No se ha podido registrar la cuota.',
+    );
+  });
 }
