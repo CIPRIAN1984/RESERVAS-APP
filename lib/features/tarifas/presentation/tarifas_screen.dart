@@ -250,7 +250,10 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                           const SizedBox(height: 4),
                           // Lo que de verdad decide entre una tarifa y otra.
                           Text(
-                            etiquetaClasesIncluidas(tarifa.clasesIncluidas),
+                            etiquetaClasesIncluidas(
+                              tarifa.clasesIncluidas,
+                              tarifa.periodicidad,
+                            ),
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           if (tarifa.descripcion != null) ...[
@@ -430,9 +433,17 @@ class _SaldoClasesTexto extends ConsumerWidget {
         final plazo = fin == null
             ? 'en este periodo'
             : 'hasta el ${DateFormat("d 'de' MMMM", 'es_ES').format(fin.toLocal())}';
+        // Las extras van sumadas en «incluidas»; se dice cuántas son para
+        // que «3 de 9» en una tarifa de 8 no parezca un error.
+        final extras = switch (saldo.extras) {
+          0 => '',
+          1 => ' (1 extra)',
+          final n => ' ($n extra)',
+        };
         return Text(
           disponibles > 0
-              ? 'Te quedan $disponibles de ${saldo.incluidas} clases $plazo.'
+              ? 'Te quedan $disponibles de ${saldo.incluidas} clases$extras '
+                    '$plazo.'
               : 'Sin clases disponibles $plazo. Renueva o compra una suelta.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: disponibles > 0 ? AppColors.subtle : AppColors.destructive,
@@ -508,7 +519,7 @@ class _TarifasGestionView extends ConsumerWidget {
                   subtitle: Text(
                     '${tarifa.precio.toStringAsFixed(2)} € '
                     '${etiquetasPeriodicidad[tarifa.periodicidad] ?? ''}'
-                    ' · ${etiquetaClasesIncluidas(tarifa.clasesIncluidas)}',
+                    ' · ${etiquetaClasesIncluidas(tarifa.clasesIncluidas, tarifa.periodicidad)}',
                   ),
                   // Tocar la fila abre la tarifa para cambiarla. El
                   // interruptor solo la retira, que es otra cosa.

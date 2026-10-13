@@ -2601,6 +2601,152 @@ Comprobado en local:
 cancelar, aprobar, rechazar y los estados de después); con ella, 41
 suites en verde.
 
+## 2026-10-09 — Cada tarifa se cobra por sus periodos; reintentar no duplica el cobro
+
+**Qué fallaba (auditoría externa del 09/10/2026, punto 2):**
+- La hoja «Cobro en efectivo» trataba todas las tarifas como mensuales
+  (1/3/6 meses, 1 año) y el servidor aceptaba cualquier número de meses.
+  El «bono 10 sesiones» (80 €, trimestral) cobrado «3 meses» proponía
+  240 €; cobrado «1 mes» duraba un mes con las 10 sesiones del trimestre.
+- Si se cortaba la conexión después de guardar y el Dueño volvía a pulsar,
+  el servidor veía una cuota en vigor y creaba una renovación: el mismo
+  dinero apuntado dos veces.
+- De paso: la app decía «10 clases al mes» del bono trimestral, y el
+  formulario de crear tarifa avisaba de que las clases «se cuentan por mes
+  aunque la tarifa se cobre cada trimestre». Ninguna de las dos cosas es
+  verdad desde el 25/09: el servidor cuenta por periodo de la tarifa.
+
+**Decisión:**
+- La hoja ofrece periodos enteros de la tarifa: mensual 1/3/6/12 meses;
+  trimestral 1 o 2 trimestres o 1 año; anual 1 año; suelta, una clase. El
+  importe propuesto es precio × periodos. El servidor
+  (`20261009100000_cobro_segun_tarifa.sql`) rechaza meses que no sean
+  periodos enteros y calcula igual el importe por defecto.
+- La suelta, sin cuota en vigor, es una clase que se puede usar durante un
+  mes (lo que ya hacía en la práctica). Con cuota en vigor va en su propio
+  cambio: decisión de Cipri, «hasta fin de su cuota».
+- `activar_cuota_efectivo` recibe `p_clave` (un UUID que la app genera al
+  abrir la hoja y repite en cada reintento). Con el alumno bloqueado, si
+  ya hay un cobro con esa clave, se devuelve ese. Índice único parcial en
+  `suscripciones.clave_cobro` por si acaso. La clave es la misma aunque el
+  Dueño cambie algo entre intentos: si el primero se guardó, manda ese.
+- Los textos de clases incluidas dicen «al mes / al trimestre / al año».
+
+**Verificación:** `cobro_segun_tarifa_test.sql` (16). Sabotajes: volver al
+importe precio × meses → 1 en rojo; quitar la búsqueda por clave → el
+reintento revienta contra el índice único. En la app, 4 pruebas nuevas de
+la hoja (trimestral, texto de clases, suelta, misma clave al reintentar).
+
+## 2026-10-09 — La clase suelta comprada con la cuota en vigor se usa ya
+
+**Qué fallaba (auditoría externa del 09/10/2026, punto 3):** el alumno con
+cuota en vigor que se queda sin clases paga un «día suelto», y el servidor
+lo guardaba como renovación para cuando acabara la cuota. No le servía para
+entrenar hoy, aunque la app le decía «renueva o compra una suelta».
+
+**Decisión de Cipri (09/10/2026):** la clase extra vale **hasta que acabe
+su cuota actual**: se suma a sus clases y caduca con ella.
+
+**Decisión técnica** (`20261009110000_clases_extra.sql`):
+- Estado nuevo `'extra'` con `extra_de` → la cuota a la que se suma. Es
+  una fila de `suscripciones` como cualquier cobro (importe, quién, cuándo,
+  condiciones copiadas), así que la caja la verá igual. No entra en el
+  índice de «una cuota en curso» y la app, que siempre filtra por estado,
+  no la confunde con la cuota.
+- `_saldo_clases` suma las extras como una bolsa para toda la vida de la
+  cuota: lo que un ciclo gaste de más sale de la bolsa. En una cuota de un
+  mes es «incluidas + extras»; en una de dos meses, una extra gastada en el
+  primero no vuelve a aparecer en el segundo. El conteo de un ciclo pasa a
+  `_consumo_ciclo`, idéntico al de antes.
+- La extra no guarda su propia caducidad: vive lo que viva su cuota, también
+  si la cuota se pausa y se alarga.
+- Con la cuota **pausada** no se vende una extra (el alumno ya puede venir
+  «sin cuota», y cobrarle una suelta cerraba la cuota pausada con el tiempo
+  que le quedaba). Con clases **ilimitadas**, tampoco (no la necesita). Sin
+  cuota en vigor, la suelta sigue siendo su cuota de un mes.
+- El saldo solo manda `extras` si hay alguna; «Mi cuota» dice «Te quedan 1
+  de 3 clases (1 extra)…». La hoja de cobro dice «Se suma a su cuota actual
+  como clase extra: puede usarla ya…», y una renovación ya esperando no la
+  bloquea. Los rechazos del servidor se explican con su motivo.
+
+**Verificación:** `clases_extra_test.sql` (19). Sabotajes: sin la rama de
+extra → 4 en rojo; bolsa sin descontar los otros ciclos → 1 en rojo. En la
+app, tratar la suelta como renovación → 2 pruebas en rojo.
+
+## 2026-10-09 — Reservas que se quedan sin clases: se mantienen y salen marcadas
+
+**Qué fallaba (auditoría externa del 09/10/2026, punto 4):** reservar
+comprueba el saldo en ese momento. Si después se pausa o reanuda una cuota
+con una renovación pagada, o se mueve una clase de fecha, la reserva puede
+caer en otro ciclo u otra cuota y pasarse de las clases de la tarifa, y
+nadie lo volvía a mirar. Además, «sin cuota» en la lista de la clase se
+calculaba en la app con la cuota de **hoy**, mientras que el servidor exige
+desde el 25/09 la del **día de la clase**.
+
+**Decisión de Cipri (09/10/2026):** esas reservas **se mantienen**, y en la
+lista de la clase salen marcadas **«sin clases»** para cobrarlas en mano,
+igual que «sin cuota».
+
+**Decisión técnica** (`20261009120000_reservas_sin_clases.sql`):
+- La marca se calcula al leer (`estado_cuota_participantes(clase)`, solo
+  Dueño/Profesor activos de la academia), no se guarda: no hay que
+  acordarse de recalcular en pausar, reanudar, mover, perdonar…
+- Si en el ciclo de la clase hay más clases contadas que las incluidas (con
+  extras), sobran **las últimas por fecha**: las primeras estaban cubiertas
+  cuando se reservaron.
+- «Sin cuota» sale de la misma función, con `_cuota_cubre` en la fecha de
+  la clase.
+- `_clases_contadas` lista una a una las clases que cuentan en un ciclo, y
+  `_consumo_ciclo` cuenta sobre ella: saldo y marca no pueden discrepar.
+- En la lista: pastilla «Sin clases», resumen «1 sin clases», y tocar abre
+  el cobro (para venderle una clase extra).
+
+**Verificación:** `reservas_sin_clases_test.sql` (13), con el caso de la
+auditoría: una reserva del mes siguiente (cubierta por la renovación) que
+el Dueño adelanta a este mes. Sabotajes: marcar las primeras en vez de las
+últimas → 2 en rojo; «sin cuota» con la fecha de hoy → 1 en rojo. En la
+app, quitar la pastilla → 1 prueba en rojo.
+
+## 2026-10-09 — Crear clases repetidas: todas o ninguna, y sin saltos de hora
+
+**Qué fallaba (auditoría externa del 09/10/2026, punto 5):**
+- «Clase periódica» creaba las semanas desde la app con un bucle de
+  inserciones. Si fallaba a mitad quedaban creadas las primeras, y al
+  repetir salían duplicadas.
+- La app sumaba 7 días exactos a la fecha y hora: al cruzar el cambio de
+  hora (último domingo de marzo y de octubre), la clase de las 19:00 pasaba
+  a las 18:00 o a las 20:00.
+- De paso: `generar_mis_clases_recurrentes` (el botón que genera ya las
+  clases del horario fijo) fallaba **siempre** por un error de fechas
+  (`fecha y hora - 1`). No se notó porque no hay horario fijo creado. Las
+  del lunes de madrugada (`generar_clases_recurrentes`) sí funcionaban.
+
+**Decisión** (`20261009130000_horario_repetido.sql`):
+- `crear_clases(título, descripción, fecha, hora inicio, hora fin, aforo,
+  semanas)`: una sola llamada, todas o ninguna. La academia y el profesor
+  son los de quien la crea (Dueño o Profesor activo).
+- Cada semana se coloca con la fecha y la hora «de la pared» en la zona
+  horaria de la academia, como ya hacía el horario fijo.
+- Repetir no duplica: se salta la que ya existe con el mismo título y la
+  misma hora (salvo canceladas).
+- `generar_mis_clases_recurrentes` arreglada, y su comprobación de rol
+  resiste una cuenta sin perfil.
+
+**Corrección tras la revisión externa (09/10/2026):** saltarse la que ya
+existe no bastaba si el reintento llegaba **mientras la primera petición
+aún trabajaba**: la segunda no ve las clases sin confirmar de la primera y
+las duplicaba. Reproducido con dos sesiones a la vez: 4 clases en vez de 2.
+`crear_clases` toma ahora un candado por academia
+(`pg_advisory_xact_lock(7302, …)`) antes de mirar qué existe: la segunda
+espera, y al seguir ya ve las de la primera (0 creadas, 2 en total).
+
+**Verificación:** `horario_repetido_test.sql` (15), con tres martes que
+cruzan el 31/10/2027 y la comprobación de que se toma el candado.
+Sabotajes: sumar 7 días exactos → 3 en rojo; sin saltarse las existentes →
+2; sin candado → 1 en rojo y, con dos sesiones a la vez, 4 clases; la
+fecha rota de antes → la suite revienta. En la app, volver al bucle → 1
+prueba en rojo.
+
 ## 2026-10-09 — Lo que ve el alumno: renovación pagada, fallos con «Reintentar» y «revisa tu correo»
 
 **Qué fallaba (auditoría externa del 09/10/2026, punto 6):**

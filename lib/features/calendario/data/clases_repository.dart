@@ -42,24 +42,37 @@ class ClasesRepository {
         .toList();
   }
 
-  Future<void> crearClase({
-    required String academiaId,
-    required String profesorId,
+  /// Crea la clase, o la misma durante [semanas] semanas, en **una sola
+  /// llamada** (`crear_clases`): se crean todas o ninguna, y repetir no
+  /// duplica. Antes era un bucle de inserciones desde aquí: si fallaba a
+  /// mitad quedaban las primeras, y al reintentar salían repetidas.
+  ///
+  /// Fecha y horas van como se ven en la pared; el servidor las coloca en
+  /// la zona horaria de la academia. Sumando 7 días exactos aquí, la clase
+  /// de las 19:00 pasaba a las 18:00 o a las 20:00 al cruzar el cambio de
+  /// hora (auditoría del 09/10/2026). Devuelve cuántas ha creado.
+  Future<int> crearClases({
     required String titulo,
     String? descripcion,
-    required DateTime fechaHoraInicio,
-    required DateTime fechaHoraFin,
+    required DateTime fecha,
+    required ({int hora, int minuto}) inicio,
+    required ({int hora, int minuto}) fin,
     required int aforoMaximo,
+    int semanas = 1,
   }) async {
-    await _client.from('clases').insert({
-      'academia_id': academiaId,
-      'profesor_id': profesorId,
-      'titulo': titulo,
-      'descripcion': descripcion,
-      'fecha_hora_inicio': fechaHoraInicio.toUtc().toIso8601String(),
-      'fecha_hora_fin': fechaHoraFin.toUtc().toIso8601String(),
-      'aforo_maximo': aforoMaximo,
-    });
+    final creadas = await _client.rpc(
+      'crear_clases',
+      params: paramsCrearClases(
+        titulo: titulo,
+        descripcion: descripcion,
+        fecha: fecha,
+        inicio: inicio,
+        fin: fin,
+        aforoMaximo: aforoMaximo,
+        semanas: semanas,
+      ),
+    );
+    return creadas as int;
   }
 
   /// Creates a weekly recurring-class template. Concrete sessions are then
@@ -203,12 +216,7 @@ class ClasesRepository {
             as List;
     final validados = asistencias.map((a) => a['alumno_id'] as String).toSet();
 
-    final alConteAlDia = await _alumnosConCuotaAlDia(
-      inscripciones
-          .cast<Map<String, dynamic>>()
-          .map((row) => row['alumno_id'] as String)
-          .toList(),
-    );
+    final cuotas = await _estadoCuota(claseId);
 
     final inscritos = <InscritoAlumno>[];
     final listaEspera = <InscritoAlumno>[];
@@ -227,7 +235,8 @@ class ClasesRepository {
       final alumno = InscritoAlumno.fromInscripcionJson(
         row,
         asistenciaValidada: !enEspera && validados.contains(row['alumno_id']),
-        sinCuota: !alConteAlDia.contains(row['alumno_id']),
+        sinCuota: cuotas[row['alumno_id']]?.sinCuota ?? false,
+        sinClases: cuotas[row['alumno_id']]?.sinClases ?? false,
       );
       if (enEspera) {
         listaEspera.add(alumno);
@@ -255,29 +264,30 @@ class ClasesRepository {
     );
   }
 
-  /// Quién de estos alumnos tiene la cuota al día.
+  /// Quién de la clase sale «sin cuota» o «sin clases», calculado por el
+  /// servidor con **la fecha de la clase** (`estado_cuota_participantes`).
   ///
-  /// Las condiciones son **las mismas** que comprueba `reservar_clase` en el
-  /// servidor: activa (o en prueba), cobrada y dentro de fechas. Si aquí se
-  /// relajaran, la lista de la clase diría «al corriente» de alguien a
-  /// quien el servidor considera moroso.
-  Future<Set<String>> _alumnosConCuotaAlDia(List<String> alumnoIds) async {
-    if (alumnoIds.isEmpty) return const {};
-    final ahora = DateTime.now().toUtc().toIso8601String();
-    final rows =
-        await _client
-                .from('suscripciones')
-                .select('alumno_id')
-                .inFilter('alumno_id', alumnoIds)
-                .inFilter('estado', ['activa', 'prueba', 'programada'])
-                .eq('payment_status', 'active')
-                .lte('fecha_inicio', ahora)
-                .or('fecha_fin.is.null,fecha_fin.gt.$ahora')
+  /// Antes «sin cuota» se miraba aquí con la cuota de hoy, mientras que
+  /// `reservar_clase` mira la del día de la clase desde el 25/09: una clase
+  /// de después de que acabara la cuota salía sin marcar. Y «sin clases»
+  /// (reserva que se pasa de la tarifa tras una pausa o un cambio de fecha)
+  /// solo lo sabe calcular el servidor (auditoría del 09/10/2026).
+  Future<Map<String, ({bool sinCuota, bool sinClases})>> _estadoCuota(
+    String claseId,
+  ) async {
+    final filas =
+        await _client.rpc(
+              'estado_cuota_participantes',
+              params: {'p_clase_id': claseId},
+            )
             as List;
-    return rows
-        .cast<Map<String, dynamic>>()
-        .map((row) => row['alumno_id'] as String)
-        .toSet();
+    return {
+      for (final fila in filas.cast<Map<String, dynamic>>())
+        fila['alumno_id'] as String: (
+          sinCuota: fila['sin_cuota'] as bool? ?? false,
+          sinClases: fila['sin_clases'] as bool? ?? false,
+        ),
+    };
   }
 
   Future<List<InscritoAlumno>> listarInscritos(String claseId) async {
@@ -390,4 +400,27 @@ class ClasesRepository {
           ignoreDuplicates: true,
         );
   }
+}
+
+/// Lo que se manda a `crear_clases`: la fecha y las horas tal cual, sin
+/// zona horaria (las pone el servidor).
+Map<String, dynamic> paramsCrearClases({
+  required String titulo,
+  String? descripcion,
+  required DateTime fecha,
+  required ({int hora, int minuto}) inicio,
+  required ({int hora, int minuto}) fin,
+  required int aforoMaximo,
+  required int semanas,
+}) {
+  String dos(int n) => n.toString().padLeft(2, '0');
+  return {
+    'p_titulo': titulo,
+    'p_descripcion': descripcion,
+    'p_fecha': '${fecha.year}-${dos(fecha.month)}-${dos(fecha.day)}',
+    'p_hora_inicio': '${dos(inicio.hora)}:${dos(inicio.minuto)}',
+    'p_hora_fin': '${dos(fin.hora)}:${dos(fin.minuto)}',
+    'p_aforo_maximo': aforoMaximo,
+    'p_semanas': semanas,
+  };
 }
