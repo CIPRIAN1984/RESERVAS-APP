@@ -15,10 +15,10 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Tarifa {
 
- String get id;@JsonKey(name: 'academia_id') String get academiaId; String get nombre; String? get descripcion; num get precio; String get periodicidad; bool get activo;/// Clases que da **al mes**. `null` = ilimitada.
-///
-/// Es por mes aunque la tarifa se cobre cada 3 o cada 12: la periodicidad
-/// es de facturación, las clases van por ciclo mensual.
+ String get id;@JsonKey(name: 'academia_id') String get academiaId; String get nombre; String? get descripcion; num get precio; String get periodicidad; bool get activo;/// Clases que da **en cada periodo de la tarifa**: al mes en una
+/// mensual, en los 3 meses de una trimestral, en el año de una anual.
+/// `null` = ilimitada. Así cuenta el servidor desde el 25/09/2026
+/// (`ciclo_en`); antes este comentario decía «al mes» y la app también.
 @JsonKey(name: 'clases_incluidas') int? get clasesIncluidas;
 /// Create a copy of Tarifa
 /// with the given fields replaced by the non-null parameter values.
@@ -230,10 +230,10 @@ class _Tarifa implements Tarifa {
 @override final  num precio;
 @override final  String periodicidad;
 @override final  bool activo;
-/// Clases que da **al mes**. `null` = ilimitada.
-///
-/// Es por mes aunque la tarifa se cobre cada 3 o cada 12: la periodicidad
-/// es de facturación, las clases van por ciclo mensual.
+/// Clases que da **en cada periodo de la tarifa**: al mes en una
+/// mensual, en los 3 meses de una trimestral, en el año de una anual.
+/// `null` = ilimitada. Así cuenta el servidor desde el 25/09/2026
+/// (`ciclo_en`); antes este comentario decía «al mes» y la app también.
 @override@JsonKey(name: 'clases_incluidas') final  int? clasesIncluidas;
 
 /// Create a copy of Tarifa

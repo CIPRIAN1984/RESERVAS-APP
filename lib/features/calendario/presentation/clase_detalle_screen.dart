@@ -427,6 +427,8 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                 // que hacer algo al respecto.
                 if (alumno.sinCuota)
                   const PastillaEstado.error('Sin cuota')
+                else if (alumno.sinClases)
+                  const PastillaEstado.error('Sin clases')
                 else if (alumno.cinturon != null)
                   Text(
                     'Cinturón ${alumno.cinturon}',
@@ -468,8 +470,9 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
       ),
     );
 
-    // Tocar a quien no ha pagado abre el cobro en efectivo.
-    if (!alumno.sinCuota) return fila;
+    // Tocar a quien no ha pagado abre el cobro en efectivo (a quien se ha
+    // quedado sin clases, para cobrarle una clase extra).
+    if (!alumno.sinCuota && !alumno.sinClases) return fila;
     return InkWell(onTap: () => _cobrarEnMano(alumno), child: fila);
   }
 
@@ -570,6 +573,9 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
           final listaEspera = participantes.listaEspera;
           final tardias = participantes.cancelacionesTardias;
           final sinCuota = inscritos.where((a) => a.sinCuota).length;
+          final sinClases = inscritos
+              .where((a) => !a.sinCuota && a.sinClases)
+              .length;
           final pendientes = inscritos
               .where((a) => !a.asistenciaValidada)
               .toList();
@@ -610,6 +616,17 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                         alignment: Alignment.centerLeft,
                         child: PastillaEstado.error(
                           sinCuota == 1 ? '1 sin cuota' : '$sinCuota sin cuota',
+                        ),
+                      ),
+                    ],
+                    if (sinClases > 0) ...[
+                      const SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: PastillaEstado.error(
+                          sinClases == 1
+                              ? '1 sin clases'
+                              : '$sinClases sin clases',
                         ),
                       ),
                     ],
