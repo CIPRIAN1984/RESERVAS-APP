@@ -78,6 +78,8 @@ select is(
     'academia_id_de',
     'activar_cuota_efectivo',
     'aprobar_academia',
+    -- Sin perfil: apuntar_sin_reserva_test.sql.
+    'apuntar_en_clase',
     'borrar_hijo',
     'cambiar_estado_clase',
     'cambiar_rol_miembro',
