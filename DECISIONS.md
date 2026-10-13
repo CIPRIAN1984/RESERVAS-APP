@@ -2706,3 +2706,43 @@ auditoría: una reserva del mes siguiente (cubierta por la renovación) que
 el Dueño adelanta a este mes. Sabotajes: marcar las primeras en vez de las
 últimas → 2 en rojo; «sin cuota» con la fecha de hoy → 1 en rojo. En la
 app, quitar la pastilla → 1 prueba en rojo.
+
+## 2026-10-09 — Crear clases repetidas: todas o ninguna, y sin saltos de hora
+
+**Qué fallaba (auditoría externa del 09/10/2026, punto 5):**
+- «Clase periódica» creaba las semanas desde la app con un bucle de
+  inserciones. Si fallaba a mitad quedaban creadas las primeras, y al
+  repetir salían duplicadas.
+- La app sumaba 7 días exactos a la fecha y hora: al cruzar el cambio de
+  hora (último domingo de marzo y de octubre), la clase de las 19:00 pasaba
+  a las 18:00 o a las 20:00.
+- De paso: `generar_mis_clases_recurrentes` (el botón que genera ya las
+  clases del horario fijo) fallaba **siempre** por un error de fechas
+  (`fecha y hora - 1`). No se notó porque no hay horario fijo creado. Las
+  del lunes de madrugada (`generar_clases_recurrentes`) sí funcionaban.
+
+**Decisión** (`20261009130000_horario_repetido.sql`):
+- `crear_clases(título, descripción, fecha, hora inicio, hora fin, aforo,
+  semanas)`: una sola llamada, todas o ninguna. La academia y el profesor
+  son los de quien la crea (Dueño o Profesor activo).
+- Cada semana se coloca con la fecha y la hora «de la pared» en la zona
+  horaria de la academia, como ya hacía el horario fijo.
+- Repetir no duplica: se salta la que ya existe con el mismo título y la
+  misma hora (salvo canceladas).
+- `generar_mis_clases_recurrentes` arreglada, y su comprobación de rol
+  resiste una cuenta sin perfil.
+
+**Corrección tras la revisión externa (09/10/2026):** saltarse la que ya
+existe no bastaba si el reintento llegaba **mientras la primera petición
+aún trabajaba**: la segunda no ve las clases sin confirmar de la primera y
+las duplicaba. Reproducido con dos sesiones a la vez: 4 clases en vez de 2.
+`crear_clases` toma ahora un candado por academia
+(`pg_advisory_xact_lock(7302, …)`) antes de mirar qué existe: la segunda
+espera, y al seguir ya ve las de la primera (0 creadas, 2 en total).
+
+**Verificación:** `horario_repetido_test.sql` (15), con tres martes que
+cruzan el 31/10/2027 y la comprobación de que se toma el candado.
+Sabotajes: sumar 7 días exactos → 3 en rojo; sin saltarse las existentes →
+2; sin candado → 1 en rojo y, con dos sesiones a la vez, 4 clases; la
+fecha rota de antes → la suite revienta. En la app, volver al bucle → 1
+prueba en rojo.

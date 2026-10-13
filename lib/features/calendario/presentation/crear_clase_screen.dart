@@ -6,22 +6,16 @@ import '../application/clases_providers.dart';
 import '../data/clase_resumen.dart';
 
 class CrearClaseScreen extends ConsumerStatefulWidget {
-  const CrearClaseScreen({
-    required this.academiaId,
-    required this.profesorId,
-    super.key,
-  }) : claseExistente = null;
+  /// La academia y el profesor de la clase nueva los pone el servidor: los
+  /// de quien la crea.
+  const CrearClaseScreen({super.key}) : claseExistente = null;
 
   /// Modo edición: entra con los datos de una clase ya publicada. El
   /// título, la fecha inicial y los campos se rellenan solos, y "Guardar"
   /// llama a `editarClase` en vez de crear una fila nueva. No se ofrece
   /// "clase periódica": eso solo tiene sentido al crear.
-  const CrearClaseScreen.editar({required this.claseExistente, super.key})
-    : academiaId = '',
-      profesorId = '';
+  const CrearClaseScreen.editar({required this.claseExistente, super.key});
 
-  final String academiaId;
-  final String profesorId;
   final ClaseResumen? claseExistente;
 
   @override
@@ -120,21 +114,19 @@ class _CrearClaseScreenState extends ConsumerState<CrearClaseScreen> {
           aforoMaximo: int.parse(_aforoController.text.trim()),
         );
       } else {
-        final repeticiones = _periodica
-            ? int.parse(_numeroSemanasController.text.trim())
-            : 1;
-        for (var i = 0; i < repeticiones; i++) {
-          final desplazamiento = Duration(days: 7 * i);
-          await repo.crearClase(
-            academiaId: widget.academiaId,
-            profesorId: widget.profesorId,
-            titulo: _tituloController.text.trim(),
-            descripcion: _descripcionController.text.trim(),
-            fechaHoraInicio: inicio.add(desplazamiento),
-            fechaHoraFin: fin.add(desplazamiento),
-            aforoMaximo: int.parse(_aforoController.text.trim()),
-          );
-        }
+        // Todas las semanas en una sola llamada, con la hora de la pared:
+        // ver `ClasesRepository.crearClases`.
+        await repo.crearClases(
+          titulo: _tituloController.text.trim(),
+          descripcion: _descripcionController.text.trim(),
+          fecha: _fecha,
+          inicio: (hora: _horaInicio.hour, minuto: _horaInicio.minute),
+          fin: (hora: _horaFin.hour, minuto: _horaFin.minute),
+          aforoMaximo: int.parse(_aforoController.text.trim()),
+          semanas: _periodica
+              ? int.parse(_numeroSemanasController.text.trim())
+              : 1,
+        );
       }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
