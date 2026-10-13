@@ -2672,3 +2672,37 @@ su cuota actual**: se suma a sus clases y caduca con ella.
 **Verificación:** `clases_extra_test.sql` (19). Sabotajes: sin la rama de
 extra → 4 en rojo; bolsa sin descontar los otros ciclos → 1 en rojo. En la
 app, tratar la suelta como renovación → 2 pruebas en rojo.
+
+## 2026-10-09 — Reservas que se quedan sin clases: se mantienen y salen marcadas
+
+**Qué fallaba (auditoría externa del 09/10/2026, punto 4):** reservar
+comprueba el saldo en ese momento. Si después se pausa o reanuda una cuota
+con una renovación pagada, o se mueve una clase de fecha, la reserva puede
+caer en otro ciclo u otra cuota y pasarse de las clases de la tarifa, y
+nadie lo volvía a mirar. Además, «sin cuota» en la lista de la clase se
+calculaba en la app con la cuota de **hoy**, mientras que el servidor exige
+desde el 25/09 la del **día de la clase**.
+
+**Decisión de Cipri (09/10/2026):** esas reservas **se mantienen**, y en la
+lista de la clase salen marcadas **«sin clases»** para cobrarlas en mano,
+igual que «sin cuota».
+
+**Decisión técnica** (`20261009120000_reservas_sin_clases.sql`):
+- La marca se calcula al leer (`estado_cuota_participantes(clase)`, solo
+  Dueño/Profesor activos de la academia), no se guarda: no hay que
+  acordarse de recalcular en pausar, reanudar, mover, perdonar…
+- Si en el ciclo de la clase hay más clases contadas que las incluidas (con
+  extras), sobran **las últimas por fecha**: las primeras estaban cubiertas
+  cuando se reservaron.
+- «Sin cuota» sale de la misma función, con `_cuota_cubre` en la fecha de
+  la clase.
+- `_clases_contadas` lista una a una las clases que cuentan en un ciclo, y
+  `_consumo_ciclo` cuenta sobre ella: saldo y marca no pueden discrepar.
+- En la lista: pastilla «Sin clases», resumen «1 sin clases», y tocar abre
+  el cobro (para venderle una clase extra).
+
+**Verificación:** `reservas_sin_clases_test.sql` (13), con el caso de la
+auditoría: una reserva del mes siguiente (cubierta por la renovación) que
+el Dueño adelanta a este mes. Sabotajes: marcar las primeras en vez de las
+últimas → 2 en rojo; «sin cuota» con la fecha de hoy → 1 en rojo. En la
+app, quitar la pastilla → 1 prueba en rojo.
