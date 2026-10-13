@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
-// CONGELADO: import 'package:go_router/go_router.dart';
-// CONGELADO: import '../../../app/routes.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../app/routes.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/models/academia.dart';
 import '../../../core/utils/error_messages.dart';
 import '../../../l10n/app_localizations.dart';
+import '../domain/mensaje_registro.dart';
 
 /// Self-registration for a student joining an academia that already exists
 /// and is approved. Registering as Profesor is not self-service — a Dueño
@@ -41,6 +43,10 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
   String? _academiaId;
   bool _loading = false;
   String? _error;
+
+  /// El correo al que se ha mandado la confirmación, cuando Supabase la
+  /// exige: en vez del formulario se enseña «revisa tu correo».
+  String? _correoPorConfirmar;
 
   @override
   void initState() {
@@ -75,15 +81,17 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
     });
     final repo = ref.read(authRepositoryProvider);
     try {
-      await repo.signUpAlumno(
-        email: _emailController.text.trim(),
+      final email = _emailController.text.trim();
+      final dentro = await repo.signUpAlumno(
+        email: email,
         password: _passwordController.text,
         academiaId: _academiaId!,
         nombre: _nombreController.text.trim(),
         apellidos: _apellidosController.text.trim(),
       );
+      if (!dentro && mounted) setState(() => _correoPorConfirmar = email);
     } on sb.AuthException catch (e) {
-      setState(() => _error = e.message);
+      setState(() => _error = mensajeRegistro(e.message));
     } catch (e) {
       setState(
         () => _error = mensajeErrorAmigable(
@@ -101,6 +109,44 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
   Widget build(BuildContext context) {
     final academiasAsync = ref.watch(academiasAprobadasProvider);
     final l10n = AppLocalizations.of(context);
+
+    final correo = _correoPorConfirmar;
+    if (correo != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Revisa tu correo')),
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.mark_email_unread_outlined,
+                      size: 48,
+                      color: AppColors.subtle,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      textoRevisaTuCorreo(correo),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    const SizedBox(height: 24),
+                    OutlinedButton(
+                      onPressed: () => context.go(Routes.login),
+                      child: const Text('Ir a iniciar sesión'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.actionCreateAccount)),

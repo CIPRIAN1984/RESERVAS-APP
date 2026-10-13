@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../app/app_mode.dart';
 import '../../../app/theme/color_tokens.dart';
+import '../../../shared/widgets/error_en_linea.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../configuracion_reservas/application/configuracion_reservas_providers.dart';
@@ -197,6 +198,7 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
             );
           },
         ),
+        _RenovacionPendiente(alumnoId: widget.alumnoId),
         const SizedBox(height: 24),
         Text(
           'Tarifas disponibles',
@@ -248,7 +250,10 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                           const SizedBox(height: 4),
                           // Lo que de verdad decide entre una tarifa y otra.
                           Text(
-                            etiquetaClasesIncluidas(tarifa.clasesIncluidas),
+                            etiquetaClasesIncluidas(
+                              tarifa.clasesIncluidas,
+                              tarifa.periodicidad,
+                            ),
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           if (tarifa.descripcion != null) ...[
@@ -320,6 +325,75 @@ class _AvisoPausa extends ConsumerWidget {
   }
 }
 
+/// La renovación ya pagada que espera a que acabe la actual. Antes el
+/// alumno no la veía hasta que empezaba (auditoría del 09/10/2026) y podía
+/// pensar que había pagado para nada.
+class _RenovacionPendiente extends ConsumerWidget {
+  const _RenovacionPendiente({required this.alumnoId});
+
+  final String alumnoId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final renovacion = ref.watch(renovacionProgramadaProvider(alumnoId));
+    if (renovacion.hasError && !renovacion.hasValue) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: ErrorEnLinea(
+          mensaje: 'No se ha podido comprobar si tienes una renovación pagada.',
+          onReintentar: () =>
+              ref.invalidate(renovacionProgramadaProvider(alumnoId)),
+        ),
+      );
+    }
+    return renovacion.when(
+      loading: () => const SizedBox.shrink(),
+      error: (e, st) => const SizedBox.shrink(),
+      data: (r) {
+        if (r == null) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const PastillaEstado.exito('Renovación pagada'),
+                  const SizedBox(height: 8),
+                  Text(
+                    textoRenovacionPendiente(
+                      inicio: r.inicio.toLocal(),
+                      fin: r.fin?.toLocal(),
+                      tarifa: r.tarifa,
+                    ),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Lo que se le dice al alumno de su renovación ya pagada.
+String textoRenovacionPendiente({
+  required DateTime inicio,
+  required DateTime? fin,
+  required String? tarifa,
+}) {
+  final formato = DateFormat("d 'de' MMMM 'de' y", 'es_ES');
+  final cual = tarifa == null
+      ? 'Tu próxima cuota'
+      : 'Tu próxima cuota, $tarifa,';
+  final hasta = fin == null ? '' : ' y te dura hasta el ${formato.format(fin)}';
+  return '$cual empieza el ${formato.format(inicio)}, cuando acabe la '
+      'actual,$hasta.';
+}
+
 /// [exigeCuota] `null` mientras no se sabe: se dice solo lo seguro.
 String textoAvisoPausa({required bool? exigeCuota}) => switch (exigeCuota) {
   true =>
@@ -339,6 +413,14 @@ class _SaldoClasesTexto extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final saldoAsync = ref.watch(clasesRestantesProvider(alumnoId));
+    // `hasError` y no `.when`: mientras Riverpod reintenta solo, `.when` lo
+    // da por «cargando» y el fallo no se llegaba a ver.
+    if (saldoAsync.hasError && !saldoAsync.hasValue) {
+      return ErrorEnLinea(
+        mensaje: 'No se ha podido cargar cuántas clases te quedan.',
+        onReintentar: () => ref.invalidate(clasesRestantesProvider(alumnoId)),
+      );
+    }
     return saldoAsync.when(
       loading: () => const SizedBox.shrink(),
       error: (e, st) => const SizedBox.shrink(),
@@ -351,9 +433,17 @@ class _SaldoClasesTexto extends ConsumerWidget {
         final plazo = fin == null
             ? 'en este periodo'
             : 'hasta el ${DateFormat("d 'de' MMMM", 'es_ES').format(fin.toLocal())}';
+        // Las extras van sumadas en «incluidas»; se dice cuántas son para
+        // que «3 de 9» en una tarifa de 8 no parezca un error.
+        final extras = switch (saldo.extras) {
+          0 => '',
+          1 => ' (1 extra)',
+          final n => ' ($n extra)',
+        };
         return Text(
           disponibles > 0
-              ? 'Te quedan $disponibles de ${saldo.incluidas} clases $plazo.'
+              ? 'Te quedan $disponibles de ${saldo.incluidas} clases$extras '
+                    '$plazo.'
               : 'Sin clases disponibles $plazo. Renueva o compra una suelta.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: disponibles > 0 ? AppColors.subtle : AppColors.destructive,
@@ -429,7 +519,7 @@ class _TarifasGestionView extends ConsumerWidget {
                   subtitle: Text(
                     '${tarifa.precio.toStringAsFixed(2)} € '
                     '${etiquetasPeriodicidad[tarifa.periodicidad] ?? ''}'
-                    ' · ${etiquetaClasesIncluidas(tarifa.clasesIncluidas)}',
+                    ' · ${etiquetaClasesIncluidas(tarifa.clasesIncluidas, tarifa.periodicidad)}',
                   ),
                   // Tocar la fila abre la tarifa para cambiarla. El
                   // interruptor solo la retira, que es otra cosa.

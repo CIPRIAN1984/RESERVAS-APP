@@ -86,6 +86,8 @@ select is(
     'cancelar_clase',
     'cancelar_reserva',
     'clases_restantes',
+    -- Sin perfil: horario_repetido_test.sql.
+    'crear_clases',
     'crear_hijo',
     'current_academia_id',
     'current_rol',
@@ -93,6 +95,8 @@ select is(
     'desactivar_cuota_efectivo',
     'editar_clase',
     'es_padre_de',
+    -- Sin perfil: reservas_sin_clases_test.sql.
+    'estado_cuota_participantes',
     'generar_mis_clases_recurrentes',
     'hijos_borrables',
     'listar_academias_aprobadas',

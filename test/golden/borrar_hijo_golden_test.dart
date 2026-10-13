@@ -9,6 +9,9 @@ import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/core/models/profile.dart';
 import 'package:itaca/features/perfil/application/profile_providers.dart';
 import 'package:itaca/features/perfil/presentation/mis_hijos_screen.dart';
+import 'package:itaca/features/tarifas/application/tarifas_providers.dart';
+import 'package:itaca/features/tarifas/data/saldo_clases.dart';
+import 'package:itaca/features/tarifas/data/suscripcion.dart';
 
 import '../golden_archived/ayuda_golden.dart';
 
@@ -29,6 +32,35 @@ Widget _app({required List<Profile> hijos, required Set<String> borrables}) =>
       overrides: [
         hijosProvider.overrideWith((ref) async => hijos),
         hijosBorrablesProvider.overrideWith((ref) async => borrables),
+        // La cuota de cada hijo, como en la app de verdad. Sin esto la carga
+        // falla en la prueba y, desde el 09/10/2026, se dibuja el aviso de
+        // «No se ha podido cargar su cuota» en vez de la pantalla real.
+        suscripcionActivaProvider('h1').overrideWith(
+          (ref) async => Suscripcion(
+            id: 's1',
+            alumnoId: 'h1',
+            tarifaId: 't1',
+            tarifaNombre: 'Infantil 2 días',
+            estado: 'activa',
+            paymentStatus: 'active',
+            fechaInicio: DateTime(2026, 10, 1),
+            fechaFin: DateTime(2030, 11, 1),
+          ),
+        ),
+        clasesRestantesProvider('h1').overrideWith(
+          (ref) async => const SaldoClases(
+            tieneCuota: true,
+            ilimitada: false,
+            incluidas: 8,
+            gastadas: 2,
+            reservadas: 1,
+            disponibles: 5,
+          ),
+        ),
+        suscripcionActivaProvider('h2').overrideWith((ref) async => null),
+        clasesRestantesProvider('h2').overrideWith(
+          (ref) async => const SaldoClases(tieneCuota: false, ilimitada: false),
+        ),
       ],
       child: MaterialApp(theme: AppTheme.light, home: const MisHijosScreen()),
     );

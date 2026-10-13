@@ -50,6 +50,7 @@ Widget _app(Suscripcion suscripcion) => ProviderScope(
       (ref) async => const SaldoClases(tieneCuota: true, ilimitada: true),
     ),
     tarifasProvider(true).overrideWith((ref) async => const <Tarifa>[]),
+    renovacionProgramadaProvider('a1').overrideWith((ref) async => null),
   ],
   child: MaterialApp(
     debugShowCheckedModeBanner: false,

@@ -24,6 +24,16 @@ final suscripcionActivaProvider = FutureProvider.autoDispose
       return ref.watch(tarifasRepositoryProvider).suscripcionActiva(alumnoId);
     });
 
+final renovacionProgramadaProvider = FutureProvider.autoDispose
+    .family<({DateTime inicio, DateTime? fin, String? tarifa})?, String>((
+      ref,
+      alumnoId,
+    ) {
+      return ref
+          .watch(tarifasRepositoryProvider)
+          .renovacionProgramada(alumnoId);
+    });
+
 final clasesRestantesProvider = FutureProvider.autoDispose
     .family<SaldoClases, String>((ref, alumnoId) {
       return ref.watch(tarifasRepositoryProvider).clasesRestantes(alumnoId);

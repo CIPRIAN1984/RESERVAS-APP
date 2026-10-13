@@ -8,6 +8,7 @@ import '../../../core/models/cinturones.dart';
 import '../../../core/models/profile.dart';
 import '../../../core/utils/error_messages.dart';
 import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/error_en_linea.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../tarifas/application/tarifas_providers.dart';
 import '../application/profile_providers.dart';
@@ -277,8 +278,9 @@ class _FilaHijo extends StatelessWidget {
   }
 }
 
-/// La cuota del hijo y cuántas clases le quedan. Mientras carga, o si falla,
-/// no se enseña nada: mejor un hueco que un dato falso.
+/// La cuota del hijo y cuántas clases le quedan. Mientras carga no se
+/// enseña nada; si falla, se dice y se puede reintentar (auditoría del
+/// 09/10/2026: un hueco se leía como «no tiene cuota»).
 class _CuotaHijo extends ConsumerWidget {
   const _CuotaHijo({required this.hijoId});
 
@@ -288,7 +290,19 @@ class _CuotaHijo extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cuota = ref.watch(suscripcionActivaProvider(hijoId));
     final saldo = ref.watch(clasesRestantesProvider(hijoId));
-    if (!cuota.hasValue || cuota.hasError) return const SizedBox.shrink();
+    if (cuota.hasError || saldo.hasError) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: ErrorEnLinea(
+          mensaje: 'No se ha podido cargar su cuota.',
+          onReintentar: () {
+            ref.invalidate(suscripcionActivaProvider(hijoId));
+            ref.invalidate(clasesRestantesProvider(hijoId));
+          },
+        ),
+      );
+    }
+    if (!cuota.hasValue) return const SizedBox.shrink();
 
     final resumen = resumenCuotaHijo(cuota.value, saldo.value);
     return Padding(
