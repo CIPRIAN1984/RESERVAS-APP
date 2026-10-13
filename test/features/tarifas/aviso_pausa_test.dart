@@ -51,6 +51,7 @@ Widget _app({required bool exigeCuota}) => ProviderScope(
       (ref) async => const SaldoClases(tieneCuota: false, ilimitada: false),
     ),
     tarifasProvider(true).overrideWith((ref) async => const <Tarifa>[]),
+    renovacionProgramadaProvider('a1').overrideWith((ref) async => null),
     configuracionReservasProvider('ac1').overrideWith(
       (ref) async => ConfiguracionReservas(
         listaEsperaActiva: true,

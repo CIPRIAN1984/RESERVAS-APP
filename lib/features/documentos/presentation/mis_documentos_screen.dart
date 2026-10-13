@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
+import '../../../shared/widgets/error_en_linea.dart';
 import '../../perfil/application/profile_providers.dart';
 import 'documentos_seccion.dart';
 
@@ -32,33 +33,46 @@ class MisDocumentosScreen extends ConsumerWidget {
           puedeSubir: true,
           puedeBorrar: false,
         ),
-        hijosAsync.when(
-          loading: () => const SizedBox.shrink(),
-          error: (e, st) => const SizedBox.shrink(),
-          data: (hijos) {
-            if (hijos.isEmpty) return const SizedBox.shrink();
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final hijo in hijos) ...[
-                  const SizedBox(height: 24),
-                  Text(
-                    'Documentos de '
-                    '${[hijo.nombre, hijo.apellidos].whereType<String>().join(' ')}',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 12),
-                  SeccionDocumentos(
-                    alumnoId: hijo.id,
-                    subidoPorId: userId,
-                    puedeSubir: true,
-                    puedeBorrar: false,
-                  ),
+        // Si falla, se dice: sin esto los documentos de los hijos
+        // desaparecían y parecía que no había que subir nada. `hasError` y
+        // no `.when`: mientras Riverpod reintenta solo, `.when` lo da por
+        // «cargando».
+        if (hijosAsync.hasError && !hijosAsync.hasValue)
+          Padding(
+            padding: const EdgeInsets.only(top: 24),
+            child: ErrorEnLinea(
+              mensaje: 'No se han podido cargar los documentos de tus hijos.',
+              onReintentar: () => ref.invalidate(hijosProvider),
+            ),
+          )
+        else
+          hijosAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error: (e, st) => const SizedBox.shrink(),
+            data: (hijos) {
+              if (hijos.isEmpty) return const SizedBox.shrink();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final hijo in hijos) ...[
+                    const SizedBox(height: 24),
+                    Text(
+                      'Documentos de '
+                      '${[hijo.nombre, hijo.apellidos].whereType<String>().join(' ')}',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    SeccionDocumentos(
+                      alumnoId: hijo.id,
+                      subidoPorId: userId,
+                      puedeSubir: true,
+                      puedeBorrar: false,
+                    ),
+                  ],
                 ],
-              ],
-            );
-          },
-        ),
+              );
+            },
+          ),
         const SizedBox(height: 16),
         Text(
           'Solo lo ve el equipo de tu academia, para saber que está en '

@@ -229,4 +229,45 @@ void main() {
     );
     expect(find.text('Sin cuota'), findsOneWidget);
   });
+
+  // Auditoría del 09/10/2026: si fallaba la carga de la cuota del hijo no
+  // se enseñaba nada, y un hueco se lee como «no tiene cuota».
+  testWidgets('si no carga la cuota del hijo, lo dice y deja reintentar', (
+    tester,
+  ) async {
+    await initializeDateFormatting('es_ES');
+    await tester.binding.setSurfaceSize(const Size(412, 900));
+    // Falla hasta que se pulsa «Reintentar» (Riverpod reintenta solo).
+    var conexion = false;
+    var intentos = 0;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          hijosProvider.overrideWith(
+            (ref) async => [_hijo(id: 'h1', nombre: 'Nico')],
+          ),
+          suscripcionActivaProvider('h1').overrideWith((ref) async {
+            intentos++;
+            if (!conexion) throw Exception('sin conexión');
+            return null;
+          }),
+          clasesRestantesProvider('h1').overrideWith(
+            (ref) async =>
+                const SaldoClases(tieneCuota: false, ilimitada: false),
+          ),
+        ],
+        child: const MaterialApp(home: MisHijosScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('No se ha podido cargar su cuota.'), findsOneWidget);
+    final antes = intentos;
+    conexion = true;
+    await tester.tap(find.text('Reintentar'));
+    await tester.pumpAndSettle();
+
+    expect(intentos, greaterThan(antes));
+    expect(find.text('Sin cuota'), findsOneWidget);
+  });
 }
