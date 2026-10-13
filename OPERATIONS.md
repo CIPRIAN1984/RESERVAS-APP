@@ -58,6 +58,39 @@ Antes de aplicar una migración de permisos:
 5. Verificar en un entorno no productivo los roles `anon`, `authenticated` y
    `service_role`.
 
+## Aplicar migraciones desde Claude (conector de Supabase)
+
+Las migraciones se aplican en producción con el conector de Supabase
+(`apply_migration`), no con `supabase db push`. Por eso los nombres y las
+versiones del historial remoto no coinciden con los ficheros: el conector
+pone su propia fecha, y una migración puede quedar partida en varias.
+
+**Todo lo que lleve `drop` necesita a Cipri.** El conector pide confirmación
+humana para cualquier sentencia con `drop` (también `drop … if exists` de algo
+que no existe y `alter table … drop constraint`), y si nadie confirma en un
+minuto la cancela sin aplicar nada. Se vio el 11/10/2026 aplicando
+`20261009100000_cobro_segun_tarifa.sql`: tres intentos caducados hasta dar con
+la causa.
+
+Cómo se hace entonces:
+
+1. Aplicar por partes todo lo que no lleve `drop` (columnas, índices,
+   `create or replace`, permisos).
+2. Si una función cambia de argumentos, crear la nueva (convive con la vieja)
+   y quitarle los permisos a la vieja con `revoke`, para que nadie la use.
+   Ojo: mientras convivan, una llamada que no mande los argumentos nuevos es
+   ambigua y falla. La app nueva tiene que mandarlos siempre.
+3. Dejar las sentencias con `drop` en un bloque corto entre `begin;` y
+   `commit;`, para que Cipri lo pegue en Supabase → SQL Editor (o lo confirme
+   con él delante).
+4. Comprobar que lo aplicado es exactamente lo del repositorio: la huella
+   `md5(prosrc)` de cada función en producción contra el cuerpo entre `$$` del
+   fichero, y la lista de funciones que puede ejecutar `authenticated` contra
+   el catálogo de `sin_perfil_no_puede_nada_test.sql`.
+
+La migración va **antes** de fusionar el PR que la usa: si no, la web nueva
+llama a algo que todavía no existe.
+
 ## Estado del historial remoto
 
 El 27 de julio de 2026 se compararon las 22 migraciones remotas del proyecto
@@ -67,6 +100,13 @@ bytes y la huella MD5 del SQL normalizado coinciden exactamente en los 22 casos.
 Los archivos locales usan desde entonces las mismas versiones temporales
 registradas en producción (`20260712124546…20260712124745`). Este cambio solo
 reconcilia el historial: no modifica el SQL, el esquema ni los datos.
+
+**Esto ya no es así** para las migraciones posteriores, que se aplican con el
+conector (ver la sección anterior): sus versiones remotas no coinciden con las
+de los ficheros (`20260930120000_tutor_ve_cuota_hijos.sql` está en producción
+como `20260930173046`). Un `supabase db push` las vería todas como pendientes
+e intentaría aplicarlas otra vez. No usarlo contra producción sin reconciliar
+antes el historial.
 
 Antes de ejecutar `supabase db push`:
 
