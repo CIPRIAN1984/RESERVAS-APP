@@ -77,7 +77,11 @@ select is(
   array[
     'academia_id_de',
     'activar_cuota_efectivo',
+    -- Sin perfil: acceso_y_privacidad_test.sql.
+    'alumnos_con_cuota_vigente',
     'aprobar_academia',
+    -- Sin perfil: acceso_y_privacidad_test.sql.
+    'aprobar_miembro',
     -- Sin perfil: apuntar_sin_reserva_test.sql.
     'apuntar_en_clase',
     'borrar_hijo',
@@ -86,6 +90,8 @@ select is(
     'cancelar_clase',
     'cancelar_reserva',
     'clases_restantes',
+    -- Sin perfil: acceso_y_privacidad_test.sql.
+    'companeros_de_clase',
     -- Sin perfil: horario_repetido_test.sql.
     'crear_clases',
     'crear_hijo',
@@ -112,6 +118,8 @@ select is(
     'reactivar_alumno',
     'reanudar_cuota_efectivo',
     'rechazar_academia',
+    -- Sin perfil: acceso_y_privacidad_test.sql.
+    'rechazar_miembro',
     'registrar_device_token',
     'reservar_clase',
     'resolver_cambio_escuela',

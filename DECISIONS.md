@@ -2811,3 +2811,57 @@ desde la clase, **respetando las reglas**.
 **Verificación:** `apuntar_sin_reserva_test.sql` (18). Sabotajes: sin
 mirar las clases de la tarifa → 2 en rojo; sin la ventana de tiempo → 2.
 En la app, 4 pruebas nuevas; ocultar el botón → 2 en rojo.
+
+## 2026-11-17 — Acceso y privacidad: registrarse no da acceso; cada uno ve lo suyo
+
+**Qué pasaba** (auditoría del 13/11, comprobado en producción): el registro
+abierto creaba cuentas activas que veían a todos los miembros, las familias y
+quién va a cada clase; un alumno de baja seguía viéndolo; un Profesor veía
+importes, cambiaba tarifas y veía y borraba certificados médicos; y un alumno
+podía crear, llamando al servidor, un pedido de tienda «pagado y entregado».
+
+**Decisión de Cipri (encargo del 17/11/2026):**
+
+- La cuenta nueva nace **pendiente** y el Dueño la aprueba o la rechaza desde
+  Miembros. El enlace de registro no concede acceso. Rechazar no borra: deja
+  la cuenta de baja.
+- Pendiente o de baja = sin acceso a nada de la academia.
+- El alumno ve lo suyo; el tutor, lo de sus hijos; el Profesor, lo necesario
+  para dar clase y pasar lista. Importes, tarifas y certificados quedan
+  fuera del rol Profesor. Cobrar y dar de baja ya eran solo del Dueño.
+- La tienda queda fuera de la entrega de prueba, cerrada también en el
+  servidor.
+
+**Lo que se conserva sin que nadie lo haya pedido cambiar:** los compañeros
+de clase y el ranking (decisiones del 18/08) siguen visibles para alumnos
+activos, con nombre, foto, cinturón y, en el ranking, número de clases.
+
+**Cómo** (`20261117090000_acceso_y_privacidad.sql`):
+
+- `current_rol()` y `current_academia_id()` solo responden para un perfil
+  **activo**. Con eso una cuenta pendiente o de baja queda igual que una
+  cuenta sin perfil, que ya estaba cerrada función a función (09/10). Se
+  eligió esto y no tocar política por política porque una política olvidada
+  sería un agujero.
+- Las tablas `profiles`, `inscripciones`, `asistencias` y
+  `relaciones_familia` dejan de leerse «por academia»: propias, de los hijos,
+  o del equipo. Lo que el alumno sí ve de otros sale de funciones acotadas:
+  `listar_clases_semana` (plazas ocupadas), `ranking_periodo` y la nueva
+  `companeros_de_clase`.
+- `suscripciones`, `tarifas` (escritura) y documentos (tabla y ficheros):
+  Dueño, no Profesor. El Profesor recibe solo quién tiene cuota en vigor
+  (`alumnos_con_cuota_vigente`), sin importes.
+- Tienda: se quitan los permisos de escritura de `productos`, `pedidos` y
+  `prestamos`. Además el pedido nace siempre «pendiente de pago», por si se
+  reabre.
+- Sin sesión (`anon`) no queda permiso sobre ninguna tabla.
+- Sin ningún `drop`: las políticas se cambian con `alter policy`, para poder
+  aplicarlo en producción sin el bloqueo del conector.
+
+**Pruebas:** `acceso_y_privacidad_test.sql` (55 comprobaciones, con la sesión
+de cada rol). Deshaciendo el arreglo a propósito se ponen en rojo. Cinco
+suites antiguas contaban reservas ajenas con la sesión de un alumno o daban
+por hecho que el alta nacía activa: se han adaptado.
+
+**Pendiente de Cipri:** el mínimo de contraseña pasa a 8 en la pantalla y en
+la configuración local; en producción se cambia en el panel de Supabase.

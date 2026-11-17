@@ -155,6 +155,9 @@ select is(
 );
 
 -- 3-4. Nunca se supera el aforo y la cola queda separada.
+-- Desde el 17/11/2026 un alumno solo ve SUS reservas: la comprobación se
+-- hace con los privilegios de la prueba, no con los del alumno.
+reset role;
 select is(
   (
     select count(*)::int
@@ -185,6 +188,9 @@ select is(
   'false',
   'La cancelación hecha con tiempo no queda marcada como tardía'
 );
+-- Desde el 17/11/2026 un alumno solo ve SUS reservas: la comprobación se
+-- hace con los privilegios de la prueba, no con los del alumno.
+reset role;
 select is(
   (
     select estado

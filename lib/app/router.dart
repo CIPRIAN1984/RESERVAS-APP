@@ -108,7 +108,10 @@ String? _redirect(Ref ref, GoRouterState state) {
     return registrationRoutes.contains(loc) ? null : Routes.registro;
   }
 
-  if (profile.pendienteAprobacion && !profile.isAdministrador) {
+  // Pendiente de aprobar o de baja: sin acceso a nada de la academia. El
+  // servidor tampoco le da ningún dato; esto solo evita pantallas vacías.
+  if ((profile.pendienteAprobacion || profile.deBaja) &&
+      !profile.isAdministrador) {
     return loc == Routes.pendienteAprobacion
         ? null
         : Routes.pendienteAprobacion;

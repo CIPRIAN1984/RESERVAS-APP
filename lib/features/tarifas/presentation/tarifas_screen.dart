@@ -26,7 +26,8 @@ class TarifasScreen extends ConsumerWidget {
 
     // En modo Entrenamiento se ve «mi cuota»; en modo Gestor, el catálogo
     // de tarifas de la academia.
-    final puedeGestionar = ref.watch(enModoGestionProvider);
+    // Las tarifas las crea y cambia solo el Dueño (17/11/2026).
+    final puedeGestionar = ref.watch(enModoGestionProvider) && profile.isDueno;
 
     return puedeGestionar
         ? _TarifasGestionView(academiaId: profile.academiaId!)

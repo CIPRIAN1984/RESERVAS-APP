@@ -138,7 +138,14 @@ tocar Stripe de verdad porque falta `STRIPE_SECRET_KEY`.
 
 ---
 
-## 3. Tienda y Productos — DESCONGELADA (19/09/2026)
+## 3. Tienda y Productos — CERRADA para la entrega de prueba (17/11/2026)
+
+**Estado actual:** fuera de la entrega de prueba por decisión de Cipri. Los
+accesos de Herramientas y Perfil están quitados y el servidor no deja
+escribir en `productos`, `pedidos` ni `prestamos`
+(`20261117090000_acceso_y_privacidad.sql`). No se ha borrado nada. Para
+reabrirla hay que devolver esos permisos a propósito. Lo que sigue es el
+histórico de cuando se descongeló el 19/09/2026.
 
 **Estado:** completa y expuesta en Herramientas (gestor) y Perfil (alumno).
 

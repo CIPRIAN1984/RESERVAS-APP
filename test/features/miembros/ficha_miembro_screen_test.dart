@@ -46,11 +46,21 @@ Widget _app({
   required ProgresoCinturon progreso,
   MiembrosRepository? repo,
   bool navegadorAnidado = false,
+  String rol = 'dueño',
 }) {
   final ficha = FichaMiembroScreen(alumno: alumno);
   return ProviderScope(
     overrides: [
       currentUserIdProvider.overrideWithValue('staff1'),
+      currentProfileProvider.overrideWith(
+        (ref) async => Profile(
+          id: 'staff1',
+          academiaId: 'a1',
+          rol: rol,
+          nombre: 'Staff',
+          estado: 'activo',
+        ),
+      ),
       documentosDeProvider(alumno.id).overrideWith((ref) async => const []),
       progresoCinturonProvider((
         alumnoId: alumno.id,
@@ -212,7 +222,7 @@ void main() {
   // Certificado médico y descargo de responsabilidad (19/09/2026): el staff
   // tiene que poder verlos y gestionarlos desde la propia ficha, no solo el
   // alumno o su tutor desde Perfil.
-  testWidgets('el staff ve la sección de documentos del alumno', (
+  testWidgets('el Dueño ve la sección de documentos del alumno', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -233,5 +243,28 @@ void main() {
     // Sin ninguno subido, el staff aún puede subirlo (llega en papel a
     // recepción): dos botones "Subir", uno por tipo de documento.
     expect(find.text('Subir'), findsNWidgets(2));
+  });
+
+  // 17/11/2026: el certificado médico es un dato de salud; el Profesor no lo
+  // ve (el servidor tampoco se lo da) ni puede dar de baja.
+  testWidgets('el Profesor no ve documentos ni el botón de baja', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(412, 1600));
+    await tester.pumpWidget(
+      _app(
+        alumno: _alumno(),
+        rol: 'profesor',
+        progreso: const ProgresoCinturon(
+          asistencias: 5,
+          requeridas: 312,
+          proximoCinturon: 'azul',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Documentos'), findsNothing);
+    expect(find.text('Dar de baja'), findsNothing);
   });
 }

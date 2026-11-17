@@ -14,7 +14,7 @@
   "authEmail": "Email",
   "authPassword": "Contraseña",
   "authEmailInvalid": "Introduce un email válido",
-  "authPasswordTooShort": "Mínimo 6 caracteres",
+  "authPasswordTooShort": "Mínimo 8 caracteres",
   "registerName": "Nombre",
   "registerLastName": "Apellidos",
   "registerYourAcademy": "Tu academia",
