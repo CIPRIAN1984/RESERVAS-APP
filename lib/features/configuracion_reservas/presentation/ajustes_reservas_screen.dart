@@ -139,15 +139,14 @@ class _ConfiguracionFormState extends ConsumerState<_ConfiguracionForm> {
         Card(
           child: SwitchListTile(
             value: _listaEsperaActiva,
-            onChanged: _guardando
-                ? null
-                : (value) {
-                    setState(() => _listaEsperaActiva = value);
-                  },
+            // Bloqueada en el piloto (17/11/2026): sube sola a quien espera y,
+            // si no viene, se le descuenta la clase; sin avisos verificados
+            // nadie sabría que tiene plaza. El servidor también lo impide.
+            onChanged: null,
             title: const Text('Lista de espera automática'),
             subtitle: const Text(
-              'Si una clase está llena, la siguiente persona entra en cola y '
-              'recibe la plaza automáticamente cuando alguien cancela.',
+              'No disponible en esta versión: mientras no haya avisos al móvil '
+              'verificados, nadie se entera de que ha conseguido plaza.',
             ),
           ),
         ),
@@ -203,6 +202,8 @@ class _ConfiguracionFormState extends ConsumerState<_ConfiguracionForm> {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: DropdownButtonFormField<String>(
+              // Sin esto el texto se salía de la tarjeta en un móvil de 412 px.
+              isExpanded: true,
               initialValue: _zonaHoraria,
               decoration: const InputDecoration(
                 labelText: 'Zona horaria',

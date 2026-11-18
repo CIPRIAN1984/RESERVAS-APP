@@ -2865,3 +2865,32 @@ por hecho que el alta nacía activa: se han adaptado.
 
 **Pendiente de Cipri:** el mínimo de contraseña pasa a 8 en la pantalla y en
 la configuración local; en producción se cambia en el panel de Supabase.
+
+## 2026-11-17 — Cobrar con la clase empezada, clases antiguas y lista de espera apagada
+
+**Dos fallos reales que dejó la auditoría del 13/11** (reproducidos en local
+antes de tocar nada):
+
+1. Cobrar en recepción con la clase ya empezada: la cuota empezaba «ahora»,
+   después que la clase. La clase salía «sin cuota» y no gastaba ninguna
+   clase del bono aunque la persona acabara de pagar. Ahora la cuota recién
+   cobrada empieza cuando empezó la clase en marcha en la que esa persona
+   está (apuntada o con asistencia), en los dos órdenes: cobrar y apuntar, o
+   apuntar y cobrar. Solo se retrasa hasta ese inicio, no más.
+2. Una clase antigua dejaba de estar «cubierta» cuando caducaba la cuota que
+   la cubría (el trabajo de caducidad la pone en `expirada`). Ahora una cuota
+   `expirada` o `cancelada` sigue contando para las fechas que cubrió, y
+   solo para esas.
+
+**Lista de espera apagada en el piloto** (decisión de Cipri, encargo del
+17/11): sube sola a quien espera y, si no viene, se le descuenta la clase;
+el aviso al móvil no está verificado (en la web ni existe). El interruptor
+de Ajustes de reservas sale bloqueado y el servidor rechaza que un Dueño la
+encienda. No se ha tocado lo que ya hubiera guardado una academia. Para
+volver a abrirla: verificar los avisos y quitar el disparador
+`academias_bloquear_lista_espera`.
+
+**Entorno de pruebas:** las suites de base de datos cuentan filas, así que
+solo valen sobre base limpia. `scripts/probar_db_limpia.sh` reinicia la base
+LOCAL, pasa las pruebas y avisa de que hay que volver a sembrar con
+`scripts/sembrar_prueba.py`.

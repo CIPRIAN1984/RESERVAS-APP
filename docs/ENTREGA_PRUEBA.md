@@ -56,24 +56,48 @@ comprobaciones del bucket de documentos que ya fallaban antes en este
 entorno por la versión de la herramienta, no por estos cambios) y 281
 pruebas de la app.
 
-## Bloque 2 — Recorrido de la escuela
+## Bloque 2 — Recorrido de la escuela — ✅ hecho en local (18/11/2026)
+
+Migraciones `20261117100000_recepcion_y_clases_antiguas.sql` y
+`20261117110000_lista_espera_apagada.sql`. **No aplicadas en producción.**
+
+**Recorrido con sesión iniciada, en navegador a 412 px, contra el Supabase
+local (`scripts/e2e_local/`)** — ✅ verificado de extremo a extremo con pago
+en mano:
+
+1. Registro de una alumna por el enlace → pantalla «Revisa tu correo» → el
+   correo llega al buzón de pruebas → enlace de confirmación → entra y ve «Tu
+   alta está pendiente de aprobación» (perfil `pendiente_aprobacion`).
+2. La dueña abre Miembros → «1 alta pendiente de aprobar» → «Aprobar a Nuria»
+   → la alumna pasa a `activo`.
+3. La dueña le cobra «Bono 10 sesiones» en mano → en la base: 80 €, 10
+   clases, trimestral, del 18/11 al 18/02/2027.
+4. La alumna reserva una clase → «INSCRITO».
+5. El profesor, en modo Gestor, «Confirmar 1 alumno» → «Confirmar todos».
+6. Saldo: **1 gastada, 0 reservadas, 9 disponibles de 10** (exactamente una).
 
 | Requisito | Estado | Evidencia |
 |---|---|---|
-| alta → aprobación → tarifa → pago en mano → reserva → asistencia → saldo | ⬜ | prueba de extremo a extremo en local, con sesión iniciada |
-| Bono trimestral (periodos y precio) | ✅ en producción (#87) | `cobro_segun_tarifa_test.sql`; ⬜ repetir en el recorrido |
-| Renovación anticipada | ✅ (#84) | `renovacion_y_pausa_test.sql`; ⬜ recorrido |
-| Clase extra | ✅ (#88) | `clases_extra_test.sql`; ⬜ recorrido |
-| Pausa | ✅ (#84) | ídem; ⬜ recorrido |
-| Aforo con reservas simultáneas | ✅ | `reservar_clase` con candado; pgTAP |
-| Cancelaciones (a tiempo / tardía / perdonar) | ✅ (#82) | pgTAP; ⬜ recorrido |
-| Ausencias (no presentado consume) | ✅ (20/09) | pgTAP; ⬜ recorrido |
-| Llegada sin reserva | ✅ (#92) | `apuntar_sin_reserva_test.sql`; ⬜ recorrido |
-| Baja y reactivación | ✅ (06/09) | pgTAP; ⬜ revisar con el cierre de acceso del bloque 1 |
-| Cobrar en recepción con la clase ya empezada | ⬜ | reproducir; arreglar si falla |
-| Consultar una clase antigua tras caducar la cuota que la cubría | ⬜ | reproducir; arreglar si falla |
-| «Sin cuota» / «Sin clases» son avisos, no deudas | ✅ (#89) | `reservas_sin_clases_test.sql` |
-| Lista de espera apagada en el piloto (no hay avisos verificados) | ⬜ | apagada en los datos de prueba; en producción 🙋 |
+| alta → aprobación → tarifa → pago en mano → reserva → asistencia → saldo | ✅ | recorrido de arriba |
+| Bono trimestral (periodos y precio) | ✅ | recorrido + `cobro_segun_tarifa_test.sql`, `saldo_por_ciclo_test.sql` |
+| Renovación anticipada | ✅ | `renovacion_y_pausa_test.sql` |
+| Clase extra | ✅ | `clases_extra_test.sql` |
+| Pausa y reanudar | ✅ | `renovacion_y_pausa_test.sql`, `prueba_pausada_test.sql` |
+| Aforo y reservas simultáneas | ✅ | `production_hardening_test.sql`, `ciclo_consumo_clases_test.sql` |
+| Cancelaciones (a tiempo, tardía, perdonar) | ✅ | `ciclo_consumo_clases_test.sql`, `descuento_excepciones_test.sql` |
+| Ausencias (no presentado consume) | ✅ | `ciclo_consumo_clases_test.sql` |
+| Llegada sin reserva | ✅ | `apuntar_sin_reserva_test.sql` |
+| Baja y reactivación | ✅ | `baja_alumno_test.sql` (con el acceso cerrado del bloque 1) |
+| **Cobrar en recepción con la clase ya empezada** | ✅ **era un fallo real, arreglado** | `recepcion_y_clases_antiguas_test.sql` 1–10; en rojo sin el arreglo |
+| **Consultar una clase antigua tras caducar la cuota** | ✅ **era un fallo real, arreglado** | ídem 11–15; en rojo sin el arreglo |
+| «Sin cuota» / «Sin clases» son avisos, no deudas | ✅ | `reservas_sin_clases_test.sql` |
+| Lista de espera apagada en el piloto | ✅ en la base de prueba y bloqueada en app y servidor | `lista_espera_apagada_test.sql` · `lista_espera_bloqueada_test.dart` · 🙋 en producción está **encendida** hoy |
+
+Fallo de pantalla encontrado de paso y arreglado: el desplegable de zona
+horaria de Ajustes de reservas se salía 149 px de la tarjeta en un móvil.
+
+Totales en local, sobre base limpia: **49 suites, 695 comprobaciones de base
+de datos en verde** y las pruebas de la app en verde.
 
 ## Bloque 3 — Stripe de prueba
 
@@ -126,5 +150,6 @@ suscripción automática sin que Cipri lo acuerde.
 
 ## Próxima acción
 
-Bloque 2: recorrido completo con sesión iniciada contra el Supabase local
-(datos ficticios en `supabase/seed_prueba.sql`), en navegador a tamaño móvil.
+Bloque 3: Stripe de prueba. El código actual crea suscripciones recurrentes y
+no admite el día suelto: se cambia a pago único por periodo con Checkout,
+activado solo por la confirmación firmada de Stripe (webhook).
