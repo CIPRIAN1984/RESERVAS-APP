@@ -72,10 +72,12 @@ def admin(metodo, ruta, cuerpo=None):
 sql(
     f"""
     insert into public.academias (id, nombre, direccion, estado, zona_horaria,
-                                  lista_espera_activa, cancelacion_limite_minutos)
+                                  lista_espera_activa, cancelacion_limite_minutos,
+                                  stripe_charges_enabled)
     values ('{ACADEMIA}', 'ITACA JIU JITSU (PRUEBA)', 'Logroño', 'approved',
-            'Europe/Madrid', false, 60)
-    on conflict (id) do update set lista_espera_activa = false;
+            'Europe/Madrid', false, 60, true)
+    on conflict (id) do update set lista_espera_activa = false,
+                                   stripe_charges_enabled = true;
     """
 )
 

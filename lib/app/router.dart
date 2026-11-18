@@ -18,6 +18,7 @@ import '../features/novedades/presentation/novedades_screen.dart';
 import '../features/onboarding/presentation/login_screen.dart';
 import '../features/onboarding/presentation/olvide_contrasena_screen.dart';
 import '../features/pagos/presentation/conectar_stripe_screen.dart';
+import '../features/pagos/presentation/pago_resultado_screen.dart';
 import '../features/privacy/presentation/privacy_screen.dart';
 import '../features/tarifas/presentation/tarifas_screen.dart';
 // CONGELADO: import '../features/tienda/presentation/tienda_screen.dart';
@@ -276,6 +277,17 @@ final routerProvider = Provider<GoRouter>((ref) {
               titulo: 'Mi familia',
               onVolver: () => context.go(Routes.perfil),
               child: const MisHijosScreen(),
+            ),
+          ),
+          GoRoute(
+            path: Routes.pago,
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Pago',
+              onVolver: () => context.go(Routes.perfil),
+              child: PagoResultadoScreen(
+                pagoId: state.uri.queryParameters['pago'] ?? '',
+                cancelado: state.uri.queryParameters['cancelado'] == '1',
+              ),
             ),
           ),
           GoRoute(

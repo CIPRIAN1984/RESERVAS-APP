@@ -50,7 +50,11 @@ export function cuentaDeCobro(
     stripe_charges_enabled: boolean | null;
   } | null,
 ): { ok: true; opciones?: { stripeAccount: string } } | { ok: false } {
-  if (Deno.env.get("STRIPE_COBRO_DIRECTO") === "true") return { ok: true };
+  // `stripe_charges_enabled` es el interruptor de «cobro con tarjeta activado»
+  // en los dos modos: solo lo cambia el servidor, nunca la app.
+  if (Deno.env.get("STRIPE_COBRO_DIRECTO") === "true") {
+    return academia?.stripe_charges_enabled ? { ok: true } : { ok: false };
+  }
   if (!academia?.stripe_account_id || !academia.stripe_charges_enabled) {
     return { ok: false };
   }
