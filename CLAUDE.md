@@ -59,9 +59,11 @@ git clone -b stable --depth 1 https://github.com/flutter/flutter.git /opt/flutte
 export PATH=/opt/flutter/bin:$PATH
 ```
 
+⚠️ Usa Flutter **3.44.6** (la versión del CI): `git -C /opt/flutter checkout 3.44.6`. La estable más reciente (3.50) rompe `pub get` con las dependencias actuales.
+
 ---
 
-## 3. Modelo de datos (real, 26 migraciones)
+## 3. Modelo de datos (real, 78 migraciones; añade `pagos_stripe`)
 
 **Núcleo:** `academias` · `profiles`
 **Clases:** `clases` · `clases_recurrentes` · `inscripciones` · `asistencias`
@@ -129,7 +131,7 @@ Las cabeceras las pone el router con `PantallaConTitulo`, en un único sitio.
 ## 7. Verificación
 
 - `flutter analyze` sin ningún aviso y `flutter test` en verde son el mínimo.
-- Las pruebas de base de datos son **pgTAP** en `supabase/tests/` (11 suites). Se ejecutan en CI con `supabase test db`.
+- Las pruebas de base de datos son **pgTAP** en `supabase/tests/` (50 suites). Se ejecutan en CI con `supabase test db`.
 - **Para cambios visuales no basta con que compile**: hay que mirarlo renderizado. Hay un banco de pruebas visual en `test/golden/` que dibuja pantallas con las tipografías reales y guarda la imagen (`flutter test --update-goldens test/golden`). Invoca la skill `verificar-app`.
 - CI (GitHub Actions): formato, análisis, deriva de codegen, tests, build web, pgTAP y escaneo de secretos.
 

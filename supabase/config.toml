@@ -252,6 +252,10 @@ otp_expiry = 3600
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
 
+[auth.email.template.confirmation]
+subject = "Confirma tu correo en ITACA"
+content_path = "./supabase/templates/confirmation.html"
+
 [auth.email.template.recovery]
 subject = "Restablece tu contraseña de ITACA"
 content_path = "./supabase/templates/recovery.html"

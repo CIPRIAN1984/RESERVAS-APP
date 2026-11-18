@@ -57,6 +57,16 @@ Widget _lista(List<Profile> alumnos) => ProviderScope(
 Widget _ficha(Profile alumno) => ProviderScope(
   overrides: [
     currentUserIdProvider.overrideWithValue('staff1'),
+    // Dar de baja es cosa del Dueño (el Profesor no lo ve).
+    currentProfileProvider.overrideWith(
+      (ref) async => Profile(
+        id: 'staff1',
+        academiaId: 'a1',
+        rol: 'dueño',
+        nombre: 'Cipri',
+        estado: 'activo',
+      ),
+    ),
     documentosDeProvider(alumno.id).overrideWith((ref) async => const []),
     ultimaAsistenciaMiembrosProvider.overrideWith((ref) async => const {}),
     progresoCinturonProvider.overrideWith(

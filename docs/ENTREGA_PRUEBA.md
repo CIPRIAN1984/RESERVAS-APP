@@ -99,36 +99,44 @@ horaria de Ajustes de reservas se salía 149 px de la tarjeta en un móvil.
 Totales en local, sobre base limpia: **49 suites, 695 comprobaciones de base
 de datos en verde** y las pruebas de la app en verde.
 
-## Bloque 3 — Stripe de prueba
+## Bloque 3 — Stripe de prueba — ✅ hecho en local con Stripe simulado · 🙋 falta Stripe real
 
-Diseño elegido (se anota en `DECISIONS.md` al implementarlo): **pago único
-por periodo con la página de pago de Stripe (Checkout)**, con las mismas
-condiciones que el cobro en mano. La cuota la activa el servidor al recibir
-la confirmación firmada de Stripe, nunca el navegador. Nada se convierte en
-suscripción automática sin que Cipri lo acuerde.
+Migraciones `20261117120000_pagos_stripe_parte1.sql` y `…121000_…parte2.sql`;
+funciones `stripe-checkout-tarifa`, `stripe-comprobar-pago`, `stripe-webhook`.
+**No aplicadas ni desplegadas en producción.** Diseño en `DECISIONS.md`
+(2026-11-17): pago único con Checkout, activado solo por el aviso firmado.
+
+**Qué significa «verificado» aquí:** en local no hay Stripe real. Se usó
+`stripe-mock` (valida la forma de las llamadas a la API) y avisos firmados con
+el secreto de pruebas, que el webhook comprueba igual que los de Stripe. Esto
+**no equivale** a un pago con la página real de Stripe.
 
 | Requisito | Estado | Evidencia |
 |---|---|---|
-| Revisar lo existente y reutilizar | ⬜ | |
-| Pago correcto activa la cuota del alumno correcto, una sola vez, aunque cierre la página | ⬜ | pago real en el entorno aislado de Stripe |
-| Pago fallido, abandonado, pendiente | ⬜ | |
-| Reintento y notificación duplicada | ⬜ | |
-| Cancelación / devolución | ⬜ | |
-| Mismas condiciones que en mano; no duplica derechos | ⬜ | pgTAP |
-| Detectar un fallo de cobro sin que avise el alumno | ⬜ | aviso al Dueño en la app |
-| Cobro recurrente | 🙋 no acordado | |
+| Revisar lo existente y reutilizar | ✅ | Se reutilizó Connect/`stripe_charges_enabled`; las suscripciones recurrentes y la tienda se retiran (410) |
+| Pago correcto activa la cuota de la alumna correcta, una vez, aunque cierre la página | ✅ simulado | `pagos_stripe_test.sql` (41) · `stripe_local.cjs` (25) · navegador `t10`: botón → pago 50 € → aviso firmado 200 → cuota «2 días por semana / activa / stripe» → «Pago recibido» |
+| Pago fallido, abandonado (caducado), pendiente | ✅ simulado | pgTAP + `stripe_local.cjs` |
+| Reintento y aviso duplicado | ✅ | clave determinista; pgTAP y `stripe_local.cjs` |
+| Importe o moneda que no cuadran | ✅ | pasa a `revisar`, no activa nada |
+| Devolución | ✅ simulado | `registrar_devolucion_stripe` |
+| Mismas condiciones que en mano; sin derechos duplicados | ✅ | misma función `_alta_cuota` |
+| Detectar un fallo de cobro sin que avise la alumna | ✅ | «Pagos con problema» en Academia → Cobros (test de pantalla) |
+| Navegación al volver de Stripe | ✅ **era un fallo real, arreglado** | `destino_tras_cargar_test.dart` (en rojo sin el arreglo) + navegador |
+| Cobro recurrente | 🙋 no acordado → no existe | |
+| **Pago con la página real de Stripe y avisos reales** | 🙋 **bloqueado** | necesita clave `sk_test_…` y un punto de entrada público para el webhook |
 
 ## Bloque 4 — Preparar la prueba
 
-| Requisito | Estado |
-|---|---|
-| Calendario con clases futuras ficticias, tarifas, cuentas de dueño/profesor/alumno | ⬜ |
-| Recorrido en navegador a tamaño móvil, con sesión iniciada | ⬜ |
-| Guía breve para el móvil de Cipri | ⬜ |
-| Correo: entrega, confirmación y recuperación | ⬜ (en local con buzón de pruebas); en la vista previa 🙋 |
-| Navegación del registro y errores visibles | ⬜ |
-| Permisos de tutor y documentos comprobados antes de incluir menores | ⬜ |
-| Señalar qué texto de privacidad hay que revisar | ⬜ |
+| Requisito | Estado | Evidencia |
+|---|---|---|
+| Datos ficticios: clases futuras, tarifas, dueño/profesor/alumnos/tutora con menor | ✅ local | `scripts/sembrar_prueba.py` (se niega a correr contra producción) |
+| Recorrido en navegador a 412 px con sesión iniciada | ✅ local | `scripts/e2e_local/t1…t10` |
+| Guía breve para el móvil | ✅ | `docs/GUIA_PRUEBA_MOVIL.md` |
+| Correo: confirmación y recuperación | ✅ recuperación en español (buzón de pruebas) · ⚠️ la confirmación llegaba en inglés: plantilla en español añadida (`supabase/templates/confirmation.html`), **sin verificar en vivo** hasta reiniciar la pila local · 🙋 correo real en la vista previa | |
+| Navegación del registro y errores visibles | ✅ | `t1_registro.cjs`; mínimo 8 en pantalla y servidor |
+| Permisos de tutor y documentos | ✅ | `documentos_alumno_test.sql` (tutor ve solo a su hijo; alumno no sube por otro; otra academia no escribe), `familias_v2_test.sql`, pgTAP 36–46 (profesor sin certificados) |
+| Texto de privacidad que hay que revisar | ⚠️ **señalado** | La pantalla «Privacidad y datos» (27/07/2026) **no menciona** certificados médicos (dato de salud), descargo firmado ni menores/tutores. Que lo revise alguien de protección de datos **antes de incluir menores**. No se ha reescrito. |
+| Enlace privado para el móvil | 🙋 bloqueado | ver abajo |
 
 ## Depende de Cipri (agrupado)
 
@@ -150,6 +158,7 @@ suscripción automática sin que Cipri lo acuerde.
 
 ## Próxima acción
 
-Bloque 3: Stripe de prueba. El código actual crea suscripciones recurrentes y
-no admite el día suelto: se cambia a pago único por periodo con Checkout,
-activado solo por la confirmación firmada de Stripe (webhook).
+Todo lo que se puede probar sin tus claves está hecho y probado. Para dar el
+paso a «lista para probar» (enlace privado + pago con la página real de Stripe)
+hacen falta los puntos 1 y 2 de arriba. Hasta entonces **no se puede decir
+«lista para probar»**.

@@ -338,7 +338,52 @@ La URL de privacidad para ambas tiendas es
 terminada hasta que cada consola confirme la aprobación y la versión esté
 disponible en la pista o países elegidos.
 
-## Conectar Stripe (cobros reales)
+## Prueba local completa (base, correo, Stripe simulado)
+
+Todo sin coste y aislado de producción. Requiere Docker.
+
+1. `npx supabase start` (base, auth, correo de pruebas en `http://127.0.0.1:54324`).
+2. `scripts/probar_db_limpia.sh` reinicia la base LOCAL y pasa las 50 suites
+   pgTAP (cuentan filas: solo valen sobre base limpia).
+3. Sembrar datos ficticios: `scripts/sembrar_prueba.py` (se niega a ejecutarse
+   contra producción). Crea ITACA de prueba, dueña, profesor, dos alumnos, una
+   tutora con su hijo menor, 4 tarifas y dos semanas de clases.
+4. Funciones de Stripe en local: `scripts/e2e_local/servir_funciones.cjs`
+   (usa `deno` del equipo y un enrutador en el puerto 54399; el contenedor de
+   funciones de Supabase no puede descargar paquetes tras el proxy). Stripe se
+   sustituye por `stripe-mock` (`docker run -p 12111:12111 stripe/stripe-mock`).
+5. `scripts/e2e_local/stripe_local.cjs` (25 comprobaciones: pago, duplicado,
+   fallido, caducado, importe distinto, devolución) y los recorridos con
+   navegador `t1…t10`.
+
+`stripe-mock` valida la forma de las llamadas, pero **no es Stripe**: la página
+de pago real y los avisos reales solo se prueban con clave de pruebas (abajo).
+
+## Stripe en modo prueba (pagos de mentira, tarjetas de mentira)
+
+Variables de las funciones (Supabase → Edge Functions → Secrets):
+
+| Secreto | Valor |
+|---|---|
+| `STRIPE_SECRET_KEY` | clave `sk_test_…` (nunca `sk_live_`) |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_…` del punto de entrada de abajo |
+| `APP_URL` | dirección de la web a la que vuelve la alumna tras pagar |
+| `STRIPE_COBRO_DIRECTO` | `true` si se cobra en la cuenta de Stripe propia (prueba y piloto); vacío para Stripe Connect |
+
+Punto de entrada (Stripe → Developers → Webhooks): `…/functions/v1/stripe-webhook`
+con los eventos `checkout.session.completed`,
+`checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
+`checkout.session.expired`, `payment_intent.payment_failed`, `charge.refunded` y
+`account.updated`. El webhook va con `verify_jwt = false` (Stripe no manda
+sesión; la autenticidad la da la firma).
+
+Recorrido: aprobar alumna → alumna pulsa **Pagar con tarjeta** → tarjeta
+`4242 4242 4242 4242` (cualquier fecha futura y CVC) → vuelve a «Pago recibido» →
+cuota correcta → reserva → profesor confirma asistencia → una clase gastada.
+Fallo: tarjeta `4000 0000 0000 0002`. Debe salir en Academia → Cobros → «Pagos con
+problema».
+
+## Conectar Stripe (cobros reales) — NO antes del piloto en paralelo
 
 El código está preparado y desplegado (ver `FREEZE.md`, "Stripe y Pagos"),
 pero **no toca dinero real hasta que se complete esto**. Son pasos que solo

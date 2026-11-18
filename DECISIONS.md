@@ -2894,3 +2894,45 @@ volver a abrirla: verificar los avisos y quitar el disparador
 solo valen sobre base limpia. `scripts/probar_db_limpia.sh` reinicia la base
 LOCAL, pasa las pruebas y avisa de que hay que volver a sembrar con
 `scripts/sembrar_prueba.py`.
+
+## 2026-11-17 — Cobro con tarjeta: pago único con Checkout, activado solo por el webhook
+
+**Qué se decidió (encargo de entrega de prueba):**
+
+- **Un pago = un periodo.** La alumna paga una vez la tarifa (mensual,
+  trimestral, día suelto) en la página de pago de Stripe (Checkout). No hay
+  suscripción automática: renovar es volver a pagar. Un cobro recurrente solo
+  se añadirá si Cipri lo acuerda. Por eso el bono y el día suelto nunca se
+  convierten en suscripción.
+- **La cuota la activa solo el servidor** al recibir el aviso firmado de Stripe
+  (`stripe-webhook`), nunca el navegador. La pantalla de vuelta solo pregunta
+  (`stripe-comprobar-pago`, que consulta a Stripe en el servidor) por si el
+  aviso tarda. Si la persona cierra la página tras pagar, la cuota se activa
+  igual.
+- **Una sola vez.** La clave de cobro es determinista
+  (`md5('stripe:'||session_id)::uuid`) y las funciones bloquean la fila: un aviso
+  duplicado o un reintento no duplica cuota. El importe y la moneda se
+  comprueban en el servidor contra la tarifa; si no cuadran, el pago pasa a
+  `revisar` y no se activa nada.
+- **Mismas condiciones que en mano.** Pago con tarjeta y cobro en efectivo pasan
+  por la misma función interna `_alta_cuota`: mismos periodos, mismo saldo de
+  clases, mismos derechos. No se pueden duplicar.
+- **Fallos a la vista.** Pagos fallidos, caducados o a revisar se guardan en
+  `pagos_stripe` y salen al Dueño en Academia → Cobros («Pagos con problema»),
+  sin que la alumna tenga que avisar.
+- **Interruptor en el servidor.** `academias.stripe_charges_enabled` apaga el
+  cobro; la app solo lo refleja.
+- **Funciones retiradas:** `stripe-create-tarifa-subscription` y
+  `stripe-create-tienda-payment` responden 410. La tienda sigue cerrada.
+- **Tablas y funciones de pago** (`pagos_stripe`, `preparar_pago_stripe`,
+  `confirmar_pago_stripe`…) solo las puede ejecutar `service_role`.
+
+**Fallo de navegación encontrado en la prueba con navegador:** al volver de
+Stripe la app se recarga y el router perdía la dirección (pasaba por la pantalla
+de carga y caía en el inicio). Ahora la carga guarda el destino (`volver=`), solo
+rutas propias de la app y nunca pantallas de entrada.
+
+**Límite de lo verificado:** en local se usó `stripe-mock` (valida la forma de
+las llamadas a la API de Stripe) y avisos firmados con el secreto de pruebas. La
+página de pago real de Stripe y el envío real de avisos solo se verifican con una
+clave de pruebas y un punto de entrada público: pendiente de Cipri.
