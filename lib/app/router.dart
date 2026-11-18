@@ -76,6 +76,34 @@ const _rutasAcademia = {
 /// Destinos del modo Gestor: solo para quien lleva la academia.
 const _rutasGestor = {Routes.herramientas, Routes.academia, Routes.miembros};
 
+/// La pantalla de carga a la que se manda mientras llega el perfil, con la
+/// dirección a la que se iba. Sin esto, abrir un enlace (volver de la página
+/// de pago de Stripe, una invitación…) recarga la app y se perdía el destino:
+/// acababas siempre en el inicio.
+@visibleForTesting
+String direccionDeCarga(Uri actual) => Uri(
+  path: Routes.splash,
+  queryParameters: {'volver': actual.toString()},
+).toString();
+
+/// El destino guardado por [direccionDeCarga], o `null` si no hay o no es de
+/// fiar: tiene que ser una ruta propia de la app (nunca otra web) y no una de
+/// entrada (login, carga…), que mandaría de vuelta al principio.
+@visibleForTesting
+String? destinoGuardado(Uri actual) {
+  final volver = actual.queryParameters['volver'];
+  if (volver == null || !volver.startsWith('/') || volver.startsWith('//')) {
+    return null;
+  }
+  final destino = Uri.tryParse(volver);
+  if (destino == null) return null;
+  final entrada =
+      Routes.publicRoutes.contains(destino.path) ||
+      destino.path == Routes.splash ||
+      destino.path == Routes.pendienteAprobacion;
+  return entrada ? null : volver;
+}
+
 String _inicioPara(Profile profile) =>
     profile.isAdministrador ? Routes.admin : Routes.inicio;
 
@@ -98,7 +126,7 @@ String? _redirect(Ref ref, GoRouterState state) {
 
   final profileAsync = ref.read(currentProfileProvider);
   if (!profileAsync.hasValue) {
-    return loc == Routes.splash ? null : Routes.splash;
+    return loc == Routes.splash ? null : direccionDeCarga(state.uri);
   }
 
   final profile = profileAsync.value;
@@ -159,6 +187,10 @@ String? _redirect(Ref ref, GoRouterState state) {
       loc == Routes.splash ||
       loc == Routes.pendienteAprobacion;
   if (atEntryPoint) {
+    if (loc == Routes.splash) {
+      final destino = destinoGuardado(state.uri);
+      if (destino != null) return destino;
+    }
     return _inicioPara(profile);
   }
 
