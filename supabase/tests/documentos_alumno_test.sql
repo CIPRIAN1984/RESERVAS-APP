@@ -150,6 +150,9 @@ select lives_ok(
 );
 
 -- ── 9. El bucket es privado, con límite de tamaño y tipos de archivo ───────
+-- Se lee sin rol de usuario: las versiones nuevas de Storage ya no dejan a un
+-- usuario leer `storage.buckets`, y lo que se comprueba es la configuración.
+reset role;
 select is(
   (select public from storage.buckets where id = 'documentos-alumnos'),
   false,

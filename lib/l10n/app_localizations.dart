@@ -185,7 +185,7 @@ abstract class AppLocalizations {
   /// No description provided for @authPasswordTooShort.
   ///
   /// In es, this message translates to:
-  /// **'Mínimo 6 caracteres'**
+  /// **'Mínimo 8 caracteres'**
   String get authPasswordTooShort;
 
   /// No description provided for @registerName.
