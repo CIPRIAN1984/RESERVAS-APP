@@ -90,34 +90,36 @@ class AppPalette extends ThemeExtension<AppPalette> {
     destructive: AppColors.destructive,
   );
 
-  /// Modo oscuro: mismo diseño, invertido. El amarillo no cambia y siempre lleva
+  /// Modo oscuro: los grises y estados de la app nueva (tokens.css de la
+  /// referencia, 20/11/2026); el acento sigue siendo nuestro amarillo.
+  /// Mismo diseño, invertido. El amarillo no cambia y siempre lleva
   /// texto oscuro encima (`onAcid`), también de noche.
   static const dark = AppPalette(
-    ground: Color(0xFF0A0A0B),
-    surface: Color(0xFF18181B),
-    surfaceStrong: Color(0xFF27272A),
-    line: Color(0xFF2E2E33),
-    ink: Color(0xFFFAFAFA),
-    onInk: Color(0xFF0A0A0B),
-    inkBorder: Color(0x40FAFAFA),
-    subtle: Color(0xFFA1A1AA),
-    disabled: Color(0xFF71717A),
+    ground: Color(0xFF121212),
+    surface: Color(0xFF1E1E1E),
+    surfaceStrong: Color(0xFF2A2A2A),
+    line: Color(0xFF363636),
+    ink: Color(0xFFFFFFFF),
+    onInk: Color(0xFF0A0A0A),
+    inkBorder: Color(0x40FFFFFF),
+    subtle: Color(0xFF8F8F8F),
+    disabled: Color(0xFF5A5A5A),
     acid: AppColors.acid,
-    onAcid: Color(0xFF0A0A0B),
+    onAcid: Color(0xFF0A0A0A),
     crown: AppColors.crown,
-    successBg: Color(0xFF052E22),
-    successFg: Color(0xFF6EE7B7),
-    dangerBg: Color(0xFF3B1212),
-    dangerFg: Color(0xFFFCA5A5),
+    successBg: Color(0xFF173A22),
+    successFg: Color(0xFF7EE09A),
+    dangerBg: Color(0xFF3D1818),
+    dangerFg: Color(0xFFFF9A9A),
     infoBg: Color(0xFF0C2A3D),
     infoFg: Color(0xFF7DD3FC),
-    neutralBg: Color(0xFF27272A),
-    neutralFg: Color(0xFFD4D4D8),
-    warningBg: Color(0xFF3A2A08),
-    warningFg: Color(0xFFFCD34D),
+    neutralBg: Color(0xFF2A2A2A),
+    neutralFg: Color(0xFFD2D2D2),
+    warningBg: Color(0xFF3B2C10),
+    warningFg: Color(0xFFF6C66B),
     accentBg: Color(0xFF3A1342),
     accentFg: Color(0xFFF0ABFC),
-    destructive: Color(0xFFEF4444),
+    destructive: Color(0xFFE5503E),
   );
 
   @override
