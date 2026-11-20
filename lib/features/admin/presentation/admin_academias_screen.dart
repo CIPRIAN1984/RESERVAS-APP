@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/models/academia.dart';
 
@@ -55,11 +55,11 @@ class AdminAcademiasScreen extends ConsumerWidget {
     _ => estado,
   };
 
-  Color _colorEstado(String estado) => switch (estado) {
-    'pending' => AppColors.warningFg,
-    'approved' => AppColors.successFg,
-    'rejected' => AppColors.destructive,
-    _ => AppColors.subtle,
+  Color _colorEstado(BuildContext context, String estado) => switch (estado) {
+    'pending' => context.paleta.warningFg,
+    'approved' => context.paleta.successFg,
+    'rejected' => context.paleta.destructive,
+    _ => context.paleta.subtle,
   };
 
   @override
@@ -74,7 +74,7 @@ class AdminAcademiasScreen extends ConsumerWidget {
               'Todavía no hay academias registradas.',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+              ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
             ),
           );
         }
@@ -103,10 +103,11 @@ class AdminAcademiasScreen extends ConsumerWidget {
                           Chip(
                             label: Text(_etiquetaEstado(academia.estado)),
                             backgroundColor: _colorEstado(
+                              context,
                               academia.estado,
                             ).withValues(alpha: 0.16),
                             labelStyle: TextStyle(
-                              color: _colorEstado(academia.estado),
+                              color: _colorEstado(context, academia.estado),
                             ),
                             visualDensity: VisualDensity.compact,
                           ),
@@ -117,7 +118,7 @@ class AdminAcademiasScreen extends ConsumerWidget {
                         Text(
                           academia.direccion!,
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.subtle),
+                              ?.copyWith(color: context.paleta.subtle),
                         ),
                       ],
                       if (academia.emailContacto?.isNotEmpty ?? false) ...[
@@ -125,7 +126,7 @@ class AdminAcademiasScreen extends ConsumerWidget {
                         Text(
                           academia.emailContacto!,
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.subtle),
+                              ?.copyWith(color: context.paleta.subtle),
                         ),
                       ],
                       if (academia.estado == 'pending') ...[

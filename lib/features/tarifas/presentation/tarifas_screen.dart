@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/app_mode.dart';
-import '../../../app/theme/color_tokens.dart';
 import '../../../shared/widgets/error_en_linea.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../../core/auth/auth_state.dart';
@@ -139,9 +139,9 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                   padding: const EdgeInsets.all(16),
                   child: Text(
                     'No tienes ninguna suscripción activa todavía.',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: context.paleta.subtle,
+                    ),
                   ),
                 ),
               );
@@ -150,9 +150,9 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
             final enPrueba = suscripcion.estado == 'prueba';
             final pausada = suscripcion.estado == 'pausada';
             return Card(
-              color: AppColors.ink.withValues(alpha: 0.12),
+              color: context.paleta.ink.withValues(alpha: 0.12),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -165,7 +165,7 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                           suscripcion.tarifaNombre ?? 'Tarifa',
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
-                        if (enPrueba) const PastillaEstado.info('Prueba'),
+                        if (enPrueba) PastillaEstado.info('Prueba'),
                         if (pausada) const PastillaEstado.aviso('Pausada'),
                       ],
                     ),
@@ -179,7 +179,7 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                       Text(
                         'Pago en proceso...',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.subtle,
+                          color: context.paleta.subtle,
                         ),
                       ),
                     ] else if (enPrueba) ...[
@@ -190,7 +190,7 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                             : 'Puedes reservar hasta el '
                                   '${DateFormat("d 'de' MMMM, HH:mm", 'es_ES').format(suscripcion.fechaFin!.toLocal())}.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.subtle,
+                          color: context.paleta.subtle,
                         ),
                       ),
                     ] else if (pausada) ...[
@@ -211,7 +211,7 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                                   'Para renovarla o darte de baja, habla con '
                                   'tu academia.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.subtle,
+                          color: context.paleta.subtle,
                         ),
                       ),
                     ] else ...[
@@ -269,7 +269,7 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                 'Tu academia todavía no tiene tarifas publicadas.',
                 style: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
               );
             }
             // El botón iba en el hueco lateral del ListTile y se comía todo
@@ -305,7 +305,7 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                             '${tarifa.precio.toStringAsFixed(2)} € '
                             '${etiquetasPeriodicidad[tarifa.periodicidad] ?? ''}',
                             style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: AppColors.subtle),
+                                ?.copyWith(color: context.paleta.subtle),
                           ),
                           const SizedBox(height: 4),
                           // Lo que de verdad decide entre una tarifa y otra.
@@ -321,7 +321,7 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                             Text(
                               tarifa.descripcion!,
                               style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: AppColors.subtle),
+                                  ?.copyWith(color: context.paleta.subtle),
                             ),
                           ],
                           const SizedBox(height: 12),
@@ -349,18 +349,14 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                                           : 'Pagar con tarjeta',
                                     ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                           ],
                           if (tarifa.id == actualId)
                             Align(
                               alignment: Alignment.centerLeft,
                               child: switch (actualEstado) {
-                                'prueba' => const PastillaEstado.info(
-                                  'Tu prueba',
-                                ),
-                                'pausada' => const PastillaEstado.aviso(
-                                  'Pausada',
-                                ),
+                                'prueba' => PastillaEstado.info('Tu prueba'),
+                                'pausada' => PastillaEstado.aviso('Pausada'),
                                 _ => const PastillaEstado.exito('Tu cuota'),
                               },
                             ),
@@ -403,7 +399,7 @@ class _AvisoPausa extends ConsumerWidget {
       texto,
       style: Theme.of(
         context,
-      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+      ).textTheme.bodySmall?.copyWith(color: context.paleta.subtle),
     );
   }
 }
@@ -438,7 +434,7 @@ class _RenovacionPendiente extends ConsumerWidget {
           padding: const EdgeInsets.only(top: 12),
           child: Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -529,7 +525,9 @@ class _SaldoClasesTexto extends ConsumerWidget {
                     '$plazo.'
               : 'Sin clases disponibles $plazo. Renueva o compra una suelta.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: disponibles > 0 ? AppColors.subtle : AppColors.destructive,
+            color: disponibles > 0
+                ? context.paleta.subtle
+                : context.paleta.destructive,
           ),
         );
       },
@@ -581,7 +579,7 @@ class _TarifasGestionView extends ConsumerWidget {
                 'Todavía no hay tarifas creadas.',
                 style: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
               ),
             );
           }

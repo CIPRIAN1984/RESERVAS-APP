@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'color_tokens.dart';
+import 'app_palette.dart';
 
 /// Tema de la app **I+**: claro, monocromo, con el amarillo eléctrico como
 /// único acento. Ver la skill `diseno-i-plus` para las reglas completas.
 ///
-/// Solo hay tema claro. El diseño aprobado es claro y añadir una variante
-/// oscura sin pedirla duplicaría el mantenimiento de cada pantalla.
+/// Dos modos: claro (el de siempre) y oscuro (el de la app nueva, pedido por
+/// Cipri el 20/11/2026). Los colores salen de [AppPalette].
 class AppTheme {
   AppTheme._();
 
@@ -17,50 +17,60 @@ class AppTheme {
   static const String fontSans = 'InterTight';
   static const String fontMono = 'JetBrainsMono';
 
-  /// Barra de estado oscura sobre fondo claro.
-  static const SystemUiOverlayStyle overlayStyle = SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-    statusBarBrightness: Brightness.light,
-    systemNavigationBarColor: AppColors.ground,
-    systemNavigationBarIconBrightness: Brightness.dark,
-  );
+  /// Barra de estado: iconos oscuros sobre fondo claro y claros sobre oscuro.
+  static SystemUiOverlayStyle overlayFor(AppPalette p, Brightness b) =>
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: b == Brightness.light
+            ? Brightness.dark
+            : Brightness.light,
+        statusBarBrightness: b,
+        systemNavigationBarColor: p.ground,
+        systemNavigationBarIconBrightness: b == Brightness.light
+            ? Brightness.dark
+            : Brightness.light,
+      );
 
-  static ThemeData get light {
-    const scheme = ColorScheme.light(
-      primary: AppColors.ink,
-      onPrimary: AppColors.onInk,
-      secondary: AppColors.acid,
-      onSecondary: AppColors.ink,
-      surface: AppColors.ground,
-      onSurface: AppColors.ink,
-      surfaceContainerHighest: AppColors.surface,
-      error: AppColors.destructive,
-      onError: AppColors.onInk,
-      outline: AppColors.line,
+  static final ThemeData light = _build(AppPalette.light, Brightness.light);
+  static final ThemeData dark = _build(AppPalette.dark, Brightness.dark);
+
+  static ThemeData _build(AppPalette p, Brightness brightness) {
+    final scheme = ColorScheme(
+      brightness: brightness,
+      primary: p.ink,
+      onPrimary: p.onInk,
+      secondary: p.acid,
+      onSecondary: p.ink,
+      surface: p.ground,
+      onSurface: p.ink,
+      surfaceContainerHighest: p.surface,
+      error: p.destructive,
+      onError: p.onInk,
+      outline: p.line,
     );
 
-    final text = _textTheme;
+    final text = _textTheme(p);
 
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
+      brightness: brightness,
+      extensions: [p],
       colorScheme: scheme,
       fontFamily: fontSans,
-      scaffoldBackgroundColor: AppColors.ground,
-      canvasColor: AppColors.ground,
-      dividerColor: AppColors.line,
+      scaffoldBackgroundColor: p.ground,
+      canvasColor: p.ground,
+      dividerColor: p.line,
       textTheme: text,
       splashFactory: InkSparkle.splashFactory,
 
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.ground,
-        foregroundColor: AppColors.ink,
+        backgroundColor: p.ground,
+        foregroundColor: p.ink,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        systemOverlayStyle: overlayStyle,
+        systemOverlayStyle: overlayFor(p, brightness),
         // `copyWith(fontFamily:)` y no `text.titleLarge` a secas: el
         // `fontFamily` de arriba solo lo aplica Flutter al `textTheme`, no a
         // los estilos que se pasan sueltos a un tema de componente. Sin esto
@@ -72,7 +82,7 @@ class AppTheme {
 
       // Tarjeta: gris muy claro, esquinas de 20, sin sombra ni borde.
       cardTheme: CardThemeData(
-        color: AppColors.surface,
+        color: p.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         margin: EdgeInsets.zero,
@@ -81,7 +91,7 @@ class AppTheme {
 
       // Barra inferior: activo en negro, inactivo en gris.
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: AppColors.ground,
+        backgroundColor: p.ground,
         surfaceTintColor: Colors.transparent,
         indicatorColor: Colors.transparent,
         elevation: 0,
@@ -90,9 +100,7 @@ class AppTheme {
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
             size: 22,
-            color: states.contains(WidgetState.selected)
-                ? AppColors.ink
-                : AppColors.disabled,
+            color: states.contains(WidgetState.selected) ? p.ink : p.disabled,
           ),
         ),
         labelTextStyle: WidgetStateProperty.resolveWith(
@@ -100,9 +108,7 @@ class AppTheme {
             fontFamily: fontSans,
             fontSize: 10,
             fontWeight: FontWeight.w600,
-            color: states.contains(WidgetState.selected)
-                ? AppColors.ink
-                : AppColors.disabled,
+            color: states.contains(WidgetState.selected) ? p.ink : p.disabled,
           ),
         ),
       ),
@@ -110,27 +116,27 @@ class AppTheme {
       // Campos: relleno gris, sin borde, esquinas de 14.
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: p.surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 15,
         ),
-        border: _inputBorder(AppColors.line),
-        enabledBorder: _inputBorder(AppColors.line),
-        focusedBorder: _inputBorder(AppColors.ink, width: 1.5),
-        errorBorder: _inputBorder(AppColors.destructive),
-        focusedErrorBorder: _inputBorder(AppColors.destructive, width: 1.5),
-        hintStyle: const TextStyle(color: AppColors.disabled),
-        labelStyle: const TextStyle(color: AppColors.subtle),
+        border: _inputBorder(p.line),
+        enabledBorder: _inputBorder(p.line),
+        focusedBorder: _inputBorder(p.ink, width: 1.5),
+        errorBorder: _inputBorder(p.destructive),
+        focusedErrorBorder: _inputBorder(p.destructive, width: 1.5),
+        hintStyle: TextStyle(color: p.disabled),
+        labelStyle: TextStyle(color: p.subtle),
       ),
 
       // Botón principal: negro, texto blanco, ancho completo.
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.ink,
-          foregroundColor: AppColors.onInk,
-          disabledBackgroundColor: AppColors.surfaceStrong,
-          disabledForegroundColor: AppColors.disabled,
+          backgroundColor: p.ink,
+          foregroundColor: p.onInk,
+          disabledBackgroundColor: p.surfaceStrong,
+          disabledForegroundColor: p.disabled,
           elevation: 0,
           minimumSize: const Size.fromHeight(52),
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -148,9 +154,9 @@ class AppTheme {
       // Botón secundario: borde fino, fondo transparente.
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.ink,
+          foregroundColor: p.ink,
           minimumSize: const Size.fromHeight(52),
-          side: const BorderSide(color: AppColors.inkBorder),
+          side: BorderSide(color: p.inkBorder),
           textStyle: const TextStyle(
             fontFamily: fontSans,
             fontSize: 15,
@@ -164,7 +170,7 @@ class AppTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.ink,
+          foregroundColor: p.ink,
           textStyle: const TextStyle(
             fontFamily: fontSans,
             fontSize: 15,
@@ -175,8 +181,8 @@ class AppTheme {
 
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.ink,
-          foregroundColor: AppColors.onInk,
+          backgroundColor: p.ink,
+          foregroundColor: p.onInk,
           minimumSize: const Size.fromHeight(52),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -184,9 +190,9 @@ class AppTheme {
         ),
       ),
 
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.ink,
-        foregroundColor: AppColors.onInk,
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: p.ink,
+        foregroundColor: p.onInk,
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(18)),
@@ -194,31 +200,31 @@ class AppTheme {
       ),
 
       chipTheme: ChipThemeData(
-        backgroundColor: AppColors.surface,
+        backgroundColor: p.surface,
         side: BorderSide.none,
-        labelStyle: const TextStyle(
+        labelStyle: TextStyle(
           fontFamily: fontMono,
           fontSize: 11,
           letterSpacing: 0.8,
-          color: AppColors.neutralFg,
+          color: p.neutralFg,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
 
       dialogTheme: DialogThemeData(
-        backgroundColor: AppColors.ground,
+        backgroundColor: p.ground,
         surfaceTintColor: Colors.transparent,
         elevation: 8,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         // Mismo caso que en la barra superior: sin el `fontFamily` explícito,
         // el título de TODOS los diálogos de la app sale con la letra del
         // sistema en vez de con Inter Tight.
-        titleTextStyle: _textTheme.titleLarge?.copyWith(fontFamily: fontSans),
+        titleTextStyle: text.titleLarge?.copyWith(fontFamily: fontSans),
       ),
 
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: AppColors.ground,
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: p.ground,
         surfaceTintColor: Colors.transparent,
         elevation: 8,
         shape: RoundedRectangleBorder(
@@ -227,40 +233,31 @@ class AppTheme {
       ),
 
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.ink,
-        contentTextStyle: const TextStyle(
+        backgroundColor: p.ink,
+        contentTextStyle: TextStyle(
           fontFamily: fontSans,
           fontSize: 14,
-          color: AppColors.onInk,
+          color: p.onInk,
         ),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
 
-      dividerTheme: const DividerThemeData(
-        color: AppColors.line,
-        thickness: 1,
-        space: 1,
-      ),
+      dividerTheme: DividerThemeData(color: p.line, thickness: 1, space: 1),
 
-      listTileTheme: const ListTileThemeData(
-        iconColor: AppColors.ink,
-        textColor: AppColors.ink,
-      ),
+      listTileTheme: ListTileThemeData(iconColor: p.ink, textColor: p.ink),
 
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.ink,
-        linearTrackColor: AppColors.line,
-        circularTrackColor: AppColors.line,
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: p.ink,
+        linearTrackColor: p.line,
+        circularTrackColor: p.line,
       ),
 
       switchTheme: SwitchThemeData(
         // Blanco en los dos estados: lo que cambia es la pista.
-        thumbColor: const WidgetStatePropertyAll(AppColors.onInk),
+        thumbColor: WidgetStatePropertyAll(p.onInk),
         trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected)
-              ? AppColors.ink
-              : AppColors.surfaceStrong,
+          (s) => s.contains(WidgetState.selected) ? p.ink : p.surfaceStrong,
         ),
       ),
     );
@@ -274,45 +271,45 @@ class AppTheme {
 
   /// Escala tipográfica. Los títulos van muy marcados y con el interletrado
   /// apretado; el cuerpo, en peso normal y cómodo de leer.
-  static const TextTheme _textTheme = TextTheme(
+  static TextTheme _textTheme(AppPalette p) => TextTheme(
     displayLarge: TextStyle(
       fontSize: 34,
       fontWeight: FontWeight.w800,
       letterSpacing: -1,
       height: 1.05,
-      color: AppColors.ink,
+      color: p.ink,
     ),
     headlineMedium: TextStyle(
       fontSize: 26,
       fontWeight: FontWeight.w800,
       letterSpacing: -0.6,
       height: 1.1,
-      color: AppColors.ink,
+      color: p.ink,
     ),
     titleLarge: TextStyle(
       fontSize: 19,
       fontWeight: FontWeight.w800,
       letterSpacing: -0.4,
-      color: AppColors.ink,
+      color: p.ink,
     ),
     titleMedium: TextStyle(
       fontSize: 17,
       fontWeight: FontWeight.w800,
       letterSpacing: -0.2,
-      color: AppColors.ink,
+      color: p.ink,
     ),
     titleSmall: TextStyle(
       fontSize: 15,
       fontWeight: FontWeight.w600,
-      color: AppColors.ink,
+      color: p.ink,
     ),
-    bodyLarge: TextStyle(fontSize: 16, height: 1.45, color: AppColors.ink),
-    bodyMedium: TextStyle(fontSize: 15, height: 1.45, color: AppColors.ink),
-    bodySmall: TextStyle(fontSize: 13, height: 1.4, color: AppColors.subtle),
+    bodyLarge: TextStyle(fontSize: 16, height: 1.45, color: p.ink),
+    bodyMedium: TextStyle(fontSize: 15, height: 1.45, color: p.ink),
+    bodySmall: TextStyle(fontSize: 13, height: 1.4, color: p.subtle),
     labelLarge: TextStyle(
       fontSize: 15,
       fontWeight: FontWeight.w600,
-      color: AppColors.ink,
+      color: p.ink,
     ),
     // Etiqueta monoespaciada en mayúsculas: fechas, estados, identificadores.
     labelSmall: TextStyle(
@@ -320,7 +317,7 @@ class AppTheme {
       fontSize: 11,
       fontWeight: FontWeight.w500,
       letterSpacing: 1.1,
-      color: AppColors.subtle,
+      color: p.subtle,
     ),
   );
 }

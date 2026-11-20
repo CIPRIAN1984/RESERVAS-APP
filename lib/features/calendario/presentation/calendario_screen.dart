@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../app/app_mode.dart';
 import '../../../app/theme/app_theme.dart';
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../perfil/application/profile_providers.dart';
@@ -188,7 +188,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
             onDiaSeleccionado: (dia) =>
                 ref.read(selectedDayProvider.notifier).state = dia,
           ),
-          const Divider(height: 1, color: AppColors.line),
+          Divider(height: 1, color: context.paleta.line),
           Expanded(
             child: clasesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -209,9 +209,9 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
                   return Center(
                     child: Text(
                       'No hay clases este día.',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: context.paleta.subtle,
+                      ),
                     ),
                   );
                 }
@@ -295,7 +295,7 @@ class _AvisoDeBaja extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.pause_circle_outline, color: AppColors.subtle),
+              Icon(Icons.pause_circle_outline, color: context.paleta.subtle),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -310,9 +310,9 @@ class _AvisoDeBaja extends StatelessWidget {
                       'No puedes reservar clases. Habla con tu academia si '
                       'quieres volver: tus entrenos y tu cinturón siguen '
                       'guardados.',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: context.paleta.subtle,
+                      ),
                     ),
                   ],
                 ),
@@ -449,10 +449,10 @@ class _PildoraDia extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 56),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: seleccionado ? AppColors.acid : Colors.transparent,
+            color: seleccionado ? context.paleta.acid : Colors.transparent,
             shape: BoxShape.circle,
             border: !seleccionado && hoy
-                ? Border.all(color: AppColors.ink, width: 1.5)
+                ? Border.all(color: context.paleta.ink, width: 1.5)
                 : null,
           ),
           child: Column(
@@ -468,7 +468,9 @@ class _PildoraDia extends StatelessWidget {
                   // El gris subtle sobre el amarillo de acento casi no se
                   // leía: en el día seleccionado la etiqueta pasa a tinta,
                   // igual que el número.
-                  color: seleccionado ? AppColors.ink : AppColors.subtle,
+                  color: seleccionado
+                      ? context.paleta.onAcid
+                      : context.paleta.subtle,
                 ),
               ),
               const SizedBox(height: 4),
@@ -477,7 +479,9 @@ class _PildoraDia extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.ink,
+                  color: seleccionado
+                      ? context.paleta.onAcid
+                      : context.paleta.ink,
                 ),
               ),
             ],
@@ -503,15 +507,15 @@ class _CabeceraInicio extends ConsumerWidget {
           Container(
             width: 48,
             height: 48,
-            decoration: const BoxDecoration(
-              color: AppColors.ink,
+            decoration: BoxDecoration(
+              color: context.paleta.ink,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const Text(
+            child: Text(
               'I+',
               style: TextStyle(
-                color: AppColors.onInk,
+                color: context.paleta.onInk,
                 fontSize: 17,
                 fontWeight: FontWeight.w800,
               ),
@@ -531,7 +535,7 @@ class _CabeceraInicio extends ConsumerWidget {
             icon: const Icon(Icons.qr_code_2, size: 26),
             tooltip: 'Mostrar mi código de check-in',
             style: IconButton.styleFrom(
-              side: const BorderSide(color: AppColors.line),
+              side: BorderSide(color: context.paleta.line),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -547,7 +551,7 @@ class _CabeceraInicio extends ConsumerWidget {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
-      builder: (_) => const Padding(
+      builder: (_) => Padding(
         padding: EdgeInsets.fromLTRB(24, 0, 24, 40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -560,14 +564,14 @@ class _CabeceraInicio extends ConsumerWidget {
             Text(
               'Enseña este código en recepción para registrar tu asistencia.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.subtle),
+              style: TextStyle(color: context.paleta.subtle),
             ),
             SizedBox(height: 24),
             Icon(Icons.qr_code_2, size: 180),
             SizedBox(height: 12),
             Text(
               'Pendiente de conectar con el lector de recepción',
-              style: TextStyle(fontSize: 12, color: AppColors.subtle),
+              style: TextStyle(fontSize: 12, color: context.paleta.subtle),
             ),
           ],
         ),

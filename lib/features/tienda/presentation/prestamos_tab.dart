@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../application/tienda_providers.dart';
 import 'crear_prestamo_screen.dart';
@@ -71,7 +71,7 @@ class PrestamosTab extends ConsumerWidget {
                 'Todavía no hay préstamos registrados.',
                 style: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
               ),
             );
           }
@@ -84,7 +84,7 @@ class PrestamosTab extends ConsumerWidget {
               espacioBotonesFlotantes,
             ),
             itemCount: prestamos.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => SizedBox(height: 12),
             itemBuilder: (context, index) {
               final prestamo = prestamos[index];
               return TarjetaFila(

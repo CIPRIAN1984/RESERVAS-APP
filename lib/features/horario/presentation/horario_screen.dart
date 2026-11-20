@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/utils/error_messages.dart';
 import '../../../shared/widgets/pantalla.dart';
@@ -82,19 +82,19 @@ class HorarioScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.calendar_month_outlined,
                       size: 48,
-                      color: AppColors.disabled,
+                      color: context.paleta.disabled,
                     ),
                     const SizedBox(height: 12),
                     Text(
                       'Todavía no tienes ningún horario fijo. Crea el '
                       'primero y se repetirá solo cada semana.',
                       textAlign: TextAlign.center,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: context.paleta.subtle,
+                      ),
                     ),
                   ],
                 ),
@@ -110,7 +110,7 @@ class HorarioScreen extends ConsumerWidget {
               espacioBotonesFlotantes,
             ),
             itemCount: plantillas.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => SizedBox(height: 12),
             itemBuilder: (context, index) {
               final plantilla = plantillas[index];
               return TarjetaFila(

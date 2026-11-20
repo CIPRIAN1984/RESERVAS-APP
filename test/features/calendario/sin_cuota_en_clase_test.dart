@@ -14,7 +14,6 @@ import 'package:itaca/features/calendario/data/inscrito_alumno.dart';
 import 'package:itaca/features/calendario/presentation/clase_detalle_screen.dart';
 import 'package:itaca/features/tarifas/application/tarifas_providers.dart';
 import 'package:itaca/features/tarifas/data/tarifa.dart';
-import 'package:itaca/shared/widgets/pantalla.dart';
 
 /// Cipri quiere que la gente pueda apuntarse a clase sin haber pagado y verlo
 /// marcado en la lista, para cobrarles en mano cuando aparezcan por el
@@ -125,15 +124,17 @@ void main() {
 
     // Roja de verdad, no un gris cualquiera: es lo que la hace saltar a la
     // vista entre veinte nombres.
-    final pastilla = tester.widget<PastillaEstado>(
+    final caja = tester.widget<Container>(
       find
-          .byWidgetPredicate(
-            (w) => w is PastillaEstado && w.texto == 'Sin cuota',
+          .ancestor(
+            of: find.text('SIN CUOTA').first,
+            matching: find.byType(Container),
           )
           .first,
     );
-    expect(pastilla.fondo, AppColors.dangerBg);
-    expect(pastilla.tinta, AppColors.dangerFg);
+    expect((caja.decoration! as BoxDecoration).color, AppColors.dangerBg);
+    final texto = tester.widget<Text>(find.text('SIN CUOTA').first);
+    expect(texto.style?.color, AppColors.dangerFg);
   });
 
   testWidgets('si están todos al corriente no se marca a nadie', (

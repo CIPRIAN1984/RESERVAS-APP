@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/models/profile.dart';
 import '../../../core/utils/error_messages.dart';
 import '../../../shared/widgets/pantalla.dart';
@@ -211,7 +211,7 @@ class _EquipoScreenState extends ConsumerState<EquipoScreen> {
                 'Desde aquí puedes asignar o retirar el rol Profesor.',
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+                ).textTheme.bodySmall?.copyWith(color: context.paleta.subtle),
               ),
             ],
           ),
@@ -241,7 +241,7 @@ class _EquipoScreenState extends ConsumerState<EquipoScreen> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(16),
                   itemCount: visibles.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final miembro = visibles[index];
                     final gestionable = miembro.isAlumno || miembro.isProfesor;
@@ -278,8 +278,8 @@ class _EquipoScreenState extends ConsumerState<EquipoScreen> {
                             // Solo el Alumno necesita cuota para reservar.
                             if (miembro.isAlumno)
                               switch (cuota?.estado) {
-                                null => const PastillaEstado.error('Sin cuota'),
-                                'prueba' => const PastillaEstado.info('Prueba'),
+                                null => PastillaEstado.error('Sin cuota'),
+                                'prueba' => PastillaEstado.info('Prueba'),
                                 'pausada' => const PastillaEstado.aviso(
                                   'Pausada',
                                 ),

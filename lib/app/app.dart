@@ -7,6 +7,7 @@ import '../core/observability/observability.dart';
 import '../l10n/app_localizations.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
+import 'theme/modo_tema.dart';
 
 class ItacaApp extends ConsumerWidget {
   const ItacaApp({super.key});
@@ -24,10 +25,9 @@ class ItacaApp extends ConsumerWidget {
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
-      // La identidad I+ es clara. No hay variante oscura: mantener dos temas
-      // obligaría a revisar cada pantalla dos veces sin que nadie lo pidiera.
       theme: AppTheme.light,
-      themeMode: ThemeMode.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ref.watch(modoTemaProvider),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,

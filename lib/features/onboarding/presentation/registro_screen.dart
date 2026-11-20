@@ -1,12 +1,12 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/models/academia.dart';
@@ -123,10 +123,10 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.mark_email_unread_outlined,
                       size: 48,
-                      color: AppColors.subtle,
+                      color: context.paleta.subtle,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -251,9 +251,9 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
                       'Tu academia tendrá que aprobar tu alta antes de que '
                       'puedas entrar.',
                       textAlign: TextAlign.center,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: context.paleta.subtle,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     TextButton(
@@ -301,13 +301,13 @@ class _AcademiaFija extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.paleta.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.line),
+        border: Border.all(color: context.paleta.line),
       ),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, color: AppColors.ink, size: 20),
+          Icon(Icons.check_circle, color: context.paleta.ink, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

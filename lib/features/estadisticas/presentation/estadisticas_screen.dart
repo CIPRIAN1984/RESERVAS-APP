@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/pantalla.dart';
@@ -197,7 +197,7 @@ class _Pedestal extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         if (primero)
-          const Icon(Icons.emoji_events, size: 26, color: AppColors.crown),
+          Icon(Icons.emoji_events, size: 26, color: context.paleta.crown),
         if (primero) const SizedBox(height: 6),
         _Avatar(entry: entry, radio: primero ? 32 : 26),
         const SizedBox(height: 8),
@@ -220,7 +220,7 @@ class _Pedestal extends StatelessWidget {
           height: alto,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: esYo ? AppColors.surfaceStrong : AppColors.surface,
+            color: esYo ? context.paleta.surfaceStrong : context.paleta.surface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
           ),
           alignment: Alignment.topCenter,
@@ -258,7 +258,7 @@ class _FilaRanking extends StatelessWidget {
     final t = Theme.of(context).textTheme;
 
     return Card(
-      color: esYo ? AppColors.surfaceStrong : null,
+      color: esYo ? context.paleta.surfaceStrong : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Row(
@@ -325,7 +325,7 @@ class _Avatar extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: radio,
-            backgroundColor: AppColors.surfaceStrong,
+            backgroundColor: context.paleta.surfaceStrong,
             backgroundImage: entry.fotoUrl != null
                 ? CachedNetworkImageProvider(entry.fotoUrl!)
                 : null,
@@ -335,7 +335,7 @@ class _Avatar extends StatelessWidget {
                     style: TextStyle(
                       fontSize: radio * 0.8,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.subtle,
+                      color: context.paleta.subtle,
                     ),
                   )
                 : null,
@@ -345,8 +345,8 @@ class _Avatar extends StatelessWidget {
             bottom: -1,
             child: Container(
               padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(
-                color: AppColors.ground,
+              decoration: BoxDecoration(
+                color: context.paleta.ground,
                 shape: BoxShape.circle,
               ),
               child: PuntoCinturon(entry.cinturon, tamano: radio * 0.52),

@@ -23,6 +23,13 @@
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0A0A0B" media="(prefers-color-scheme: dark)">
+  <style>
+    /* Fondo mientras carga la app: sin destello blanco en un móvil oscuro. */
+    @media (prefers-color-scheme: dark) { body { background: #0A0A0B; } }
+  </style>
   <meta name="apple-mobile-web-app-title" content="I+">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 

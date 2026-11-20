@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/models/profile.dart';
 import '../../../core/utils/error_messages.dart';
 import '../../miembros/application/miembros_providers.dart';
@@ -135,7 +135,7 @@ class _ApuntarSheetState extends ConsumerState<_ApuntarSheet> {
               Text(
                 'Queda apuntado y con la asistencia confirmada. Se respetan '
                 'el aforo y las clases de su tarifa.',
-                style: t.bodyMedium?.copyWith(color: AppColors.subtle),
+                style: t.bodyMedium?.copyWith(color: context.paleta.subtle),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -150,7 +150,9 @@ class _ApuntarSheetState extends ConsumerState<_ApuntarSheet> {
                 const SizedBox(height: 12),
                 Text(
                   _error!,
-                  style: t.bodyMedium?.copyWith(color: AppColors.destructive),
+                  style: t.bodyMedium?.copyWith(
+                    color: context.paleta.destructive,
+                  ),
                 ),
               ],
               const SizedBox(height: 8),
@@ -162,7 +164,7 @@ class _ApuntarSheetState extends ConsumerState<_ApuntarSheet> {
                     child: Text(
                       'No se ha podido cargar la lista de alumnos.',
                       style: t.bodyMedium?.copyWith(
-                        color: AppColors.destructive,
+                        color: context.paleta.destructive,
                       ),
                     ),
                   ),
@@ -177,7 +179,7 @@ class _ApuntarSheetState extends ConsumerState<_ApuntarSheet> {
                         child: Text(
                           'No hay nadie más a quien apuntar.',
                           style: t.bodyMedium?.copyWith(
-                            color: AppColors.subtle,
+                            color: context.paleta.subtle,
                           ),
                         ),
                       );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/models/profile.dart';
 import '../../../core/utils/clave_unica.dart';
 import '../../../core/utils/error_messages.dart';
@@ -164,7 +164,7 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
             Text(
               'Para ${widget.alumno.nombre}. Queda registrado como cobrado '
               'en mano, no pasa por Stripe.',
-              style: t.bodyMedium?.copyWith(color: AppColors.subtle),
+              style: t.bodyMedium?.copyWith(color: context.paleta.subtle),
             ),
             const SizedBox(height: 24),
 
@@ -191,7 +191,7 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
                             'Todavía no hay ninguna tarifa activa. Crea una en '
                             'Herramientas → Tarifas y planes.',
                             style: t.bodyMedium?.copyWith(
-                              color: AppColors.subtle,
+                              color: context.paleta.subtle,
                             ),
                           );
                         }
@@ -263,7 +263,9 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
                                 finActual: finActual,
                                 hasta: _hasta(opcion),
                               ),
-                        style: t.bodySmall?.copyWith(color: AppColors.subtle),
+                        style: t.bodySmall?.copyWith(
+                          color: context.paleta.subtle,
+                        ),
                       ),
                     ],
                     if (bloqueaRenovacion) ...[
@@ -272,7 +274,7 @@ class _DarCuotaSheetState extends ConsumerState<_DarCuotaSheet> {
                         'Ya tiene una renovación pagada esperando a que acabe '
                         'la actual. No se puede registrar otra.',
                         style: t.bodySmall?.copyWith(
-                          color: AppColors.destructive,
+                          color: context.paleta.destructive,
                         ),
                       ),
                     ],

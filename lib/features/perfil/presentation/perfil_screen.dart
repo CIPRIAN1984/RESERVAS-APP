@@ -1,11 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../app/routes.dart';
-import '../../../app/theme/color_tokens.dart';
+import '../../../app/theme/modo_tema.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../documentos/presentation/mis_documentos_screen.dart';
@@ -220,20 +221,20 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                     children: [
                       CircleAvatar(
                         radius: 48,
-                        backgroundColor: AppColors.surface,
+                        backgroundColor: context.paleta.surface,
                         backgroundImage: profile.fotoUrl != null
                             ? CachedNetworkImageProvider(profile.fotoUrl!)
                             : null,
                         child: profile.fotoUrl == null
-                            ? const Icon(
+                            ? Icon(
                                 Icons.person,
                                 size: 48,
-                                color: AppColors.subtle,
+                                color: context.paleta.subtle,
                               )
                             : null,
                       ),
                       Material(
-                        color: AppColors.ink,
+                        color: context.paleta.ink,
                         shape: const CircleBorder(),
                         child: InkWell(
                           customBorder: const CircleBorder(),
@@ -243,18 +244,18 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                           child: Padding(
                             padding: const EdgeInsets.all(6),
                             child: _uploadingFoto
-                                ? const SizedBox(
+                                ? SizedBox(
                                     width: 16,
                                     height: 16,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: AppColors.onInk,
+                                      color: context.paleta.onInk,
                                     ),
                                   )
-                                : const Icon(
+                                : Icon(
                                     Icons.camera_alt,
                                     size: 16,
-                                    color: AppColors.onInk,
+                                    color: context.paleta.onInk,
                                   ),
                           ),
                         ),
@@ -278,7 +279,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                         : Text(
                             academia.nombre,
                             style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: AppColors.subtle),
+                                ?.copyWith(color: context.paleta.subtle),
                           ),
                     loading: () => const SizedBox.shrink(),
                     error: (e, st) => const SizedBox.shrink(),
@@ -347,14 +348,16 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodySmall
-                                          ?.copyWith(color: AppColors.subtle),
+                                          ?.copyWith(
+                                            color: context.paleta.subtle,
+                                          ),
                                     ),
                                   ],
                                 ),
                               ),
-                              const Icon(
+                              Icon(
                                 Icons.chevron_right,
-                                color: AppColors.disabled,
+                                color: context.paleta.disabled,
                                 size: 22,
                               ),
                             ],
@@ -470,6 +473,13 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'APARIENCIA',
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  const _SelectorModo(),
                   const SizedBox(height: 16),
                   TextButton.icon(
                     onPressed: () => context.push(Routes.privacidad),
@@ -487,7 +497,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                   TextButton.icon(
                     onPressed: _cerrarSesion,
                     style: TextButton.styleFrom(
-                      foregroundColor: AppColors.destructive,
+                      foregroundColor: context.paleta.destructive,
                     ),
                     icon: const Icon(Icons.logout),
                     label: const Text('Cerrar sesión'),
@@ -539,9 +549,9 @@ class _InterruptorEntrena extends StatelessWidget {
                         ? 'Cuentas como alumno y puedes reservar plaza.'
                         : 'Solo traes a tus hijos: no sales en la lista de '
                               'alumnos ni reservas para ti.',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: context.paleta.subtle,
+                    ),
                   ),
                 ],
               ),
@@ -557,6 +567,30 @@ class _InterruptorEntrena extends StatelessWidget {
               Switch(value: entrena, onChanged: onCambio),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Elegir entre el modo del sistema, claro y oscuro.
+class _SelectorModo extends ConsumerWidget {
+  const _SelectorModo();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final modo = ref.watch(modoTemaProvider);
+    return SizedBox(
+      width: double.infinity,
+      child: SegmentedButton<ThemeMode>(
+        showSelectedIcon: false,
+        segments: const [
+          ButtonSegment(value: ThemeMode.system, label: Text('Sistema')),
+          ButtonSegment(value: ThemeMode.light, label: Text('Claro')),
+          ButtonSegment(value: ThemeMode.dark, label: Text('Oscuro')),
+        ],
+        selected: {modo},
+        onSelectionChanged: (s) =>
+            ref.read(modoTemaProvider.notifier).elegir(s.first),
       ),
     );
   }

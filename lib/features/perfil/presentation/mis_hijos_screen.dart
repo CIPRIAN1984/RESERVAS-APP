@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_theme.dart';
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/models/cinturones.dart';
 import '../../../core/models/profile.dart';
 import '../../../core/utils/error_messages.dart';
@@ -74,7 +74,7 @@ class _MisHijosScreenState extends ConsumerState<MisHijosScreen> {
               FilledButton(
                 onPressed: () => Navigator.of(dialogContext).pop(true),
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.destructive,
+                  backgroundColor: context.paleta.destructive,
                 ),
                 child: const Text('Borrar'),
               ),
@@ -142,7 +142,7 @@ class _MisHijosScreenState extends ConsumerState<MisHijosScreen> {
         ref.watch(hijosBorrablesProvider).value ?? const <String>{};
 
     return Scaffold(
-      backgroundColor: AppColors.ground,
+      backgroundColor: context.paleta.ground,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _agregar,
         icon: const Icon(Icons.add),
@@ -207,7 +207,7 @@ class _NotaSinCuenta extends StatelessWidget {
         'gestionas tú desde aquí. Su cinturón lo pone la academia.',
         style: Theme.of(
           context,
-        ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+        ).textTheme.bodySmall?.copyWith(color: context.paleta.subtle),
       ),
     );
   }
@@ -265,8 +265,8 @@ class _FilaHijo extends StatelessWidget {
                   icon: const Icon(Icons.delete_outline, size: 20),
                   tooltip: 'Borrar el alta de $nombre',
                   style: IconButton.styleFrom(
-                    backgroundColor: AppColors.ground,
-                    foregroundColor: AppColors.destructive,
+                    backgroundColor: context.paleta.ground,
+                    foregroundColor: context.paleta.destructive,
                   ),
                 ),
               ),
@@ -310,7 +310,9 @@ class _CuotaHijo extends ConsumerWidget {
       child: Text(
         resumen.texto,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: resumen.aviso ? AppColors.destructive : AppColors.subtle,
+          color: resumen.aviso
+              ? context.paleta.destructive
+              : context.paleta.subtle,
         ),
       ),
     );
@@ -340,18 +342,18 @@ class _AvatarHijo extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 23,
-            backgroundColor: AppColors.surfaceStrong,
+            backgroundColor: context.paleta.surfaceStrong,
             backgroundImage: hijo.fotoUrl != null
                 ? CachedNetworkImageProvider(hijo.fotoUrl!)
                 : null,
             child: hijo.fotoUrl == null
                 ? Text(
                     iniciales.isEmpty ? '?' : iniciales,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: AppTheme.fontSans,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.subtle,
+                      color: context.paleta.subtle,
                     ),
                   )
                 : null,
@@ -361,8 +363,8 @@ class _AvatarHijo extends StatelessWidget {
             bottom: -1,
             child: Container(
               padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(
-                color: AppColors.ground,
+              decoration: BoxDecoration(
+                color: context.paleta.ground,
                 shape: BoxShape.circle,
               ),
               child: PuntoCinturon(hijo.cinturon ?? 'blanco', tamano: 12),

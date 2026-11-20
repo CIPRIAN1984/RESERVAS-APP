@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/app_mode.dart';
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/async_value_view.dart';
 import '../../../shared/widgets/pantalla.dart';
@@ -118,7 +118,7 @@ class _NovedadCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: novedad.fijado ? AppColors.ink.withValues(alpha: 0.10) : null,
+      color: novedad.fijado ? context.paleta.ink.withValues(alpha: 0.10) : null,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -127,7 +127,7 @@ class _NovedadCard extends StatelessWidget {
             Row(
               children: [
                 if (novedad.fijado) ...[
-                  const Icon(Icons.push_pin, size: 16, color: AppColors.ink),
+                  Icon(Icons.push_pin, size: 16, color: context.paleta.ink),
                   const SizedBox(width: 6),
                 ],
                 Expanded(
@@ -138,7 +138,7 @@ class _NovedadCard extends StatelessWidget {
                 ),
                 if (puedeGestionar)
                   PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert, color: AppColors.subtle),
+                    icon: Icon(Icons.more_vert, color: context.paleta.subtle),
                     onSelected: (value) {
                       if (value == 'fijar') onAlternarFijado();
                       if (value == 'eliminar') onEliminar();
@@ -166,7 +166,7 @@ class _NovedadCard extends StatelessWidget {
               '${novedad.autorNombre ?? 'Desconocido'} · ${DateFormat('d MMM, HH:mm', 'es_ES').format(novedad.createdAt.toLocal())}',
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+              ).textTheme.bodySmall?.copyWith(color: context.paleta.subtle),
             ),
           ],
         ),

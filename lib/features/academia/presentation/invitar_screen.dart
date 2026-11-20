@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../app/theme/app_theme.dart';
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 
 /// El enlace lleva al registro (`RegistroScreen`) con la academia ya fijada
@@ -36,26 +36,26 @@ class InvitarScreen extends ConsumerWidget {
           'elegida: no verán la lista de todas las academias de la app.',
           style: Theme.of(
             context,
-          ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+          ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
         ),
         const SizedBox(height: 24),
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.paleta.surface,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Center(
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.ground,
+                color: context.paleta.ground,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: QrImageView(
                 data: enlace,
                 size: 220,
-                backgroundColor: AppColors.onInk,
+                backgroundColor: context.paleta.onInk,
               ),
             ),
           ),
@@ -64,14 +64,14 @@ class InvitarScreen extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.paleta.surface,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
             enlace,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               fontFamily: AppTheme.fontMono,
-              color: AppColors.ink,
+              color: context.paleta.ink,
             ),
           ),
         ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../app/theme/color_tokens.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 
 /// Un dato que no ha cargado, dicho en su sitio y con «Reintentar».
 ///
@@ -27,7 +26,7 @@ class ErrorEnLinea extends StatelessWidget {
           mensaje,
           style: Theme.of(
             context,
-          ).textTheme.bodySmall?.copyWith(color: AppColors.destructive),
+          ).textTheme.bodySmall?.copyWith(color: context.paleta.destructive),
         ),
         TextButton.icon(
           onPressed: onReintentar,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/error_en_linea.dart';
 import '../../perfil/application/profile_providers.dart';
@@ -79,7 +79,7 @@ class MisDocumentosScreen extends ConsumerWidget {
           'regla antes de que suba al tatami.',
           style: Theme.of(
             context,
-          ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+          ).textTheme.bodySmall?.copyWith(color: context.paleta.subtle),
         ),
       ],
     );

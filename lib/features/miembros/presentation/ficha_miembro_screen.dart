@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/models/profile.dart';
 import '../../../shared/widgets/empty_state.dart';
@@ -119,7 +119,7 @@ class FichaMiembroScreen extends ConsumerWidget {
                 style: baja
                     ? null
                     : FilledButton.styleFrom(
-                        backgroundColor: AppColors.destructive,
+                        backgroundColor: context.paleta.destructive,
                       ),
                 child: Text(baja ? 'Reactivar' : 'Dar de baja'),
               ),
@@ -203,7 +203,7 @@ class FichaMiembroScreen extends ConsumerWidget {
                   actual: alumno.cinturon ?? 'blanco',
                   proximo: progreso.proximoCinturon,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   runSpacing: 4,
@@ -212,7 +212,7 @@ class FichaMiembroScreen extends ConsumerWidget {
                     // venir» no es una alerta cuando la persona se ha ido, y
                     // «listo para graduarse» tampoco viene a cuento.
                     if (alumno.deBaja)
-                      const PastillaEstado.error('De baja')
+                      PastillaEstado.error('De baja')
                     else ...[
                       esInactivo(ultima)
                           ? PastillaEstado.aviso(etiquetaInactividad(ultima))
@@ -251,9 +251,9 @@ class FichaMiembroScreen extends ConsumerWidget {
                     '${progreso.requeridas} clases totales requeridas para '
                     'el siguiente cinturón.',
                     textAlign: TextAlign.center,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: context.paleta.subtle,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   FilledButton(
@@ -285,7 +285,7 @@ class FichaMiembroScreen extends ConsumerWidget {
                 // la que peor sienta pulsar sin querer.
                 if (esDueno) ...[
                   const SizedBox(height: 32),
-                  const Divider(color: AppColors.line),
+                  Divider(color: context.paleta.line),
                   const SizedBox(height: 16),
                 ],
                 if (!esDueno)
@@ -299,7 +299,7 @@ class FichaMiembroScreen extends ConsumerWidget {
                   OutlinedButton(
                     onPressed: () => _cambiarAlta(context, ref),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.destructive,
+                      foregroundColor: context.paleta.destructive,
                     ),
                     child: const Text('Dar de baja'),
                   ),
@@ -337,7 +337,7 @@ class _TarjetaRango extends StatelessWidget {
               children: [
                 Expanded(child: _Cinturon(cinturon: actual)),
                 if (proximo != null) ...[
-                  const Icon(Icons.arrow_forward, color: AppColors.subtle),
+                  Icon(Icons.arrow_forward, color: context.paleta.subtle),
                   Expanded(child: _Cinturon(cinturon: proximo)),
                 ],
               ],
@@ -390,8 +390,8 @@ class _AnilloProgreso extends StatelessWidget {
                 value: fraccion,
                 strokeWidth: 12,
                 strokeCap: StrokeCap.round,
-                backgroundColor: AppColors.line,
-                valueColor: const AlwaysStoppedAnimation(AppColors.ink),
+                backgroundColor: context.paleta.line,
+                valueColor: AlwaysStoppedAnimation(context.paleta.ink),
               ),
             ),
             Text(

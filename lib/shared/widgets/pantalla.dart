@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 
 import '../../app/theme/color_tokens.dart';
 
@@ -159,10 +160,10 @@ class _Pildora extends StatelessWidget {
         borderRadius: BorderRadius.circular(100),
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+          duration: Duration(milliseconds: 160),
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 11),
           decoration: BoxDecoration(
-            color: activa ? AppColors.ink : AppColors.surface,
+            color: activa ? context.paleta.ink : context.paleta.surface,
             borderRadius: BorderRadius.circular(100),
           ),
           child: Text(
@@ -170,7 +171,7 @@ class _Pildora extends StatelessWidget {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: activa ? AppColors.onInk : AppColors.subtle,
+              color: activa ? context.paleta.onInk : context.paleta.subtle,
             ),
           ),
         ),
@@ -181,38 +182,38 @@ class _Pildora extends StatelessWidget {
 
 /// Pastilla de estado en tono pastel. El color aquí **significa** algo: verde
 /// cobrado, rojo impagado, azul prueba, gris sin membresía.
+enum _Tono { neutro, exito, error, info, aviso }
+
 class PastillaEstado extends StatelessWidget {
-  const PastillaEstado(
-    this.texto, {
-    this.fondo = AppColors.neutralBg,
-    this.tinta = AppColors.neutralFg,
-    this.icono,
-    super.key,
-  });
+  const PastillaEstado(this.texto, {this.icono, super.key})
+    : _tono = _Tono.neutro;
 
   const PastillaEstado.exito(this.texto, {this.icono, super.key})
-    : fondo = AppColors.successBg,
-      tinta = AppColors.successFg;
+    : _tono = _Tono.exito;
 
   const PastillaEstado.error(this.texto, {this.icono, super.key})
-    : fondo = AppColors.dangerBg,
-      tinta = AppColors.dangerFg;
+    : _tono = _Tono.error;
 
   const PastillaEstado.info(this.texto, {this.icono, super.key})
-    : fondo = AppColors.infoBg,
-      tinta = AppColors.infoFg;
+    : _tono = _Tono.info;
 
   const PastillaEstado.aviso(this.texto, {this.icono, super.key})
-    : fondo = AppColors.warningBg,
-      tinta = AppColors.warningFg;
+    : _tono = _Tono.aviso;
 
   final String texto;
-  final Color fondo;
-  final Color tinta;
+  final _Tono _tono;
   final IconData? icono;
 
   @override
   Widget build(BuildContext context) {
+    final p = context.paleta;
+    final (fondo, tinta) = switch (_tono) {
+      _Tono.neutro => (p.neutralBg, p.neutralFg),
+      _Tono.exito => (p.successBg, p.successFg),
+      _Tono.error => (p.dangerBg, p.dangerFg),
+      _Tono.info => (p.infoBg, p.infoFg),
+      _Tono.aviso => (p.warningBg, p.warningFg),
+    };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
@@ -336,7 +337,7 @@ class TarjetaFila extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               detalle!,
-              style: t.bodyMedium?.copyWith(color: AppColors.subtle),
+              style: t.bodyMedium?.copyWith(color: context.paleta.subtle),
             ),
           ],
           if (estado != null) ...[
@@ -411,16 +412,16 @@ class TarjetaAcceso extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       descripcion,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: context.paleta.subtle,
+                      ),
                     ),
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right,
-                color: AppColors.disabled,
+                color: context.paleta.disabled,
                 size: 22,
               ),
             ],

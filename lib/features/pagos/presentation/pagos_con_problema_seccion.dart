@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../application/pagos_providers.dart';
 import '../data/pago_tarjeta.dart';
@@ -53,7 +53,7 @@ class PagosConProblemaSeccion extends ConsumerWidget {
             'sin cuota activada, fallido o abandonado.',
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+            ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
           )
         else
           for (final pago in lista) _FilaPago(pago: pago),
@@ -70,9 +70,9 @@ class _FilaPago extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pastilla = switch (pago.estado) {
-      'revisar' => const PastillaEstado.error('Cobrado, sin cuota'),
-      'fallido' => const PastillaEstado.error('Fallido'),
-      'expirado' => const PastillaEstado.aviso('Abandonado'),
+      'revisar' => PastillaEstado.error('Cobrado, sin cuota'),
+      'fallido' => PastillaEstado.error('Fallido'),
+      'expirado' => PastillaEstado.aviso('Abandonado'),
       _ => const PastillaEstado.aviso('Rechazado'),
     };
     return Card(
@@ -92,7 +92,7 @@ class _FilaPago extends StatelessWidget {
               '${DateFormat("d 'de' MMM, HH:mm", 'es_ES').format(pago.creado.toLocal())}',
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+              ).textTheme.bodySmall?.copyWith(color: context.paleta.subtle),
             ),
             const SizedBox(height: 8),
             Align(alignment: Alignment.centerLeft, child: pastilla),

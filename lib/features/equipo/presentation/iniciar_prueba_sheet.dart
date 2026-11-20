@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/models/profile.dart';
 import '../../../core/utils/error_messages.dart';
 import '../../tarifas/application/tarifas_providers.dart';
@@ -89,7 +89,7 @@ class _IniciarPruebaSheetState extends ConsumerState<_IniciarPruebaSheet> {
             Text(
               'Para ${widget.alumno.nombre}. Podrá reservar durante 1 día '
               'sin que le cobres todavía; pasado ese día deja de contar sola.',
-              style: t.bodyMedium?.copyWith(color: AppColors.subtle),
+              style: t.bodyMedium?.copyWith(color: context.paleta.subtle),
             ),
             const SizedBox(height: 24),
 
@@ -113,7 +113,7 @@ class _IniciarPruebaSheetState extends ConsumerState<_IniciarPruebaSheet> {
                             'Todavía no hay ninguna tarifa activa. Crea una en '
                             'Herramientas → Tarifas y planes.',
                             style: t.bodyMedium?.copyWith(
-                              color: AppColors.subtle,
+                              color: context.paleta.subtle,
                             ),
                           );
                         }
