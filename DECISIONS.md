@@ -3010,3 +3010,10 @@ la aprueba o rechaza) y, tras explicársela, decidió **dejarla de momento**. No
 hay código ni migración. Si se retoma, queda por decidir si es para todos los
 alumnos o solo para los casos que el Dueño decida. Pagar con tarjeta y cobrar
 en mano siguen siendo los caminos.
+
+## 2026-11-20 — Cola sin conexión para pasar lista: aparcada
+
+Cipri decidió **dejarla de momento**, igual que la solicitud de tarifa. No hay
+código. Si se retoma: el riesgo principal es que una lista se guarde dos veces
+o pise otra, y abrir la app sin red exige un *service worker* propio (hoy la app
+instalada necesita conexión para cargar; ver la entrada de la PWA).
