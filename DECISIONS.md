@@ -3017,3 +3017,13 @@ Cipri decidió **dejarla de momento**, igual que la solicitud de tarifa. No hay
 código. Si se retoma: el riesgo principal es que una lista se guarde dos veces
 o pise otra, y abrir la app sin red exige un *service worker* propio (hoy la app
 instalada necesita conexión para cargar; ver la entrada de la PWA).
+
+## 2026-11-20 — Barra inferior del modo Gestor: «Herramientas» en una línea
+
+Cipri vio en su móvil (412 px) que «Herramientas» se partía en dos líneas
+(«Herramienta» / «s»). La barra del Gestor tiene seis sitios y no hay ancho
+para más. Arreglo: el botón de cambio de modo pasa de 76 a 64 px, las
+etiquetas de la barra no crecen con el tamaño de letra del móvil y se quita
+el relleno lateral de la etiqueta. **Límite:** en móviles de 360 px de ancho
+«Herramientas» sigue sin caber; haría falta una etiqueta más corta (texto a
+decidir por Cipri).

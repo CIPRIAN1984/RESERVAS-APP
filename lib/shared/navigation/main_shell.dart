@@ -136,21 +136,27 @@ class MainShell extends ConsumerWidget {
         child: Row(
           children: [
             Expanded(
-              child: NavigationBar(
-                selectedIndex: indiceActual < 0 ? 0 : indiceActual,
-                onDestinationSelected: (i) {
-                  final destino = destinos[i];
-                  if (destino.ruta != location) context.go(destino.ruta);
-                },
-                destinations: [
-                  for (final d in destinos)
-                    NavigationDestination(
-                      icon: Icon(d.icono),
-                      selectedIcon: Icon(d.iconoActivo),
-                      label: d.etiqueta,
-                      tooltip: d.etiqueta,
-                    ),
-                ],
+              // Las etiquetas de la barra no crecen con el tamaño de letra del
+              // móvil: con seis sitios no hay ancho para más y «Herramientas»
+              // se partía en dos líneas.
+              child: MediaQuery.withClampedTextScaling(
+                maxScaleFactor: 1.0,
+                child: NavigationBar(
+                  selectedIndex: indiceActual < 0 ? 0 : indiceActual,
+                  onDestinationSelected: (i) {
+                    final destino = destinos[i];
+                    if (destino.ruta != location) context.go(destino.ruta);
+                  },
+                  destinations: [
+                    for (final d in destinos)
+                      NavigationDestination(
+                        icon: Icon(d.icono),
+                        selectedIcon: Icon(d.iconoActivo),
+                        label: d.etiqueta,
+                        tooltip: d.etiqueta,
+                      ),
+                  ],
+                ),
               ),
             ),
             // El cambio de modo va en la barra —flotando tapaba «Reservar
@@ -197,7 +203,7 @@ class _BotonModo extends StatelessWidget {
           child: SizedBox(
             // Mismo alto que la barra, y un ancho parecido al de un destino
             // para que no rompa el ritmo de la fila.
-            width: 76,
+            width: 64,
             height: 68,
             child: Padding(
               // La barra no centra su contenido igual que un Column normal:
