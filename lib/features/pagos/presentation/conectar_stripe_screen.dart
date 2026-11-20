@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/utils/error_messages.dart';
 import '../application/pagos_providers.dart';
@@ -92,9 +92,9 @@ class _ConectarStripeScreenState extends ConsumerState<ConectarStripeScreen> {
                     Text(
                       _descripcionPara(estado),
                       textAlign: TextAlign.center,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: context.paleta.subtle,
+                      ),
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 16),
@@ -146,9 +146,9 @@ class _ConectarStripeScreenState extends ConsumerState<ConectarStripeScreen> {
   };
 
   Color _colorPara(String estado) => switch (estado) {
-    'complete' => AppColors.successFg,
-    'pending' => AppColors.warningFg,
-    _ => AppColors.subtle,
+    'complete' => context.paleta.successFg,
+    'pending' => context.paleta.warningFg,
+    _ => context.paleta.subtle,
   };
 
   String _tituloPara(String estado) => switch (estado) {

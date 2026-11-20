@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 
 /// Centro de gestión de la academia: identidad, equipo y los ajustes que
@@ -27,7 +27,7 @@ class AcademiaScreen extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.line),
+              border: Border.all(color: context.paleta.line),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -35,15 +35,15 @@ class AcademiaScreen extends ConsumerWidget {
                 Container(
                   width: 60,
                   height: 60,
-                  decoration: const BoxDecoration(
-                    color: AppColors.ink,
+                  decoration: BoxDecoration(
+                    color: context.paleta.ink,
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
-                  child: const Text(
+                  child: Text(
                     'I+',
                     style: TextStyle(
-                      color: AppColors.onInk,
+                      color: context.paleta.onInk,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                     ),
@@ -62,10 +62,10 @@ class AcademiaScreen extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.place_outlined,
                               size: 15,
-                              color: AppColors.subtle,
+                              color: context.paleta.subtle,
                             ),
                             const SizedBox(width: 4),
                             Expanded(
@@ -179,7 +179,7 @@ class _Bloque extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 26),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.line),
+          border: Border.all(color: context.paleta.line),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -205,14 +205,14 @@ class _Fila extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
-      leading: Icon(icono, color: AppColors.ink, size: 22),
+      leading: Icon(icono, color: context.paleta.ink, size: 22),
       title: Text(
         texto,
-        style: const TextStyle(fontSize: 16, color: AppColors.ink),
+        style: TextStyle(fontSize: 16, color: context.paleta.ink),
       ),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.chevron_right,
-        color: AppColors.disabled,
+        color: context.paleta.disabled,
         size: 22,
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20),

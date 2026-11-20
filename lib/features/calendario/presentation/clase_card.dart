@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../data/clase_resumen.dart';
 import '../domain/pasar_lista.dart';
@@ -71,15 +71,15 @@ class ClaseCard extends StatelessWidget {
                   Container(
                     width: 44,
                     height: 44,
-                    decoration: const BoxDecoration(
-                      color: AppColors.ink,
+                    decoration: BoxDecoration(
+                      color: context.paleta.ink,
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
-                    child: const Text(
+                    child: Text(
                       'I+',
                       style: TextStyle(
-                        color: AppColors.onInk,
+                        color: context.paleta.onInk,
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                       ),
@@ -96,26 +96,26 @@ class ClaseCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2),
                         Text(
                           '$inicio – $fin',
                           style: t.bodyMedium?.copyWith(
-                            color: AppColors.subtle,
+                            color: context.paleta.subtle,
                           ),
                         ),
                       ],
                     ),
                   ),
                   if (clase.cancelada)
-                    const PastillaEstado.error('Cancelada')
+                    PastillaEstado.error('Cancelada')
                   else if (clase.cerrada)
-                    const PastillaEstado.aviso('Cerrada')
+                    PastillaEstado.aviso('Cerrada')
                   // Con familia, mi estado baja a la fila de abajo junto al
                   // de los hijos: aquí arriba, suelto, un «INSCRITO» al lado
                   // de «NICO» y «LUCÍA» no dice de quién es.
                   else if (clase.tieneReservaActiva && onQuienViene == null)
                     clase.enListaEspera
-                        ? const PastillaEstado.aviso(
+                        ? PastillaEstado.aviso(
                             'En espera',
                             icono: Icons.hourglass_top,
                           )
@@ -260,7 +260,7 @@ class _Dato extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = destacado ? AppColors.warningFg : AppColors.subtle;
+    final color = destacado ? context.paleta.warningFg : context.paleta.subtle;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

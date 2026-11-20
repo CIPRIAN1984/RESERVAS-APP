@@ -122,6 +122,9 @@ void main() {
       if (f.path.endsWith('.g.dart') || f.path.endsWith('.freezed.dart')) {
         continue;
       }
+      // El modo claro/oscuro es del dispositivo, no de la cuenta: no guarda
+      // datos de nadie y debe sobrevivir al cambio de usuario.
+      if (f.path.endsWith('modo_tema.dart')) continue;
       final texto = f.readAsStringSync();
       final lineas = texto.split('\n');
       for (var i = 0; i < lineas.length; i++) {

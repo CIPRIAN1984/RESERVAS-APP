@@ -147,3 +147,18 @@ Toda lista de una pantalla **con** botón flotante lleva `espacioBotonesFlotante
 2. Sustituye cualquier `AppColors.textSecondary` heredado del tema oscuro por el token claro equivalente.
 3. Comprueba que no queda ningún `Colors.white` / `Colors.black` suelto que rompa el modo claro.
 4. **Míralo renderizado** antes de darlo por hecho: invoca `verificar-app`.
+
+
+---
+
+## 9. Dos modos de color (20/11/2026)
+
+La app tiene modo **claro** (los tokens de §2) y modo **oscuro**. Los colores que
+cambian con el modo viven en `AppPalette` y se leen con `context.paleta.ink`,
+`context.paleta.surface`… **Nunca `AppColors.ink` en una pantalla** (se quedaría
+negro sobre negro de noche; una prueba lo impide). Solo los cinturones
+(`AppColors.belt…`) son fijos.
+
+- Texto sobre el amarillo de acento: `context.paleta.onAcid` (siempre oscuro).
+- Una pantalla nueva se mira en **los dos modos** (`test/golden/modo_oscuro_golden_test.dart`
+  es el modelo).

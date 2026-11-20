@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/models/profile.dart';
 import '../../../core/utils/error_messages.dart';
 import '../application/equipo_providers.dart';
@@ -106,7 +106,7 @@ class _PausarCuotaSheetState extends ConsumerState<_PausarCuotaSheet> {
             Text(
               'Para ${widget.alumno.nombre}. Mientras esté pausada no podrá '
               'reservar, aunque siga dado de alta.',
-              style: t.bodyMedium?.copyWith(color: AppColors.subtle),
+              style: t.bodyMedium?.copyWith(color: context.paleta.subtle),
             ),
             const SizedBox(height: 16),
             RadioGroup<bool>(

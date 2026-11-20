@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../data/clase_resumen.dart';
@@ -50,10 +50,10 @@ class _CompanerosClaseScreenState extends State<CompanerosClaseScreen> {
               '$horario · ${widget.clase.profesorNombre}',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+              ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
             ),
           ),
-          const Divider(height: 1, color: AppColors.line),
+          Divider(height: 1, color: context.paleta.line),
           Expanded(
             child: FutureBuilder<List<InscritoAlumno>>(
               future: _future,
@@ -111,17 +111,17 @@ class _FilaCompanero extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 22,
-                backgroundColor: AppColors.surfaceStrong,
+                backgroundColor: context.paleta.surfaceStrong,
                 backgroundImage: alumno.fotoUrl != null
                     ? CachedNetworkImageProvider(alumno.fotoUrl!)
                     : null,
                 child: alumno.fotoUrl == null
                     ? Text(
                         iniciales,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.subtle,
+                          color: context.paleta.subtle,
                         ),
                       )
                     : null,
@@ -131,8 +131,8 @@ class _FilaCompanero extends StatelessWidget {
                 bottom: -1,
                 child: Container(
                   padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
-                    color: AppColors.ground,
+                  decoration: BoxDecoration(
+                    color: context.paleta.ground,
                     shape: BoxShape.circle,
                   ),
                   child: PuntoCinturon(alumno.cinturon, tamano: 12),

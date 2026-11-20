@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/utils/error_messages.dart';
 import '../application/profile_providers.dart';
 
@@ -93,7 +93,7 @@ class _AgregarHijoSheetState extends ConsumerState<_AgregarHijoSheet> {
                 'contraseña: lo gestionas tú.',
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+                ).textTheme.bodySmall?.copyWith(color: context.paleta.subtle),
               ),
               const SizedBox(height: 20),
               TextFormField(
@@ -117,12 +117,12 @@ class _AgregarHijoSheetState extends ConsumerState<_AgregarHijoSheet> {
               FilledButton(
                 onPressed: _guardando ? null : _guardar,
                 child: _guardando
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 22,
                         height: 22,
                         child: CircularProgressIndicator(
                           strokeWidth: 2.4,
-                          color: AppColors.onInk,
+                          color: context.paleta.onInk,
                         ),
                       )
                     : const Text('Dar de alta'),

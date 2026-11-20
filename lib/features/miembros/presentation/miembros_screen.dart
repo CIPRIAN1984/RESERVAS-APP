@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_theme.dart';
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/models/cinturones.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/models/profile.dart';
@@ -253,7 +253,7 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                   // Dos filas de dos: con cuatro tarjetas ya no caben a lo
                   // ancho en un móvil de 412 px sin encogerse demasiado.
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, 4),
                     child: Column(
                       children: [
                         Row(
@@ -269,7 +269,7 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                                     _alternarEstado(FiltroEstado.alDia),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Expanded(
                               child: _TarjetaResumen(
                                 numero: activos.length - alDia,
@@ -285,7 +285,7 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Row(
                           children: [
                             Expanded(
@@ -301,7 +301,7 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                                     _alternarEstado(FiltroEstado.inactivos),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Expanded(
                               child: _TarjetaResumen(
                                 numero: listos,
@@ -471,7 +471,7 @@ class _CabeceraLetra extends StatelessWidget {
           Text(
             letra,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: AppColors.ink,
+              color: context.paleta.ink,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -541,7 +541,7 @@ class _FilaAlumno extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     // Wrap y no Row: con nombres largos o pantallas
                     // estrechas, varias pastillas se salían por la derecha
                     // (mismo motivo que en Equipo).
@@ -550,9 +550,9 @@ class _FilaAlumno extends StatelessWidget {
                       runSpacing: 6,
                       children: [
                         tieneCuota
-                            ? const PastillaEstado.exito('Al día')
-                            : const PastillaEstado.error('Sin cuota'),
-                        if (inactivo) const PastillaEstado.aviso('Inactivo'),
+                            ? PastillaEstado.exito('Al día')
+                            : PastillaEstado.error('Sin cuota'),
+                        if (inactivo) PastillaEstado.aviso('Inactivo'),
                         if (listo)
                           const PastillaEstado.exito('Listo para graduarse'),
                       ],
@@ -570,8 +570,8 @@ class _FilaAlumno extends StatelessWidget {
                     icon: const Icon(Icons.payments_outlined, size: 20),
                     tooltip: 'Registrar cobro en efectivo',
                     style: IconButton.styleFrom(
-                      backgroundColor: AppColors.ground,
-                      foregroundColor: AppColors.ink,
+                      backgroundColor: context.paleta.ground,
+                      foregroundColor: context.paleta.ink,
                     ),
                   ),
                 ),
@@ -608,18 +608,18 @@ class _AvatarAlumno extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 23,
-            backgroundColor: AppColors.surfaceStrong,
+            backgroundColor: context.paleta.surfaceStrong,
             backgroundImage: alumno.fotoUrl != null
                 ? CachedNetworkImageProvider(alumno.fotoUrl!)
                 : null,
             child: alumno.fotoUrl == null
                 ? Text(
                     iniciales.isEmpty ? '?' : iniciales,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: AppTheme.fontSans,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.subtle,
+                      color: context.paleta.subtle,
                     ),
                   )
                 : null,
@@ -632,8 +632,8 @@ class _AvatarAlumno extends StatelessWidget {
               // Anillo blanco, no del color de la tarjeta: sobre el gris de
               // la tarjeta un anillo gris no separa nada y el punto del
               // cinturón se confunde con el avatar.
-              decoration: const BoxDecoration(
-                color: AppColors.ground,
+              decoration: BoxDecoration(
+                color: context.paleta.ground,
                 shape: BoxShape.circle,
               ),
               child: PuntoCinturon(alumno.cinturon ?? 'blanco', tamano: 12),
@@ -702,7 +702,9 @@ class _BotonCinturon extends StatelessWidget {
         // Con un cinturón elegido el botón se marca en negro, para que se
         // note de un vistazo que la lista está filtrada.
         side: BorderSide(
-          color: cinturon == null ? AppColors.inkBorder : AppColors.ink,
+          color: cinturon == null
+              ? context.paleta.inkBorder
+              : context.paleta.ink,
           width: cinturon == null ? 1 : 1.5,
         ),
       ),
@@ -801,7 +803,7 @@ class _CinturonChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: seleccionado ? AppColors.ink : AppColors.surface,
+          color: seleccionado ? context.paleta.ink : context.paleta.surface,
           borderRadius: BorderRadius.circular(100),
         ),
         child: Row(
@@ -814,7 +816,7 @@ class _CinturonChip extends StatelessWidget {
             Text(
               texto.toUpperCase(),
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: seleccionado ? AppColors.onInk : AppColors.ink,
+                color: seleccionado ? context.paleta.onInk : context.paleta.ink,
               ),
             ),
           ],
@@ -853,7 +855,7 @@ class _TarjetaResumen extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: seleccionada
-              ? const BorderSide(color: AppColors.ink, width: 2)
+              ? BorderSide(color: context.paleta.ink, width: 2)
               : BorderSide.none,
         ),
         child: InkWell(
@@ -893,7 +895,7 @@ class _AvisoAltasPendientes extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Material(
-        color: AppColors.warningBg,
+        color: context.paleta.warningBg,
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
@@ -902,7 +904,7 @@ class _AvisoAltasPendientes extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                const Icon(Icons.person_add_alt, color: AppColors.warningFg),
+                Icon(Icons.person_add_alt, color: context.paleta.warningFg),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -910,11 +912,11 @@ class _AvisoAltasPendientes extends StatelessWidget {
                         ? '1 alta pendiente de aprobar'
                         : '$cuantas altas pendientes de aprobar',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppColors.warningFg,
+                      color: context.paleta.warningFg,
                     ),
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: AppColors.warningFg),
+                Icon(Icons.chevron_right, color: context.paleta.warningFg),
               ],
             ),
           ),
@@ -987,11 +989,11 @@ class _AltasPendientesSheetState extends ConsumerState<_AltasPendientesSheet> {
               'Hasta que la apruebes, esta persona no ve nada de la academia.',
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+              ).textTheme.bodySmall?.copyWith(color: context.paleta.subtle),
             ),
             if (_error != null) ...[
               const SizedBox(height: 8),
-              Text(_error!, style: const TextStyle(color: AppColors.dangerFg)),
+              Text(_error!, style: TextStyle(color: context.paleta.dangerFg)),
             ],
             const SizedBox(height: 12),
             Flexible(
@@ -1005,7 +1007,7 @@ class _AltasPendientesSheetState extends ConsumerState<_AltasPendientesSheet> {
                   return Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: context.paleta.surface,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(

@@ -2955,3 +2955,24 @@ paralelo con MAAT». Es decisión suya y queda registrada.
   avisos firmados). El primer pago real será la primera prueba de verdad: se
   hace con el interruptor `stripe_charges_enabled` apagado para el resto de
   alumnos y encendido solo cuando Cipri lo diga.
+
+## 2026-11-20 — Dos modos de color: claro (el actual) y oscuro (el de la app nueva)
+
+Petición de Cipri: la app debe tener **modo claro** (el actual) y **modo
+oscuro** (el de la versión nueva), y además traer de la app nueva: cola sin
+conexión para pasar lista, instalación como PWA, solicitud de tarifa aprobada
+por recepción y un diseño más pulido cercano a MAAT.
+
+- Sustituye a «solo hay tema claro» (decisión de julio). El claro no cambia.
+- Orden, un tema por PR: (1) modos claro/oscuro, (2) PWA instalable, (3)
+  solicitud de tarifa con aprobación de recepción, (4) cola sin conexión para
+  pasar lista. El pulido visual va dentro de cada una.
+- **Modo oscuro:** hasta ver el diseño de la app nueva, parte de la misma
+  paleta monocroma en oscuro (fondo casi negro, tinta blanca, amarillo
+  eléctrico igual, estados en pastel oscuro). Se ajustará a la de la app nueva
+  cuando Cipri nos pase su código o capturas.
+- Elegir modo: Perfil → Apariencia (Sistema / Claro / Oscuro), guardado en el
+  dispositivo. Por defecto, el del sistema.
+- Los colores salen de `AppPalette` (extensión del tema) y se leen con
+  `context.paleta`; ya no se usan `AppColors` fijos en las pantallas, salvo
+  los cinturones, que son el dato y no cambian.

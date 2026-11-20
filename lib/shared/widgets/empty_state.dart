@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../app/theme/color_tokens.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 
 /// A consistent empty-state placeholder: a muted icon plus a short message,
 /// used wherever a list or section has no content yet.
@@ -24,14 +23,14 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: AppColors.subtle),
+            Icon(icon, size: 48, color: context.paleta.subtle),
             const SizedBox(height: 16),
             Text(
               message,
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+              ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
             ),
             if (action != null) ...[const SizedBox(height: 20), action!],
           ],

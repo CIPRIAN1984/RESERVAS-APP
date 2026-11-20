@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 
 class PendienteAprobacionScreen extends ConsumerWidget {
@@ -23,7 +23,7 @@ class PendienteAprobacionScreen extends ConsumerWidget {
                 Icon(
                   deBaja ? Icons.block_outlined : Icons.hourglass_top_outlined,
                   size: 56,
-                  color: AppColors.warningFg,
+                  color: context.paleta.warningFg,
                 ),
                 const SizedBox(height: 24),
                 Text(
@@ -42,9 +42,9 @@ class PendienteAprobacionScreen extends ConsumerWidget {
                             'puedas entrar. Cuando lo haga, pulsa «Comprobar de '
                             'nuevo».',
                   textAlign: TextAlign.center,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: context.paleta.subtle,
+                  ),
                 ),
                 const SizedBox(height: 32),
                 if (!deBaja) ...[

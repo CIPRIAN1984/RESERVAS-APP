@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/utils/error_messages.dart';
 import '../application/documentos_providers.dart';
 import '../data/documento_alumno.dart';
@@ -192,7 +192,7 @@ class _FilaDocumentoState extends ConsumerState<_FilaDocumento> {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: AppColors.destructive,
+              backgroundColor: context.paleta.destructive,
             ),
             onPressed: () => Navigator.of(contextoDialogo).pop(true),
             child: const Text('Quitar'),
@@ -241,7 +241,9 @@ class _FilaDocumentoState extends ConsumerState<_FilaDocumento> {
                       ? Icons.check_circle_outline
                       : Icons.error_outline_outlined,
                   size: 20,
-                  color: subido ? AppColors.successFg : AppColors.subtle,
+                  color: subido
+                      ? context.paleta.successFg
+                      : context.paleta.subtle,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -259,7 +261,7 @@ class _FilaDocumentoState extends ConsumerState<_FilaDocumento> {
                   : 'Todavía no se ha subido.',
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+              ).textTheme.bodySmall?.copyWith(color: context.paleta.subtle),
             ),
             if (_procesando) ...[
               const SizedBox(height: 12),
@@ -287,7 +289,7 @@ class _FilaDocumentoState extends ConsumerState<_FilaDocumento> {
                     OutlinedButton(
                       onPressed: _borrar,
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.destructive,
+                        foregroundColor: context.paleta.destructive,
                       ),
                       child: const Text('Quitar'),
                     ),

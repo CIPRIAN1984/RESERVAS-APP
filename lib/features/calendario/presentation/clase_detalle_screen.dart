@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/models/profile.dart';
 import '../../../core/utils/error_messages.dart';
@@ -380,9 +380,9 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'Canceló tarde: se le descuenta la clase',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: context.paleta.subtle,
+                  ),
                 ),
               ],
             ),
@@ -423,12 +423,12 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: AppColors.surface,
+            backgroundColor: context.paleta.surface,
             backgroundImage: alumno.fotoUrl != null
                 ? CachedNetworkImageProvider(alumno.fotoUrl!)
                 : null,
             child: alumno.fotoUrl == null
-                ? const Icon(Icons.person, color: AppColors.subtle)
+                ? Icon(Icons.person, color: context.paleta.subtle)
                 : null,
           ),
           const SizedBox(width: 14),
@@ -440,19 +440,19 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                   alumno.nombreCompleto,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 // La marca de impago manda sobre el cinturón: es lo que hay
                 // que hacer algo al respecto.
                 if (alumno.sinCuota)
-                  const PastillaEstado.error('Sin cuota')
+                  PastillaEstado.error('Sin cuota')
                 else if (alumno.sinClases)
                   const PastillaEstado.error('Sin clases')
                 else if (alumno.cinturon != null)
                   Text(
                     'Cinturón ${alumno.cinturon}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: context.paleta.subtle,
+                    ),
                   ),
               ],
             ),
@@ -467,7 +467,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
           else if (alumno.asistenciaValidada)
             IconButton(
               onPressed: () => _deshacerAsistencia(alumno),
-              icon: const Icon(Icons.check_circle, color: AppColors.successFg),
+              icon: Icon(Icons.check_circle, color: context.paleta.successFg),
               tooltip: 'Deshacer confirmación',
             )
           else if (_sePuedePasarLista)
@@ -497,7 +497,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
   Widget _buildEspera(InscritoAlumno alumno, int posicion) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.paleta.surface,
         child: Text('$posicion'),
       ),
       title: Text(alumno.nombreCompleto),
@@ -506,7 +506,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
             ? 'Lista de espera'
             : 'Lista de espera · Cinturón ${alumno.cinturon}',
       ),
-      trailing: const Icon(Icons.schedule, color: AppColors.warningFg),
+      trailing: Icon(Icons.schedule, color: context.paleta.warningFg),
     );
   }
 
@@ -613,13 +613,13 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                     const SizedBox(height: 4),
                     Text(
                       '${inscritos.length}/${_clase.aforoMaximo} confirmados · ${listaEspera.length} en espera',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: context.paleta.subtle,
+                      ),
                     ),
                     if (_clase.cerrada) ...[
                       const SizedBox(height: 10),
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: PastillaEstado.aviso(
                           'Cerrada a nuevas reservas',
@@ -653,7 +653,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                       Text(
                         'Podrás pasar lista media hora antes de que empiece.',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.subtle,
+                          color: context.paleta.subtle,
                         ),
                       ),
                     ],
@@ -691,7 +691,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                   ],
                 ),
               ),
-              const Divider(height: 1, color: AppColors.line),
+              Divider(height: 1, color: context.paleta.line),
               Expanded(
                 child:
                     inscritos.isEmpty && listaEspera.isEmpty && tardias.isEmpty
@@ -699,7 +699,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                         child: Text(
                           'Todavía no hay participantes.',
                           style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: AppColors.subtle),
+                              ?.copyWith(color: context.paleta.subtle),
                         ),
                       )
                     : ListView(
@@ -713,13 +713,13 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                             for (final alumno in inscritos)
                               _buildInscrito(context, alumno, userId),
                           if (listaEspera.isNotEmpty) ...[
-                            const Divider(height: 24, color: AppColors.line),
+                            Divider(height: 24, color: context.paleta.line),
                             const _SectionTitle(title: 'Lista de espera'),
                             for (var i = 0; i < listaEspera.length; i++)
                               _buildEspera(listaEspera[i], i + 1),
                           ],
                           if (tardias.isNotEmpty) ...[
-                            const Divider(height: 24, color: AppColors.line),
+                            Divider(height: 24, color: context.paleta.line),
                             const _SectionTitle(title: 'Cancelaron tarde'),
                             for (final alumno in tardias)
                               _buildTardia(context, alumno),
@@ -749,7 +749,7 @@ class _SectionTitle extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: AppColors.subtle,
+          color: context.paleta.subtle,
           fontWeight: FontWeight.w700,
         ),
       ),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../application/tienda_providers.dart';
 
@@ -30,7 +30,7 @@ class MisPedidosTab extends ConsumerWidget {
               'Todavía no has hecho ningún pedido.',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+              ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
             ),
           );
         }
@@ -39,7 +39,7 @@ class MisPedidosTab extends ConsumerWidget {
           child: ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: pedidos.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => SizedBox(height: 12),
             itemBuilder: (context, index) {
               final pedido = pedidos[index];
               return TarjetaFila(
@@ -59,10 +59,10 @@ class MisPedidosTab extends ConsumerWidget {
   /// El color aquí significa algo: entregado y confirmado en verde, cancelado
   /// en rojo, el pago a medias en ámbar.
   Widget _pastilla(String estado) => switch (estado) {
-    'pendiente_pago' => const PastillaEstado.aviso('Pago en proceso'),
-    'reservado' => const PastillaEstado.info('Reservado'),
-    'confirmado' => const PastillaEstado.exito('Confirmado'),
-    'entregado' => const PastillaEstado.exito('Entregado'),
+    'pendiente_pago' => PastillaEstado.aviso('Pago en proceso'),
+    'reservado' => PastillaEstado.info('Reservado'),
+    'confirmado' => PastillaEstado.exito('Confirmado'),
+    'entregado' => PastillaEstado.exito('Entregado'),
     'cancelado' => const PastillaEstado.error('Cancelado'),
     _ => PastillaEstado(estado),
   };

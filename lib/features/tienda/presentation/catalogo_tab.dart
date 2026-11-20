@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' hide Card;
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/utils/error_messages.dart';
 import '../../../shared/widgets/pantalla.dart';
@@ -134,7 +134,7 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
                 'Todavía no hay productos en el catálogo.',
                 style: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
               ),
             );
           }
@@ -170,14 +170,14 @@ class _CatalogoTabState extends ConsumerState<CatalogoTab> {
                               Text(
                                 producto.descripcion!,
                                 style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: AppColors.subtle),
+                                    ?.copyWith(color: context.paleta.subtle),
                               ),
                             ],
                             const SizedBox(height: 8),
                             Text(
                               '${producto.precio.toStringAsFixed(2)} € · Stock: ${producto.stock}',
                               style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: AppColors.ink),
+                                  ?.copyWith(color: context.paleta.ink),
                             ),
                           ],
                         ),

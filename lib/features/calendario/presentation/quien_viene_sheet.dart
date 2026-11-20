@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/models/profile.dart';
 import '../../../shared/widgets/pantalla.dart';
@@ -136,7 +136,9 @@ class _QuienVieneSheetState extends ConsumerState<_QuienVieneSheet> {
                     const SizedBox(height: 4),
                     Text(
                       '${clase.titulo} · $dia a las $inicio',
-                      style: t.bodySmall?.copyWith(color: AppColors.subtle),
+                      style: t.bodySmall?.copyWith(
+                        color: context.paleta.subtle,
+                      ),
                     ),
                   ],
                 ),
@@ -187,7 +189,7 @@ class _QuienVieneSheetState extends ConsumerState<_QuienVieneSheet> {
                 child: Text(
                   'Cada plaza va a nombre de quien entrena, no del adulto que '
                   'lo trae.',
-                  style: t.bodySmall?.copyWith(color: AppColors.subtle),
+                  style: t.bodySmall?.copyWith(color: context.paleta.subtle),
                 ),
               ),
             ],
@@ -229,11 +231,11 @@ class _FilaPersona extends StatelessWidget {
     final tienePlaza = inscrito || enEspera;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: 8),
       child: TarjetaFila(
         titulo: nombre,
         estado: inscrito
-            ? const PastillaEstado.exito('Inscrito', icono: Icons.check)
+            ? PastillaEstado.exito('Inscrito', icono: Icons.check)
             : enEspera
             ? const PastillaEstado.aviso(
                 'En espera',

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../application/tienda_providers.dart';
 import '../data/pedido.dart';
 
@@ -50,7 +50,7 @@ class PedidosTab extends ConsumerWidget {
               'Todavía no hay pedidos.',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+              ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
             ),
           );
         }
@@ -87,7 +87,7 @@ class PedidosTab extends ConsumerWidget {
                         Text(
                           '${pedido.alumnoNombre ?? 'Alumno'} · x${pedido.cantidad} · ${pedido.precioSnapshot.toStringAsFixed(2)} €',
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.subtle),
+                              ?.copyWith(color: context.paleta.subtle),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -96,7 +96,7 @@ class PedidosTab extends ConsumerWidget {
                             'es_ES',
                           ).format(pedido.createdAt.toLocal()),
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.subtle),
+                              ?.copyWith(color: context.paleta.subtle),
                         ),
                         const SizedBox(height: 12),
                         Wrap(

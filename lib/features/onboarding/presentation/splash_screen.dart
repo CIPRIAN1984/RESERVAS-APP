@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-
-import '../../../app/theme/color_tokens.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -17,12 +16,12 @@ class SplashScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w700,
-                color: AppColors.ink,
+                color: context.paleta.ink,
                 letterSpacing: 4,
               ),
             ),
             SizedBox(height: 24),
-            CircularProgressIndicator(color: AppColors.ink),
+            CircularProgressIndicator(color: context.paleta.ink),
           ],
         ),
       ),

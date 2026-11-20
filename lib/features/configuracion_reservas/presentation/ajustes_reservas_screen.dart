@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../application/configuracion_reservas_providers.dart';
 import '../data/configuracion_reservas.dart';
@@ -133,7 +133,7 @@ class _ConfiguracionFormState extends ConsumerState<_ConfiguracionForm> {
           'Estas reglas se aplican automáticamente a todas las clases.',
           style: Theme.of(
             context,
-          ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+          ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
         ),
         const SizedBox(height: 20),
         Card(

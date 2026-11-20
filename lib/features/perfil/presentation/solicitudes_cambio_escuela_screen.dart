@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../application/cambio_escuela_providers.dart';
 
 class SolicitudesCambioEscuelaScreen extends ConsumerWidget {
@@ -58,7 +58,7 @@ class SolicitudesCambioEscuelaScreen extends ConsumerWidget {
               'No hay solicitudes de cambio de escuela pendientes.',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+              ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
             ),
           );
         }
@@ -86,7 +86,7 @@ class SolicitudesCambioEscuelaScreen extends ConsumerWidget {
                         'Desde ${solicitud.academiaOrigenNombre} · '
                         '${DateFormat('d MMM', 'es_ES').format(solicitud.createdAt.toLocal())}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.subtle,
+                          color: context.paleta.subtle,
                         ),
                       ),
                       const SizedBox(height: 16),

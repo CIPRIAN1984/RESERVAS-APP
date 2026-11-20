@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/routes.dart';
-import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../application/pagos_providers.dart';
 
@@ -81,52 +81,52 @@ class _PagoResultadoScreenState extends ConsumerState<PagoResultadoScreen> {
     final (icono, color, titulo, texto) = switch (estado) {
       'pagado' => (
         Icons.check_circle_outline,
-        AppColors.successFg,
+        context.paleta.successFg,
         'Pago recibido',
         'Tu cuota ya está activa. Ya puedes reservar clase.',
       ),
       'revisar' => (
         Icons.report_problem_outlined,
-        AppColors.warningFg,
+        context.paleta.warningFg,
         'Hay que revisar tu pago',
         'Hemos recibido tu pago pero no hemos podido activar la cuota. '
             'Avisa a tu academia: ya tiene el aviso y lo resolverá.',
       ),
       'fallido' || 'expirado' => (
         Icons.cancel_outlined,
-        AppColors.dangerFg,
+        context.paleta.dangerFg,
         'El pago no se ha completado',
         'No se te ha cobrado nada. Puedes volver a intentarlo desde Tarifas.',
       ),
       'reembolsado' => (
         Icons.undo_outlined,
-        AppColors.subtle,
+        context.paleta.subtle,
         'Pago devuelto',
         'Este pago se ha devuelto.',
       ),
       _ when widget.cancelado => (
         Icons.cancel_outlined,
-        AppColors.subtle,
+        context.paleta.subtle,
         'Has cancelado el pago',
         'No se te ha cobrado nada. Puedes volver a intentarlo desde Tarifas.',
       ),
       _ when _fallo => (
         Icons.wifi_off_outlined,
-        AppColors.warningFg,
+        context.paleta.warningFg,
         'No hemos podido comprobar tu pago',
         'Si has pagado, tu cuota se activará sola en unos minutos aunque cierres '
             'esta pantalla. Puedes volver a comprobarlo.',
       ),
       _ when estado == 'creado' && _intentos >= widget.intentosMaximos => (
         Icons.hourglass_top_outlined,
-        AppColors.warningFg,
+        context.paleta.warningFg,
         'Seguimos esperando la confirmación',
         'Si has pagado, tu cuota se activará sola en cuanto el banco lo '
             'confirme, aunque cierres esta pantalla.',
       ),
       _ => (
         Icons.hourglass_top_outlined,
-        AppColors.subtle,
+        context.paleta.subtle,
         'Comprobando tu pago…',
         'Un momento. Puedes cerrar esta pantalla: la cuota se activa sola '
             'cuando se confirma el pago.',
@@ -163,7 +163,7 @@ class _PagoResultadoScreenState extends ConsumerState<PagoResultadoScreen> {
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+              ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
             ),
             const SizedBox(height: 24),
             if (puedeReintentar) ...[

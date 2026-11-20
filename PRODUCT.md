@@ -92,3 +92,9 @@ solo puede verlos el propio alumno, su tutor, y el equipo de su academia.
 - La lista de espera está apagada en el piloto. La tienda está cerrada.
 - El profesor ve lo necesario para dar clase y pasar asistencia; no ve importes,
   tarifas ni certificados médicos.
+
+## Apariencia: modo claro y oscuro
+
+En Perfil → Apariencia cada persona elige **Sistema** (por defecto), **Claro** u
+**Oscuro**. Se guarda en el dispositivo y no depende de la cuenta. Los
+cinturones y los colores de estado significan lo mismo en los dos modos.

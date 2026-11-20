@@ -1,8 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:itaca/app/theme/app_palette.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/color_tokens.dart';
 import '../application/cambio_escuela_providers.dart';
 import '../data/solicitud_cambio_escuela.dart';
 
@@ -77,10 +77,10 @@ class _SolicitarCambioEscuelaScreenState
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.hourglass_top_outlined,
                       size: 48,
-                      color: AppColors.warningFg,
+                      color: context.paleta.warningFg,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -93,9 +93,9 @@ class _SolicitarCambioEscuelaScreenState
                     Text(
                       'El dueño de esa academia tiene que aceptarla.',
                       textAlign: TextAlign.center,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: context.paleta.subtle,
+                      ),
                     ),
                   ],
                 ),
@@ -122,7 +122,7 @@ class _SolicitarCambioEscuelaScreenState
             'tendrá que aceptar tu solicitud.',
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+            ).textTheme.bodyMedium?.copyWith(color: context.paleta.subtle),
           ),
           const SizedBox(height: 24),
           FutureBuilder(
