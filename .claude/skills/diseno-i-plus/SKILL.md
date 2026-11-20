@@ -5,7 +5,7 @@ description: Sistema de diseño de la app I+ — colores, tipografías, componen
 
 # Sistema de diseño — I+
 
-Identidad aprobada por Cipri en julio de 2026, a partir del prototipo React y de MAAT (el software que usan a diario). Comparte ADN con **ITACA OS** (monocromo, botones invertidos, mono para etiquetas) pero **en claro en vez de oscuro**.
+Identidad aprobada por Cipri en julio de 2026, a partir del prototipo React y de MAAT (el software que usan a diario). Comparte ADN con **ITACA OS** (monocromo, botones invertidos, mono para etiquetas) y tiene **dos modos**: claro (el diseño aprobado en julio de 2026) y oscuro (añadido el 20/11/2026). Todo lo de abajo se describe en claro; el oscuro está en §2 bis.
 
 ---
 
@@ -56,6 +56,34 @@ Niños:   gris #9CA3AF · amarillo #F5C518 · naranja #F97316 · verde #16A34A
 ```
 
 El blanco necesita un borde `#D4D4D8` para verse sobre fondo claro.
+
+---
+
+## 2 bis. Modo oscuro
+
+Mismas reglas, paleta invertida. Las pantallas **nunca** escriben un color: leen `AppColors.<token>`, que apunta a la paleta del modo activo (`AppPalette.light` / `AppPalette.dark` en `color_tokens.dart`). Cambiar de modo vuelve a dibujar toda la app.
+
+```
+Fondo de pantalla      #121212
+Superficie de tarjeta  #1E1E1E
+Superficie marcada     #2A2A2A
+Línea / borde          #2C2C2C
+Tinta (texto, botones) #FFFFFF   → el texto sobre un botón de tinta es #0A0A0A
+Texto secundario       #9A9AA3
+Rojo destructivo       #EF4444
+```
+
+**Semánticos en oscuro:** fondo oscuro teñido, texto claro (verde #173A22 / #7EE09A, rojo #3D1818 / #FF9A9A, azul #10304A / #8CCBFF, gris #2A2A2A / #D2D2D6, ámbar #3B2C10 / #F6C66B, rosa #3A1A44 / #E7A6F5).
+
+**Lo que NO cambia entre modos:** el amarillo eléctrico `#E9FF3D`, los colores de los cinturones y la corona. Sobre el amarillo, el texto es **siempre** `AppColors.onAcid` (#0A0A0A), nunca `ink`: en oscuro `ink` es blanco y no se lee.
+
+**Borde de cinturón:** va donde se perdería contra el fondo. En claro, el blanco (y los mixtos con franja blanca); en oscuro, el negro (y los mixtos con franja negra). Lo decide `AppColors.beltNeedsBorder`.
+
+**Reglas al tocar una pantalla:**
+- Un color escrito a mano (`Colors.white`, `Color(0x…)`) está mal en cualquiera de los dos modos.
+- `AppColors.*` ya no es constante: no se puede usar dentro de un `const` (ni `const Icon(color: AppColors.ink)`). Quita el `const` de esa expresión.
+- Comprueba la pantalla **en los dos modos**: `OSCURO=1 flutter test --update-goldens test/golden test/golden_archived` genera las imágenes oscuras (sufijo `_oscuro`).
+- Contraste mínimo 4.5:1 en los dos modos. Excepción heredada: el gris secundario sobre la tarjeta del modo claro da 4.4:1 y no se toca.
 
 ---
 
@@ -144,6 +172,6 @@ Toda lista de una pantalla **con** botón flotante lleva `espacioBotonesFlotante
 ## 8. Al tocar una pantalla existente
 
 1. **Nunca escribas un color a mano.** Todo sale de los tokens. Si falta un token, créalo.
-2. Sustituye cualquier `AppColors.textSecondary` heredado del tema oscuro por el token claro equivalente.
+2. Sustituye cualquier `AppColors.textSecondary` heredado de un tema antiguo por el token equivalente.
 3. Comprueba que no queda ningún `Colors.white` / `Colors.black` suelto que rompa el modo claro.
 4. **Míralo renderizado** antes de darlo por hecho: invoca `verificar-app`.

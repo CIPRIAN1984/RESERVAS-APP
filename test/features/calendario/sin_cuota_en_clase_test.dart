@@ -132,8 +132,21 @@ void main() {
           )
           .first,
     );
-    expect(pastilla.fondo, AppColors.dangerBg);
-    expect(pastilla.tinta, AppColors.dangerFg);
+    // La pastilla resuelve su color al dibujarse (sigue al modo claro u
+    // oscuro): se mira lo que se pinta, no lo que se guardó al construirla.
+    final caja = tester.widget<Container>(
+      find
+          .descendant(
+            of: find.byWidget(pastilla),
+            matching: find.byType(Container),
+          )
+          .first,
+    );
+    expect((caja.decoration! as BoxDecoration).color, AppColors.dangerBg);
+    final texto = tester.widget<Text>(
+      find.descendant(of: find.byWidget(pastilla), matching: find.byType(Text)),
+    );
+    expect(texto.style?.color, AppColors.dangerFg);
   });
 
   testWidgets('si están todos al corriente no se marca a nadie', (

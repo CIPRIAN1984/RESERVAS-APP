@@ -279,7 +279,7 @@ class FichaMiembroScreen extends ConsumerWidget {
                 // Abajo del todo y separado: es la acción que menos se usa y
                 // la que peor sienta pulsar sin querer.
                 const SizedBox(height: 32),
-                const Divider(color: AppColors.line),
+                Divider(color: AppColors.line),
                 const SizedBox(height: 16),
                 if (alumno.deBaja)
                   FilledButton(
@@ -328,7 +328,7 @@ class _TarjetaRango extends StatelessWidget {
               children: [
                 Expanded(child: _Cinturon(cinturon: actual)),
                 if (proximo != null) ...[
-                  const Icon(Icons.arrow_forward, color: AppColors.subtle),
+                  Icon(Icons.arrow_forward, color: AppColors.subtle),
                   Expanded(child: _Cinturon(cinturon: proximo)),
                 ],
               ],
@@ -382,7 +382,7 @@ class _AnilloProgreso extends StatelessWidget {
                 strokeWidth: 12,
                 strokeCap: StrokeCap.round,
                 backgroundColor: AppColors.line,
-                valueColor: const AlwaysStoppedAnimation(AppColors.ink),
+                valueColor: AlwaysStoppedAnimation(AppColors.ink),
               ),
             ),
             Text(

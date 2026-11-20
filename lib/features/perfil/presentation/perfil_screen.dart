@@ -12,6 +12,7 @@ import '../../documentos/presentation/mis_documentos_screen.dart';
 import '../../tarifas/presentation/tarifas_screen.dart';
 import '../../tienda/presentation/tienda_screen.dart';
 import '../application/profile_providers.dart';
+import 'selector_apariencia.dart';
 
 class PerfilScreen extends ConsumerStatefulWidget {
   const PerfilScreen({super.key});
@@ -226,7 +227,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                             ? CachedNetworkImageProvider(profile.fotoUrl!)
                             : null,
                         child: profile.fotoUrl == null
-                            ? const Icon(
+                            ? Icon(
                                 Icons.person,
                                 size: 48,
                                 color: AppColors.subtle,
@@ -244,7 +245,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                           child: Padding(
                             padding: const EdgeInsets.all(6),
                             child: _uploadingFoto
-                                ? const SizedBox(
+                                ? SizedBox(
                                     width: 16,
                                     height: 16,
                                     child: CircularProgressIndicator(
@@ -252,7 +253,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                                       color: AppColors.onInk,
                                     ),
                                   )
-                                : const Icon(
+                                : Icon(
                                     Icons.camera_alt,
                                     size: 16,
                                     color: AppColors.onInk,
@@ -359,7 +360,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                                   ],
                                 ),
                               ),
-                              const Icon(
+                              Icon(
                                 Icons.chevron_right,
                                 color: AppColors.disabled,
                                 size: 22,
@@ -477,6 +478,8 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 32),
+                  const SelectorApariencia(),
                   const SizedBox(height: 16),
                   TextButton.icon(
                     onPressed: () => context.push(Routes.privacidad),

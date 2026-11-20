@@ -71,12 +71,12 @@ class ClaseCard extends StatelessWidget {
                   Container(
                     width: 44,
                     height: 44,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.ink,
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
-                    child: const Text(
+                    child: Text(
                       'I+',
                       style: TextStyle(
                         color: AppColors.onInk,

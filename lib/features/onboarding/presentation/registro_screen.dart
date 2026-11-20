@@ -123,7 +123,7 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.mark_email_unread_outlined,
                       size: 48,
                       color: AppColors.subtle,
@@ -277,7 +277,7 @@ class _AcademiaFija extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, color: AppColors.ink, size: 20),
+          Icon(Icons.check_circle, color: AppColors.ink, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

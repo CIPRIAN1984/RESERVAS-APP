@@ -584,7 +584,7 @@ class _AvatarAlumno extends StatelessWidget {
             child: alumno.fotoUrl == null
                 ? Text(
                     iniciales.isEmpty ? '?' : iniciales,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: AppTheme.fontSans,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -601,7 +601,7 @@ class _AvatarAlumno extends StatelessWidget {
               // Anillo blanco, no del color de la tarjeta: sobre el gris de
               // la tarjeta un anillo gris no separa nada y el punto del
               // cinturón se confunde con el avatar.
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.ground,
                 shape: BoxShape.circle,
               ),
@@ -822,7 +822,7 @@ class _TarjetaResumen extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: seleccionada
-              ? const BorderSide(color: AppColors.ink, width: 2)
+              ? BorderSide(color: AppColors.ink, width: 2)
               : BorderSide.none,
         ),
         child: InkWell(

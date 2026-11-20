@@ -53,7 +53,7 @@ class _CompanerosClaseScreenState extends State<CompanerosClaseScreen> {
               ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
             ),
           ),
-          const Divider(height: 1, color: AppColors.line),
+          Divider(height: 1, color: AppColors.line),
           Expanded(
             child: FutureBuilder<List<InscritoAlumno>>(
               future: _future,
@@ -118,7 +118,7 @@ class _FilaCompanero extends StatelessWidget {
                 child: alumno.fotoUrl == null
                     ? Text(
                         iniciales,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: AppColors.subtle,
@@ -131,7 +131,7 @@ class _FilaCompanero extends StatelessWidget {
                 bottom: -1,
                 child: Container(
                   padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.ground,
                     shape: BoxShape.circle,
                   ),

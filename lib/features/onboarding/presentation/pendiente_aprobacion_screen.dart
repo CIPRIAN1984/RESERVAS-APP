@@ -17,7 +17,7 @@ class PendienteAprobacionScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                Icon(
                   Icons.hourglass_top_outlined,
                   size: 56,
                   color: AppColors.warningFg,

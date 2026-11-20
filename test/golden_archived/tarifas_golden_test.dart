@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:itaca/app/app_mode.dart';
-import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/profile.dart';
 import 'package:itaca/features/tarifas/application/tarifas_providers.dart';
@@ -51,7 +50,7 @@ Widget _app() => ProviderScope(
     debugShowCheckedModeBanner: false,
     // Sin el tema, la imagen sale con las tipografías del sistema y los
     // colores por defecto: no comprueba nada del diseño real.
-    theme: AppTheme.light,
+    theme: temaDePrueba(),
     home: const Scaffold(body: SafeArea(child: TarifasScreen())),
   ),
 );

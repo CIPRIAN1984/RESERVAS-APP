@@ -1,10 +1,12 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:itaca/app/theme/app_theme.dart';
+import 'package:itaca/app/theme/color_tokens.dart';
 
 /// Carga las tipografías reales en el entorno de pruebas.
 ///
@@ -57,8 +59,21 @@ Future<void> cargarTipografias() async {
 /// deben) sí se ejecutan en todas partes.
 bool get comparaImagenes => Platform.environment['CI'] != 'true';
 
+/// `OSCURO=1 flutter test --tags=golden` dibuja las mismas pantallas en modo
+/// oscuro y guarda las imágenes con el sufijo `_oscuro`. Sin la variable,
+/// todo sigue exactamente igual que antes (modo claro).
+bool get modoOscuro => Platform.environment['OSCURO'] == '1';
+
+/// Tema para las pruebas visuales, en el modo que toque. También activa la
+/// paleta de `AppColors`, que en la app real fija `app.dart`.
+ThemeData temaDePrueba() {
+  AppColors.usar(modoOscuro ? AppPalette.dark : AppPalette.light);
+  return modoOscuro ? AppTheme.dark : AppTheme.light;
+}
+
 /// Compara con la imagen guardada solo si procede.
 Future<void> comparaCon(Finder finder, String ruta) async {
   if (!comparaImagenes) return;
-  await expectLater(finder, matchesGoldenFile(ruta));
+  final destino = modoOscuro ? ruta.replaceFirst('.png', '_oscuro.png') : ruta;
+  await expectLater(finder, matchesGoldenFile(destino));
 }

@@ -4,7 +4,6 @@ library componentes_golden_test;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/app/theme/color_tokens.dart';
 import 'package:itaca/features/calendario/data/clase_resumen.dart';
 import 'package:itaca/features/calendario/presentation/clase_card.dart';
@@ -37,7 +36,7 @@ ClaseResumen _clase({
 
 Widget _lienzo(List<Widget> hijos) => MaterialApp(
   debugShowCheckedModeBanner: false,
-  theme: AppTheme.light,
+  theme: temaDePrueba(),
   home: Scaffold(
     body: SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -87,7 +86,7 @@ void main() {
           etiquetas: ['Horario', 'Productos'],
           onCambio: _nada,
         ),
-        const Wrap(
+        Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [

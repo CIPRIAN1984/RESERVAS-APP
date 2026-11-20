@@ -127,7 +127,7 @@ class _NovedadCard extends StatelessWidget {
             Row(
               children: [
                 if (novedad.fijado) ...[
-                  const Icon(Icons.push_pin, size: 16, color: AppColors.ink),
+                  Icon(Icons.push_pin, size: 16, color: AppColors.ink),
                   const SizedBox(width: 6),
                 ],
                 Expanded(
@@ -138,7 +138,7 @@ class _NovedadCard extends StatelessWidget {
                 ),
                 if (puedeGestionar)
                   PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert, color: AppColors.subtle),
+                    icon: Icon(Icons.more_vert, color: AppColors.subtle),
                     onSelected: (value) {
                       if (value == 'fijar') onAlternarFijado();
                       if (value == 'eliminar') onEliminar();

@@ -7,7 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:itaca/app/routes.dart';
-import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/academia.dart';
 import 'package:itaca/core/models/profile.dart';
@@ -62,7 +61,7 @@ Widget _app({required String rol}) {
     ],
     child: MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
+      theme: temaDePrueba(),
       routerConfig: router,
     ),
   );

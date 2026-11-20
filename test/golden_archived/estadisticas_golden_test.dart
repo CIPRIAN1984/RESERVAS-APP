@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/features/estadisticas/application/estadisticas_providers.dart';
 import 'package:itaca/features/estadisticas/data/ranking_entry.dart';
@@ -46,7 +45,7 @@ void main() {
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
+          theme: temaDePrueba(),
           home: const Scaffold(body: EstadisticasScreen()),
         ),
       ),
@@ -72,7 +71,7 @@ void main() {
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
+          theme: temaDePrueba(),
           home: const Scaffold(body: EstadisticasScreen()),
         ),
       ),

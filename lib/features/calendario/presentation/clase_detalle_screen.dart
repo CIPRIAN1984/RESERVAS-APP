@@ -428,7 +428,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                 ? CachedNetworkImageProvider(alumno.fotoUrl!)
                 : null,
             child: alumno.fotoUrl == null
-                ? const Icon(Icons.person, color: AppColors.subtle)
+                ? Icon(Icons.person, color: AppColors.subtle)
                 : null,
           ),
           const SizedBox(width: 14),
@@ -467,7 +467,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
           else if (alumno.asistenciaValidada)
             IconButton(
               onPressed: () => _deshacerAsistencia(alumno),
-              icon: const Icon(Icons.check_circle, color: AppColors.successFg),
+              icon: Icon(Icons.check_circle, color: AppColors.successFg),
               tooltip: 'Deshacer confirmación',
             )
           else if (_sePuedePasarLista)
@@ -506,7 +506,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
             ? 'Lista de espera'
             : 'Lista de espera · Cinturón ${alumno.cinturon}',
       ),
-      trailing: const Icon(Icons.schedule, color: AppColors.warningFg),
+      trailing: Icon(Icons.schedule, color: AppColors.warningFg),
     );
   }
 
@@ -619,7 +619,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                     ),
                     if (_clase.cerrada) ...[
                       const SizedBox(height: 10),
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: PastillaEstado.aviso(
                           'Cerrada a nuevas reservas',
@@ -691,7 +691,7 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                   ],
                 ),
               ),
-              const Divider(height: 1, color: AppColors.line),
+              Divider(height: 1, color: AppColors.line),
               Expanded(
                 child:
                     inscritos.isEmpty && listaEspera.isEmpty && tardias.isEmpty
@@ -713,13 +713,13 @@ class _ClaseDetalleScreenState extends ConsumerState<ClaseDetalleScreen> {
                             for (final alumno in inscritos)
                               _buildInscrito(context, alumno, userId),
                           if (listaEspera.isNotEmpty) ...[
-                            const Divider(height: 24, color: AppColors.line),
+                            Divider(height: 24, color: AppColors.line),
                             const _SectionTitle(title: 'Lista de espera'),
                             for (var i = 0; i < listaEspera.length; i++)
                               _buildEspera(listaEspera[i], i + 1),
                           ],
                           if (tardias.isNotEmpty) ...[
-                            const Divider(height: 24, color: AppColors.line),
+                            Divider(height: 24, color: AppColors.line),
                             const _SectionTitle(title: 'Cancelaron tarde'),
                             for (final alumno in tardias)
                               _buildTardia(context, alumno),

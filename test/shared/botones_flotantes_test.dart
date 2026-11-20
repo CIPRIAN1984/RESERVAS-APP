@@ -193,7 +193,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await _hastaElFondo(tester, find.byType(SingleChildScrollView));
+    // El de la pantalla entera, el vertical: las pastillas de Apariencia
+    // llevan dentro otro desplazable, horizontal, que no es el que se mide.
+    await _hastaElFondo(
+      tester,
+      find.byWidgetPredicate(
+        (w) => w is SingleChildScrollView && w.scrollDirection == Axis.vertical,
+      ),
+    );
 
     // Las dos últimas filas quedan enteras dentro de la zona visible.
     for (final etiqueta in [

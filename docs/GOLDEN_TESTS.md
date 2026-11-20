@@ -14,6 +14,19 @@ Los golden tests están **excluidos de CI** temporalmente por problemas de infra
 | invitar_golden_test | ⚠️ Sin datos | Necesita revisar | 🟡 Media |
 | shell_golden_test | ⚠️ Sin datos | Necesita revisar | 🟡 Media |
 
+## Modo oscuro
+
+Las mismas pruebas visuales se pueden dibujar en modo oscuro:
+
+```bash
+OSCURO=1 flutter test --update-goldens test/golden test/golden_archived
+```
+
+Guarda las imágenes con el sufijo `_oscuro.png`. Sin la variable, todo es
+como antes (modo claro) y las imágenes claras no cambian. Comprobado el
+20/11/2026: las 21 imágenes claras salen idénticas byte a byte antes y
+después de añadir el modo oscuro.
+
 ## Cómo Ejecutar Localmente
 
 ```bash

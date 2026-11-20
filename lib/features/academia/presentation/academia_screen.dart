@@ -35,12 +35,12 @@ class AcademiaScreen extends ConsumerWidget {
                 Container(
                   width: 60,
                   height: 60,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.ink,
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
-                  child: const Text(
+                  child: Text(
                     'I+',
                     style: TextStyle(
                       color: AppColors.onInk,
@@ -62,7 +62,7 @@ class AcademiaScreen extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.place_outlined,
                               size: 15,
                               color: AppColors.subtle,
@@ -206,15 +206,8 @@ class _Fila extends StatelessWidget {
     return ListTile(
       onTap: onTap,
       leading: Icon(icono, color: AppColors.ink, size: 22),
-      title: Text(
-        texto,
-        style: const TextStyle(fontSize: 16, color: AppColors.ink),
-      ),
-      trailing: const Icon(
-        Icons.chevron_right,
-        color: AppColors.disabled,
-        size: 22,
-      ),
+      title: Text(texto, style: TextStyle(fontSize: 16, color: AppColors.ink)),
+      trailing: Icon(Icons.chevron_right, color: AppColors.disabled, size: 22),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20),
     );
   }
