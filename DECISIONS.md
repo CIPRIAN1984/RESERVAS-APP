@@ -3002,3 +3002,11 @@ Segundo de los cuatro temas pedidos por Cipri (tras los modos claro/oscuro).
   quedarse con versiones viejas; se decide con la cola sin conexión para pasar
   lista (cuarto tema), que es quien lo necesita.
 - Las tiendas (Android/iOS) siguen pendientes y son independientes de esto.
+
+## 2026-11-20 — Solicitud de tarifa con aprobación de recepción: aparcada
+
+Cipri pidió traerla de la app nueva (el alumno solicita una tarifa y recepción
+la aprueba o rechaza) y, tras explicársela, decidió **dejarla de momento**. No
+hay código ni migración. Si se retoma, queda por decidir si es para todos los
+alumnos o solo para los casos que el Dueño decida. Pagar con tarjeta y cobrar
+en mano siguen siendo los caminos.
