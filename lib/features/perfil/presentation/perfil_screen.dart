@@ -11,6 +11,7 @@ import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../documentos/presentation/mis_documentos_screen.dart';
 import '../../tarifas/presentation/tarifas_screen.dart';
+import 'tarjeta_instalar_app.dart';
 import '../application/profile_providers.dart';
 
 class PerfilScreen extends ConsumerStatefulWidget {
@@ -474,6 +475,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  const TarjetaInstalarApp(),
                   Text(
                     'APARIENCIA',
                     style: Theme.of(context).textTheme.labelSmall,

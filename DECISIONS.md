@@ -2976,3 +2976,29 @@ por recepción y un diseño más pulido cercano a MAAT.
 - Los colores salen de `AppPalette` (extensión del tema) y se leen con
   `context.paleta`; ya no se usan `AppColors` fijos en las pantallas, salvo
   los cinturones, que son el dato y no cambian.
+
+## 2026-11-20 — App instalable como PWA, sin pasar por las tiendas
+
+Segundo de los cuatro temas pedidos por Cipri (tras los modos claro/oscuro).
+
+- La web ya llevaba manifiesto, iconos y el *service worker* de Flutter. Lo que
+  faltaba era que **la persona pudiera instalarla**: el navegador solo ofrece la
+  instalación por su cuenta y casi nadie la encuentra.
+- **Tarjeta «Instala la app» en Perfil**, solo en la web y solo si procede:
+  - Android/Chrome/Edge: botón «Instalar» (usa el aviso `beforeinstallprompt`
+    del navegador).
+  - iPhone/iPad (Safari no tiene botón): instrucciones «Compartir → Añadir a
+    pantalla de inicio».
+  - Si ya está instalada, o el navegador no puede, no se muestra nada.
+- El código del navegador va en un fichero aparte (`web/instalacion.js`) y no
+  en la página: la política de seguridad de Vercel (`script-src 'self'`) bloquea
+  los scripts incrustados. No se toca esa política.
+- **No es la app sin conexión, y hoy tampoco abre sin red.** Se comprobó en el
+  navegador: Flutter 3.44 ya no genera un *service worker* que guarde la app
+  (el que trae se borra a sí mismo), así que no hay copia local del armazón.
+  Instalada, la app abre a pantalla completa con su icono, pero necesita red
+  para cargar. El Chrome de Android instala igual (ya no exige *service
+  worker*). Abrir sin red exigiría un *service worker* propio, con su riesgo de
+  quedarse con versiones viejas; se decide con la cola sin conexión para pasar
+  lista (cuarto tema), que es quien lo necesita.
+- Las tiendas (Android/iOS) siguen pendientes y son independientes de esto.

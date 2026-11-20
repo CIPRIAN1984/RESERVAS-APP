@@ -98,3 +98,10 @@ solo puede verlos el propio alumno, su tutor, y el equipo de su academia.
 En Perfil → Apariencia cada persona elige **Sistema** (por defecto), **Claro** u
 **Oscuro**. Se guarda en el dispositivo y no depende de la cuenta. Los
 cinturones y los colores de estado significan lo mismo en los dos modos.
+
+## Instalar la app en el móvil (PWA)
+
+En Perfil, si el navegador lo permite, sale la tarjeta **«Instala la app»**: en
+Android/Chrome con un botón; en iPhone, con los pasos de Safari (Compartir →
+Añadir a pantalla de inicio). Una vez instalada se abre a pantalla completa con
+su icono. Necesita conexión: no funciona sin red (eso es otro tema).
