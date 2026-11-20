@@ -2811,3 +2811,39 @@ desde la clase, **respetando las reglas**.
 **Verificación:** `apuntar_sin_reserva_test.sql` (18). Sabotajes: sin
 mirar las clases de la tarifa → 2 en rojo; sin la ventana de tiempo → 2.
 En la app, 4 pruebas nuevas; ocultar el botón → 2 en rojo.
+
+## 2026-11-20 — Dos modos: claro y oscuro (cambia la decisión de «solo tema claro»)
+
+**Decisión de Cipri (20/11/2026):** la app tiene que tener los dos modos:
+claro (el de siempre) y oscuro (parecido al de la app nueva y al de MAAT,
+para que los alumnos no noten un cambio brusco). Sustituye a lo escrito en
+julio de 2026 («solo hay tema claro»). El diseño claro no cambia ni un píxel.
+
+**Decisión técnica:**
+- Una paleta por modo (`AppPalette.light` y `AppPalette.dark`) en
+  `color_tokens.dart`. Las pantallas siguen escribiendo `AppColors.ink`,
+  `AppColors.ground`…: ya no son constantes, leen la paleta del modo
+  activo. Así no hay que reescribir 42 ficheros, y ninguna pantalla puede
+  inventar un color suelto.
+- La app elige el modo en un único sitio (`app.dart`). Al cambiar de modo,
+  se marca toda la interfaz para dibujarse de nuevo (conserva el scroll y
+  lo escrito), para que ninguna pantalla se quede con los colores del modo
+  anterior. Ojo: no vale cambiar la «clave» del árbol: el navegador de
+  pantallas tiene clave global y Flutter lo mueve sin reconstruirlo, así que
+  las pantallas `const` se quedaban con los colores viejos. Lo detectó una
+  prueba (`test/app/tema_test.dart`).
+- El modo se elige en Perfil → Apariencia: Sistema (por defecto, sigue el
+  móvil), Claro u Oscuro. Se guarda en el propio dispositivo
+  (`shared_preferences`) y se lee antes de pintar la primera pantalla, para
+  que no parpadee.
+- Lo que no cambia de un modo a otro: el amarillo eléctrico, los
+  cinturones (son el dato) y la corona. Cambia cómo se ven: el texto
+  sobre el amarillo es siempre oscuro (`onAcid`); el cinturón negro lleva
+  borde claro en oscuro y el blanco lo lleva en claro; los estados
+  (verde, rojo, ámbar…) pasan de pastel con texto oscuro a fondo oscuro
+  teñido con texto claro.
+- Regla que sigue valiendo: nunca un color escrito a mano en una pantalla.
+
+**Verificación:** las pruebas visuales claras existentes tienen que seguir
+idénticas (el claro no cambia); se añaden pruebas visuales en oscuro de las
+pantallas principales.

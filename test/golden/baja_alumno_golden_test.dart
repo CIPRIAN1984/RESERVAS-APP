@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/profile.dart';
 import 'package:itaca/features/documentos/application/documentos_providers.dart';
@@ -49,7 +48,7 @@ Widget _lista(List<Profile> alumnos) => ProviderScope(
   // Con el tema de verdad: sin él, el texto se dibuja con la tipografía de
   // relleno del entorno de pruebas y sale todo en cajas negras.
   child: MaterialApp(
-    theme: AppTheme.light,
+    theme: temaDePrueba(),
     home: const Scaffold(body: MiembrosScreen()),
   ),
 );
@@ -68,7 +67,7 @@ Widget _ficha(Profile alumno) => ProviderScope(
     ),
   ],
   child: MaterialApp(
-    theme: AppTheme.light,
+    theme: temaDePrueba(),
     home: FichaMiembroScreen(alumno: alumno),
   ),
 );

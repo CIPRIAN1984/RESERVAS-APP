@@ -82,7 +82,7 @@ class HorarioScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.calendar_month_outlined,
                       size: 48,
                       color: AppColors.disabled,

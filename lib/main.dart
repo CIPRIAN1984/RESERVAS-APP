@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import 'app/app.dart';
 import 'app/theme/app_theme.dart';
+import 'app/theme/tema_provider.dart';
 import 'core/config/app_config.dart';
 import 'core/observability/observability.dart';
 import 'core/supabase/supabase_client.dart';
@@ -39,6 +40,7 @@ Future<void> main() async {
     }
 
     await AppSupabase.initialize();
+    await TemaNotifier.cargar();
     runApp(const ProviderScope(child: ItacaApp()));
   });
 }

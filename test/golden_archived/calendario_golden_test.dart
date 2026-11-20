@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:itaca/app/app_mode.dart';
-import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/app/theme/color_tokens.dart';
 import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/profile.dart';
@@ -74,7 +73,7 @@ Widget _app({
     ],
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
+      theme: temaDePrueba(),
       home: const Scaffold(body: SafeArea(child: CalendarioScreen())),
     ),
   );

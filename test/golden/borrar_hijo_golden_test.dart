@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/core/models/profile.dart';
 import 'package:itaca/features/perfil/application/profile_providers.dart';
 import 'package:itaca/features/perfil/presentation/mis_hijos_screen.dart';
@@ -62,7 +61,7 @@ Widget _app({required List<Profile> hijos, required Set<String> borrables}) =>
           (ref) async => const SaldoClases(tieneCuota: false, ilimitada: false),
         ),
       ],
-      child: MaterialApp(theme: AppTheme.light, home: const MisHijosScreen()),
+      child: MaterialApp(theme: temaDePrueba(), home: const MisHijosScreen()),
     );
 
 void main() {

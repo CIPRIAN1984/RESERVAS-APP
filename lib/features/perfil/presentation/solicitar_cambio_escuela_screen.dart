@@ -77,7 +77,7 @@ class _SolicitarCambioEscuelaScreenState
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.hourglass_top_outlined,
                       size: 48,
                       color: AppColors.warningFg,

@@ -184,59 +184,79 @@ class _Pildora extends StatelessWidget {
 class PastillaEstado extends StatelessWidget {
   const PastillaEstado(
     this.texto, {
-    this.fondo = AppColors.neutralBg,
-    this.tinta = AppColors.neutralFg,
+    this.fondo,
+    this.tinta,
     this.icono,
     super.key,
-  });
+  }) : _tono = _Tono.neutro;
 
   const PastillaEstado.exito(this.texto, {this.icono, super.key})
-    : fondo = AppColors.successBg,
-      tinta = AppColors.successFg;
+    : fondo = null,
+      tinta = null,
+      _tono = _Tono.exito;
 
   const PastillaEstado.error(this.texto, {this.icono, super.key})
-    : fondo = AppColors.dangerBg,
-      tinta = AppColors.dangerFg;
+    : fondo = null,
+      tinta = null,
+      _tono = _Tono.error;
 
   const PastillaEstado.info(this.texto, {this.icono, super.key})
-    : fondo = AppColors.infoBg,
-      tinta = AppColors.infoFg;
+    : fondo = null,
+      tinta = null,
+      _tono = _Tono.info;
 
   const PastillaEstado.aviso(this.texto, {this.icono, super.key})
-    : fondo = AppColors.warningBg,
-      tinta = AppColors.warningFg;
+    : fondo = null,
+      tinta = null,
+      _tono = _Tono.aviso;
 
   final String texto;
-  final Color fondo;
-  final Color tinta;
+
+  /// Colores propios; si no se dan, salen del tono y del modo activo. Se
+  /// resuelven al dibujar (no al construir) para que sigan al modo claro u
+  /// oscuro.
+  final Color? fondo;
+  final Color? tinta;
   final IconData? icono;
+  final _Tono _tono;
 
   @override
   Widget build(BuildContext context) {
+    final (fondoTono, tintaTono) = switch (_tono) {
+      _Tono.neutro => (AppColors.neutralBg, AppColors.neutralFg),
+      _Tono.exito => (AppColors.successBg, AppColors.successFg),
+      _Tono.error => (AppColors.dangerBg, AppColors.dangerFg),
+      _Tono.info => (AppColors.infoBg, AppColors.infoFg),
+      _Tono.aviso => (AppColors.warningBg, AppColors.warningFg),
+    };
+    final colorFondo = fondo ?? fondoTono;
+    final colorTinta = tinta ?? tintaTono;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: fondo,
+        color: colorFondo,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icono != null) ...[
-            Icon(icono, size: 13, color: tinta),
+            Icon(icono, size: 13, color: colorTinta),
             const SizedBox(width: 5),
           ],
           Text(
             texto.toUpperCase(),
             style: Theme.of(
               context,
-            ).textTheme.labelSmall?.copyWith(color: tinta),
+            ).textTheme.labelSmall?.copyWith(color: colorTinta),
           ),
         ],
       ),
     );
   }
 }
+
+enum _Tono { neutro, exito, error, info, aviso }
 
 /// Punto del color del cinturón. El blanco lleva borde para verse sobre
 /// fondo claro. Los mixtos de niños (`gris_blanco`, `amarillo_negro`…)
@@ -418,11 +438,7 @@ class TarjetaAcceso extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.disabled,
-                size: 22,
-              ),
+              Icon(Icons.chevron_right, color: AppColors.disabled, size: 22),
             ],
           ),
         ),

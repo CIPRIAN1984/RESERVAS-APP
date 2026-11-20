@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/profile.dart';
 import 'package:itaca/features/horario/application/horario_providers.dart';
@@ -50,7 +49,7 @@ Widget _pantalla(List<PlantillaClase> plantillas) => ProviderScope(
     plantillasProvider('a1').overrideWith((ref) async => plantillas),
   ],
   child: MaterialApp(
-    theme: AppTheme.light,
+    theme: temaDePrueba(),
     home: Scaffold(
       appBar: AppBar(title: const Text('Horario semanal')),
       body: const SafeArea(child: HorarioScreen()),

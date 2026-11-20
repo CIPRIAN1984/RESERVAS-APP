@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:itaca/app/app_mode.dart';
 import 'package:itaca/app/routes.dart';
-import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/profile.dart';
 import 'package:itaca/shared/navigation/main_shell.dart';
@@ -79,7 +78,7 @@ Widget _app(Profile perfil, AppMode modo, String rutaInicial) {
     ],
     child: MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
+      theme: temaDePrueba(),
       routerConfig: router,
     ),
   );

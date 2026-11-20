@@ -117,7 +117,7 @@ class _AgregarHijoSheetState extends ConsumerState<_AgregarHijoSheet> {
               FilledButton(
                 onPressed: _guardando ? null : _guardar,
                 child: _guardando
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 22,
                         height: 22,
                         child: CircularProgressIndicator(

@@ -188,7 +188,7 @@ class _CalendarioScreenState extends ConsumerState<CalendarioScreen> {
             onDiaSeleccionado: (dia) =>
                 ref.read(selectedDayProvider.notifier).state = dia,
           ),
-          const Divider(height: 1, color: AppColors.line),
+          Divider(height: 1, color: AppColors.line),
           Expanded(
             child: clasesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -295,7 +295,7 @@ class _AvisoDeBaja extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.pause_circle_outline, color: AppColors.subtle),
+              Icon(Icons.pause_circle_outline, color: AppColors.subtle),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -468,7 +468,7 @@ class _PildoraDia extends StatelessWidget {
                   // El gris subtle sobre el amarillo de acento casi no se
                   // leía: en el día seleccionado la etiqueta pasa a tinta,
                   // igual que el número.
-                  color: seleccionado ? AppColors.ink : AppColors.subtle,
+                  color: seleccionado ? AppColors.onAcid : AppColors.subtle,
                 ),
               ),
               const SizedBox(height: 4),
@@ -477,7 +477,7 @@ class _PildoraDia extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.ink,
+                  color: seleccionado ? AppColors.onAcid : AppColors.ink,
                 ),
               ),
             ],
@@ -503,12 +503,12 @@ class _CabeceraInicio extends ConsumerWidget {
           Container(
             width: 48,
             height: 48,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.ink,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const Text(
+            child: Text(
               'I+',
               style: TextStyle(
                 color: AppColors.onInk,
@@ -531,7 +531,7 @@ class _CabeceraInicio extends ConsumerWidget {
             icon: const Icon(Icons.qr_code_2, size: 26),
             tooltip: 'Mostrar mi código de check-in',
             style: IconButton.styleFrom(
-              side: const BorderSide(color: AppColors.line),
+              side: BorderSide(color: AppColors.line),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -547,7 +547,7 @@ class _CabeceraInicio extends ConsumerWidget {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
-      builder: (_) => const Padding(
+      builder: (_) => Padding(
         padding: EdgeInsets.fromLTRB(24, 0, 24, 40),
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -111,7 +111,7 @@ export PATH=/opt/flutter/bin:$PATH
 
 ## 6. Identidad visual y navegación
 
-La app adopta el diseño **I+**: claro, monocromo, con amarillo eléctrico como único acento y color reservado a lo que significa algo (cinturones y estados de pago). Tipografías **Inter Tight** y **JetBrains Mono**, incrustadas como assets (no de Google Fonts: en redes con DNS filtrado la carga remota falla). **Solo hay tema claro.**
+La app adopta el diseño **I+**: claro, monocromo, con amarillo eléctrico como único acento y color reservado a lo que significa algo (cinturones y estados de pago). Tipografías **Inter Tight** y **JetBrains Mono**, incrustadas como assets (no de Google Fonts: en redes con DNS filtrado la carga remota falla). **Hay dos modos, claro y oscuro** (decisión de Cipri del 20/11/2026): el claro es el diseño aprobado de siempre y el oscuro sigue la misma regla de color. Se elige en Perfil → Apariencia (Como el móvil, Claro, Oscuro).
 
 **Dos modos con barra inferior**, no menú lateral:
 - **Entrenamiento** (todos): Inicio · Estadísticas · Novedades · Perfil

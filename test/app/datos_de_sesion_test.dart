@@ -129,6 +129,9 @@ void main() {
         if (m == null) continue;
         // El cuerpo del proveedor, o de su Notifier si lo usa.
         final nombre = m.group(1)!;
+        // El modo claro u oscuro es una preferencia del dispositivo, no de
+        // la persona: no se rehace al cambiar de usuario.
+        if (nombre == 'temaProvider') continue;
         final fin = lineas.indexWhere(
           (l) => l.startsWith('});') || l.startsWith(');'),
           i,

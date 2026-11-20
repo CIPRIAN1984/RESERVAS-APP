@@ -130,7 +130,7 @@ class MainShell extends ConsumerWidget {
         // fuera por detrás, la línea solo se vería en el trozo del botón de
         // modo. Quedaba una rayita suelta a la derecha.
         position: DecorationPosition.foreground,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           border: Border(top: BorderSide(color: AppColors.line)),
         ),
         child: Row(
@@ -207,11 +207,11 @@ class _BotonModo extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.swap_horiz, size: 22, color: AppColors.ink),
+                  Icon(Icons.swap_horiz, size: 22, color: AppColors.ink),
                   const SizedBox(height: 4),
                   Text(
                     modo.etiquetaCortaCambio,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink,

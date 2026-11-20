@@ -347,7 +347,7 @@ class _AvatarHijo extends StatelessWidget {
             child: hijo.fotoUrl == null
                 ? Text(
                     iniciales.isEmpty ? '?' : iniciales,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: AppTheme.fontSans,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -361,7 +361,7 @@ class _AvatarHijo extends StatelessWidget {
             bottom: -1,
             child: Container(
               padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.ground,
                 shape: BoxShape.circle,
               ),

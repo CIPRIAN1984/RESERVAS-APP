@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/profile.dart';
 import 'package:itaca/features/calendario/application/clases_providers.dart';
@@ -77,7 +76,7 @@ Widget _app({
     hijosProvider.overrideWith((ref) async => hijos),
     clasesSemanaProvider.overrideWith((ref) async => clases),
   ],
-  child: MaterialApp(theme: AppTheme.light, home: const CalendarioScreen()),
+  child: MaterialApp(theme: temaDePrueba(), home: const CalendarioScreen()),
 );
 
 void main() {
