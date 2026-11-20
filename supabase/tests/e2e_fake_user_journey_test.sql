@@ -214,10 +214,10 @@ select is(
       '00000000-0000-0000-0000-00000000ef05'
     )
       and rol = 'alumno'
-      and estado = 'activo'
+      and estado = 'pendiente_aprobacion'
   ),
   3,
-  'Las altas para unirse nacen activas y siempre con rol Alumno'
+  'Las altas para unirse nacen pendientes y siempre con rol Alumno'
 );
 
 select is(
@@ -233,6 +233,11 @@ select is(
 select pg_temp.actuar_como(
   '00000000-0000-0000-0000-00000000ef02'
 );
+
+-- 17/11/2026: el Dueño aprueba las tres altas antes de que puedan hacer nada.
+select public.aprobar_miembro('00000000-0000-0000-0000-00000000ef03');
+select public.aprobar_miembro('00000000-0000-0000-0000-00000000ef04');
+select public.aprobar_miembro('00000000-0000-0000-0000-00000000ef05');
 
 select lives_ok(
   $$ select public.cambiar_rol_miembro(
@@ -427,6 +432,10 @@ select is(
   'espera',
   'El segundo Alumno con cuota entra en lista de espera'
 );
+
+-- Desde el 17/11/2026 un alumno solo ve SUS reservas: el recuento se hace
+-- con los privilegios de la prueba.
+reset role;
 
 select is(
   (

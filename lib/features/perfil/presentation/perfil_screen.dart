@@ -10,7 +10,6 @@ import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../documentos/presentation/mis_documentos_screen.dart';
 import '../../tarifas/presentation/tarifas_screen.dart';
-import '../../tienda/presentation/tienda_screen.dart';
 import '../application/profile_providers.dart';
 
 class PerfilScreen extends ConsumerStatefulWidget {
@@ -304,13 +303,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                       descripcion: 'Consulta tu plan, cámbialo o date de baja.',
                       destino: const TarifasScreen(),
                     ),
-                    const SizedBox(height: 12),
-                    TarjetaAcceso(
-                      icono: Icons.storefront_outlined,
-                      titulo: 'Tienda y material',
-                      descripcion: 'Catálogo de la academia y tus pedidos.',
-                      destino: const TiendaScreen(),
-                    ),
+                    // Tienda: fuera de la entrega de prueba (17/11/2026).
                     const SizedBox(height: 12),
                     TarjetaAcceso(
                       icono: Icons.assignment_outlined,

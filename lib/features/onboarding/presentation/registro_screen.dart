@@ -188,8 +188,13 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
-                      decoration: InputDecoration(labelText: l10n.authPassword),
-                      validator: (v) => (v == null || v.length < 6)
+                      decoration: InputDecoration(
+                        labelText: l10n.authPassword,
+                        // Se dice antes de escribirla, no al fallar. El mismo
+                        // mínimo que exige el servidor (17/11/2026).
+                        helperText: l10n.authPasswordTooShort,
+                      ),
+                      validator: (v) => (v == null || v.length < 8)
                           ? l10n.authPasswordTooShort
                           : null,
                     ),
@@ -240,6 +245,31 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : Text(l10n.actionCreateAccount),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Tu academia tendrá que aprobar tu alta antes de que '
+                      'puedas entrar.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: _loading
+                          ? null
+                          : () => context.push(Routes.privacidad),
+                      child: const Text(
+                        'Al crear la cuenta aceptas la información de privacidad',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _loading
+                          ? null
+                          : () => context.go(Routes.login),
+                      child: const Text('¿Ya tienes cuenta? Inicia sesión'),
                     ),
                     // CONGELADO: Crear nueva academia (v1 es academia única)
                     // const SizedBox(height: 16),

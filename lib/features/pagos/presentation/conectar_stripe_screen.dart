@@ -6,6 +6,7 @@ import '../../../app/theme/color_tokens.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/utils/error_messages.dart';
 import '../application/pagos_providers.dart';
+import 'pagos_con_problema_seccion.dart';
 
 class ConectarStripeScreen extends ConsumerStatefulWidget {
   const ConectarStripeScreen({super.key});
@@ -70,58 +71,67 @@ class _ConectarStripeScreenState extends ConsumerState<ConectarStripeScreen> {
               return const Center(child: Text('No hay academia asociada.'));
             }
             final estado = academia.stripeOnboardingStatus;
-            return Padding(
+            return ListView(
               padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(_iconoPara(estado), size: 56, color: _colorPara(estado)),
-                  const SizedBox(height: 20),
-                  Text(
-                    _tituloPara(estado),
-                    style: Theme.of(context).textTheme.titleLarge,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _descripcionPara(estado),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
-                  ),
-                  if (_error != null) ...[
-                    const SizedBox(height: 16),
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _iconoPara(estado),
+                      size: 56,
+                      color: _colorPara(estado),
+                    ),
+                    const SizedBox(height: 20),
                     Text(
-                      _error!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
+                      _tituloPara(estado),
+                      style: Theme.of(context).textTheme.titleLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _descripcionPara(estado),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
+                    ),
+                    if (_error != null) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        _error!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                       ),
+                    ],
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _cargando ? null : _conectar,
+                      child: _cargando
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(
+                              estado == 'not_started'
+                                  ? 'Conectar con Stripe'
+                                  : 'Continuar configuración',
+                            ),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: _cargando ? null : _refrescar,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Comprobar estado'),
                     ),
                   ],
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _cargando ? null : _conectar,
-                    child: _cargando
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(
-                            estado == 'not_started'
-                                ? 'Conectar con Stripe'
-                                : 'Continuar configuración',
-                          ),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: _cargando ? null : _refrescar,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Comprobar estado'),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 32),
+                // Un fallo de cobro se ve aquí, sin esperar a que un alumno avise.
+                const PagosConProblemaSeccion(),
+              ],
             );
           },
         ),

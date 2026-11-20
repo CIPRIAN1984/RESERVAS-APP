@@ -61,3 +61,4 @@ supabase/.branches/
 # Diferencias que deja una prueba visual al fallar (no es un resultado, es
 # el rastro de una comparación fallida en local).
 test/golden/failures/
+scripts/e2e_local/shots/

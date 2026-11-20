@@ -27,22 +27,13 @@ class MiembrosRepository {
   /// alguien a quien el servidor considera moroso. Aquí es la cuota de hoy;
   /// la lista de una clase mira la del día de la clase
   /// (`estado_cuota_participantes`).
+  ///
+  /// Desde el 17/11/2026 lo responde el servidor (`alumnos_con_cuota_vigente`):
+  /// el Profesor ya no puede leer las cuotas, que llevan importes, y solo
+  /// recibe quién tiene una en vigor.
   Future<Set<String>> alumnosConCuotaAlDia(String academiaId) async {
-    final ahora = DateTime.now().toUtc().toIso8601String();
-    final rows =
-        await _client
-                .from('suscripciones')
-                .select('alumno_id')
-                .eq('academia_id', academiaId)
-                .inFilter('estado', ['activa', 'prueba', 'programada'])
-                .eq('payment_status', 'active')
-                .lte('fecha_inicio', ahora)
-                .or('fecha_fin.is.null,fecha_fin.gt.$ahora')
-            as List;
-    return rows
-        .cast<Map<String, dynamic>>()
-        .map((row) => row['alumno_id'] as String)
-        .toSet();
+    final rows = await _client.rpc('alumnos_con_cuota_vigente') as List;
+    return rows.map((row) => row as String).toSet();
   }
 
   /// Cuándo entrenó cada alumno por última vez, indexado por alumno.
@@ -136,5 +127,17 @@ class MiembrosRepository {
   /// cuando toque.
   Future<void> reactivar(String alumnoId) async {
     await _client.rpc('reactivar_alumno', params: {'p_alumno_id': alumnoId});
+  }
+
+  /// Aprueba un alta pendiente: desde ese momento la persona entra en la
+  /// app. Solo el Dueño (lo comprueba el servidor).
+  Future<void> aprobar(String miembroId) async {
+    await _client.rpc('aprobar_miembro', params: {'p_miembro_id': miembroId});
+  }
+
+  /// Rechaza un alta pendiente. No borra nada: la cuenta queda de baja, sin
+  /// acceso, y se puede reactivar si fue un error.
+  Future<void> rechazar(String miembroId) async {
+    await _client.rpc('rechazar_miembro', params: {'p_miembro_id': miembroId});
   }
 }

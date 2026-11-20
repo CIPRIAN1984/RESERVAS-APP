@@ -14,7 +14,7 @@
   "authEmail": "Email",
   "authPassword": "Password",
   "authEmailInvalid": "Enter a valid email",
-  "authPasswordTooShort": "At least 6 characters",
+  "authPasswordTooShort": "At least 8 characters",
   "registerName": "First name",
   "registerLastName": "Last name",
   "registerYourAcademy": "Your academy",

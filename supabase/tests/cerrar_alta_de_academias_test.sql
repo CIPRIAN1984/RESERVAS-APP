@@ -59,9 +59,10 @@ select ok(
     select 1 from public.profiles
     where id = '00000000-0000-0000-0000-0000000000c2'
       and rol = 'alumno'
-      and estado = 'activo'
+      -- 17/11/2026: el alta nace pendiente; la aprueba el Dueño.
+      and estado = 'pendiente_aprobacion'
   ),
-  'Unirse a una academia ya aprobada sigue funcionando exactamente igual'
+  'Unirse a una academia ya aprobada sigue funcionando, y nace pendiente'
 );
 
 select * from finish();

@@ -6,6 +6,7 @@ import 'package:itaca/app/theme/app_theme.dart';
 import 'package:itaca/core/auth/auth_state.dart';
 import 'package:itaca/core/models/academia.dart';
 import 'package:itaca/features/pagos/application/pagos_providers.dart';
+import 'package:itaca/features/pagos/data/pago_tarjeta.dart';
 import 'package:itaca/features/pagos/data/pagos_repository.dart';
 import 'package:itaca/features/pagos/presentation/conectar_stripe_screen.dart';
 
@@ -36,6 +37,12 @@ class _RepoFalso implements PagosRepository {
     vecesRefrescado++;
     return (estado: estado, cobrosHabilitados: cobrosHabilitados);
   }
+
+  @override
+  Future<List<PagoTarjeta>> pagosConProblema() async => const [];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 Academia _academia({required String estado, bool cobros = false}) => Academia(

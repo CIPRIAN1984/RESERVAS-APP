@@ -75,3 +75,20 @@ Solo hay un documento vigente por tipo: volver a subirlo sustituye al
 anterior, sin guardar versiones previas. Los archivos se guardan en un
 almacén privado (nunca con URL pública, por tratarse de datos de salud) y
 solo puede verlos el propio alumno, su tutor, y el equipo de su academia.
+
+## Alta, aprobación y pago de la cuota
+
+- Quien se registra por el enlace **no entra a nada**: su cuenta queda
+  «pendiente de aprobación» y solo ve la pantalla de espera. El Dueño la aprueba
+  o rechaza desde Miembros («N altas pendientes»). El enlace de registro no da
+  acceso por sí mismo.
+- Cuota: el Dueño cobra **en mano** desde la ficha, o la alumna **paga con
+  tarjeta** desde Tarifas («Pagar con tarjeta» / «Renovar con tarjeta»). Es un
+  pago único por periodo, no una suscripción; los dos caminos dan exactamente
+  los mismos derechos.
+- Si un pago con tarjeta falla o caduca, el Dueño lo ve en Academia → Cobros →
+  «Pagos con problema».
+- «Sin cuota» y «Sin clases» son avisos, no deudas.
+- La lista de espera está apagada en el piloto. La tienda está cerrada.
+- El profesor ve lo necesario para dar clase y pasar asistencia; no ve importes,
+  tarifas ni certificados médicos.

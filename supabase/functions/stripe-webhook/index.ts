@@ -9,6 +9,31 @@ import { createStripeClient, onboardingStatusFor } from "../_shared/stripe.ts";
 
 const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")!;
 
+/**
+ * Llama a una función de la base de datos del cobro con tarjeta. Si falla,
+ * se lanza el error para que la entrega devuelva un 500 y Stripe la repita.
+ * La excepción es un pago que no es nuestro (otra sesión de la misma cuenta):
+ * se ignora para no repetirlo eternamente.
+ */
+async function llamarBd(
+  admin: ReturnType<typeof createAdminClient>,
+  funcion: string,
+  parametros: Record<string, unknown>,
+): Promise<void> {
+  const { error } = await admin.rpc(funcion, parametros);
+  if (error && !error.message.includes("Pago desconocido")) {
+    throw new Error(`${funcion}: ${error.message}`);
+  }
+  if (error) {
+    logEvent("warn", "stripe-webhook", "Pago que no es de esta app", {
+      funcion,
+    });
+  }
+}
+
+const idDe = (x: string | { id: string } | null | undefined): string | null =>
+  typeof x === "string" ? x : x?.id ?? null;
+
 Deno.serve(async (req) => {
   const signature = req.headers.get("Stripe-Signature");
   if (!signature) {
@@ -50,6 +75,44 @@ Deno.serve(async (req) => {
 
   try {
     switch (event.type) {
+      // ── Pago único de una cuota (Checkout) ──────────────────────────────
+      // La cuota se activa SOLO aquí, con la confirmación firmada de Stripe.
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.mode !== "payment" || !session.metadata?.pago_id) break;
+        // Pagos que tardan (p. ej. domiciliación): «completed» llega con el
+        // cobro todavía pendiente; se activa con «async_payment_succeeded».
+        if (session.payment_status !== "paid") break;
+        await llamarBd(admin, "confirmar_pago_stripe", {
+          p_session_id: session.id,
+          p_payment_intent: idDe(session.payment_intent),
+          p_importe_centimos: session.amount_total ?? 0,
+          p_moneda: session.currency ?? "",
+        });
+        break;
+      }
+      case "checkout.session.async_payment_failed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (!session.metadata?.pago_id) break;
+        await llamarBd(admin, "cerrar_pago_stripe", {
+          p_session_id: session.id,
+          p_estado: "fallido",
+          p_motivo: "El pago no se ha completado.",
+        });
+        break;
+      }
+      case "checkout.session.expired": {
+        // Abandonado: la persona no llegó a pagar.
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (!session.metadata?.pago_id) break;
+        await llamarBd(admin, "cerrar_pago_stripe", {
+          p_session_id: session.id,
+          p_estado: "expirado",
+          p_motivo: "La página de pago caducó sin pagar.",
+        });
+        break;
+      }
       case "account.updated": {
         const account = event.data.object as Stripe.Account;
         await admin
@@ -74,6 +137,14 @@ Deno.serve(async (req) => {
       }
       case "payment_intent.payment_failed": {
         const pi = event.data.object as Stripe.PaymentIntent;
+        // Un intento rechazado de pagar una cuota: se anota el motivo; el
+        // pago sigue abierto porque la persona puede reintentar.
+        if (pi.metadata?.pago_id) {
+          await llamarBd(admin, "anotar_intento_fallido_stripe", {
+            p_pago_id: pi.metadata.pago_id,
+            p_motivo: pi.last_payment_error?.message ?? "",
+          });
+        }
         const pedidoId = pi.metadata?.pedido_id;
         if (pedidoId) {
           await admin.from("pedidos").update({ payment_status: "failed" }).eq(
@@ -103,6 +174,11 @@ Deno.serve(async (req) => {
           ? charge.payment_intent
           : charge.payment_intent?.id;
         if (paymentIntentId) {
+          // Si era el pago de una cuota: una devolución total la cancela.
+          await llamarBd(admin, "registrar_devolucion_stripe", {
+            p_payment_intent: paymentIntentId,
+            p_devuelto_centimos: charge.amount_refunded,
+          });
           await admin
             .from("pedidos")
             .update({ payment_status: "refunded", estado: "cancelado" })

@@ -142,6 +142,9 @@ select is(
 );
 
 -- 7. Solo queda una plaza activa.
+-- Desde el 17/11/2026 un alumno solo ve SUS reservas: la comprobación se
+-- hace con los privilegios de la prueba, no con los del alumno.
+reset role;
 select is(
   (
     select count(*)::int
@@ -168,6 +171,9 @@ select lives_ok(
   $$ select public.cancelar_reserva('00000000-0000-0000-0000-00000000c201') $$,
   'El alumno puede cancelar su propia reserva'
 );
+-- Desde el 17/11/2026 un alumno solo ve SUS reservas: la comprobación se
+-- hace con los privilegios de la prueba, no con los del alumno.
+reset role;
 select is(
   (
     select estado

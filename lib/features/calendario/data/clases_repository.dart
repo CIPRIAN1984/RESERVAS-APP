@@ -318,24 +318,22 @@ class ClasesRepository {
   /// confirmados (`inscrito`), no la lista de espera: a un compañero no le
   /// aporta ver quién está pendiente de plaza.
   Future<List<InscritoAlumno>> listarCompaneros(String claseId) async {
+    // Función del servidor y no una lectura de la tabla: desde el
+    // 17/11/2026 un alumno solo puede leer SUS reservas y SU perfil.
     final filas =
-        await _client
-                .from('inscripciones')
-                .select(
-                  'alumno_id, alumno:profiles(nombre, apellidos, foto_url, cinturon)',
-                )
-                .eq('clase_id', claseId)
-                .eq('estado', 'inscrito')
-                .order('created_at')
+        await _client.rpc(
+              'companeros_de_clase',
+              params: {'p_clase_id': claseId},
+            )
             as List;
 
     return filas
         .cast<Map<String, dynamic>>()
         .map(
-          (row) => InscritoAlumno.fromInscripcionJson(
-            row,
-            asistenciaValidada: false,
-          ),
+          (row) => InscritoAlumno.fromInscripcionJson({
+            'alumno_id': row['alumno_id'],
+            'alumno': row,
+          }, asistenciaValidada: false),
         )
         .toList();
   }

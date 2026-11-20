@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../core/models/cinturones.dart';
+import '../../../core/auth/auth_state.dart';
 import '../../../core/models/profile.dart';
+import '../../../core/utils/error_messages.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../equipo/presentation/dar_cuota_sheet.dart';
@@ -91,6 +93,19 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
     }
   }
 
+  /// Abre la lista de altas pendientes. Aprobar o rechazar es del Dueño; el
+  /// servidor lo vuelve a comprobar.
+  Future<void> _revisarAltas(List<Profile> pendientes) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useRootNavigator: true,
+      builder: (_) => _AltasPendientesSheet(pendientes: pendientes),
+    );
+    if (mounted) ref.invalidate(alumnosMiembrosProvider);
+  }
+
   Future<void> _elegirCinturon() async {
     final elegido = await showModalBottomSheet<String?>(
       context: context,
@@ -128,6 +143,7 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
         ref.watch(ultimaAsistenciaMiembrosProvider).value ?? const {};
     final listosParaGraduarse =
         ref.watch(graduacionMiembrosProvider).value ?? const {};
+    final esDueno = ref.watch(currentProfileProvider).value?.isDueno ?? false;
 
     return Column(
       children: [
@@ -160,8 +176,17 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
               icon: Icons.groups_outlined,
               message: 'No se han podido cargar los alumnos.',
             ),
-            data: (alumnos) {
-              if (alumnos.isEmpty) {
+            data: (todos) {
+              // Las altas que esperan aprobación van aparte: aún no son
+              // alumnos, y no cuentan en ningún recuento.
+              final pendientes = todos
+                  .where((a) => a.pendienteAprobacion)
+                  .toList();
+              final alumnos = todos
+                  .where((a) => !a.pendienteAprobacion)
+                  .toList();
+
+              if (alumnos.isEmpty && pendientes.isEmpty) {
                 return const EmptyState(
                   icon: Icons.groups_outlined,
                   message: 'Todavía no hay alumnos en la academia.',
@@ -220,6 +245,11 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (pendientes.isNotEmpty && esDueno)
+                    _AvisoAltasPendientes(
+                      cuantas: pendientes.length,
+                      onRevisar: () => _revisarAltas(pendientes),
+                    ),
                   // Dos filas de dos: con cuatro tarjetas ya no caben a lo
                   // ancho en un móvil de 412 px sin encogerse demasiado.
                   Padding(
@@ -344,7 +374,8 @@ class _MiembrosScreenState extends ConsumerState<MiembrosScreen> {
                         ultimaAsistencia: ultimaAsistencia,
                         listosParaGraduarse: listosParaGraduarse,
                         onAbrirFicha: _abrirFicha,
-                        onCobrar: _darCuota,
+                        // Cobrar es del Dueño; al Profesor no se le ofrece.
+                        onCobrar: esDueno ? _darCuota : null,
                       ),
                     ),
                 ],
@@ -372,7 +403,7 @@ class _ListaAlumnos extends StatelessWidget {
     required this.ultimaAsistencia,
     required this.listosParaGraduarse,
     required this.onAbrirFicha,
-    required this.onCobrar,
+    this.onCobrar,
   });
 
   final List<Profile> alumnos;
@@ -380,7 +411,7 @@ class _ListaAlumnos extends StatelessWidget {
   final Map<String, DateTime> ultimaAsistencia;
   final Set<String> listosParaGraduarse;
   final void Function(Profile) onAbrirFicha;
-  final void Function(Profile) onCobrar;
+  final void Function(Profile)? onCobrar;
 
   @override
   Widget build(BuildContext context) {
@@ -415,9 +446,9 @@ class _ListaAlumnos extends StatelessWidget {
             ultima: ultimaAsistencia[alumno.id],
             listo: listosParaGraduarse.contains(alumno.id),
             onTap: () => onAbrirFicha(alumno),
-            onCobrar: cuotaAlDia.contains(alumno.id)
+            onCobrar: cuotaAlDia.contains(alumno.id) || onCobrar == null
                 ? null
-                : () => onCobrar(alumno),
+                : () => onCobrar!(alumno),
           ),
         );
       },
@@ -844,6 +875,167 @@ class _TarjetaResumen extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Aviso de que hay gente esperando a que el Dueño la deje entrar.
+class _AvisoAltasPendientes extends StatelessWidget {
+  const _AvisoAltasPendientes({required this.cuantas, required this.onRevisar});
+
+  final int cuantas;
+  final VoidCallback onRevisar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Material(
+        color: AppColors.warningBg,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onRevisar,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                const Icon(Icons.person_add_alt, color: AppColors.warningFg),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    cuantas == 1
+                        ? '1 alta pendiente de aprobar'
+                        : '$cuantas altas pendientes de aprobar',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: AppColors.warningFg,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: AppColors.warningFg),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Quién se ha registrado y espera. Hasta que se aprueba no ve nada de la
+/// academia; rechazar no borra, deja la cuenta de baja.
+class _AltasPendientesSheet extends ConsumerStatefulWidget {
+  const _AltasPendientesSheet({required this.pendientes});
+
+  final List<Profile> pendientes;
+
+  @override
+  ConsumerState<_AltasPendientesSheet> createState() =>
+      _AltasPendientesSheetState();
+}
+
+class _AltasPendientesSheetState extends ConsumerState<_AltasPendientesSheet> {
+  late final List<Profile> _quedan = [...widget.pendientes];
+  String? _ocupado;
+  String? _error;
+
+  Future<void> _resolver(Profile persona, {required bool aprobar}) async {
+    setState(() {
+      _ocupado = persona.id;
+      _error = null;
+    });
+    try {
+      final repo = ref.read(miembrosRepositoryProvider);
+      if (aprobar) {
+        await repo.aprobar(persona.id);
+      } else {
+        await repo.rechazar(persona.id);
+      }
+      if (!mounted) return;
+      setState(() => _quedan.removeWhere((p) => p.id == persona.id));
+      if (_quedan.isEmpty) Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      setState(
+        () => _error = mensajeErrorAmigable(
+          e,
+          generico: 'No se ha podido guardar. Inténtalo de nuevo.',
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _ocupado = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Altas pendientes',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Hasta que la apruebes, esta persona no ve nada de la academia.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.subtle),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: const TextStyle(color: AppColors.dangerFg)),
+            ],
+            const SizedBox(height: 12),
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: _quedan.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                itemBuilder: (context, i) {
+                  final persona = _quedan[i];
+                  final ocupado = _ocupado == persona.id;
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          persona.nombreCompleto,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 12),
+                        FilledButton(
+                          onPressed: ocupado
+                              ? null
+                              : () => _resolver(persona, aprobar: true),
+                          child: Text('Aprobar a ${persona.nombre}'),
+                        ),
+                        const SizedBox(height: 8),
+                        OutlinedButton(
+                          onPressed: ocupado
+                              ? null
+                              : () => _resolver(persona, aprobar: false),
+                          child: const Text('Rechazar'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

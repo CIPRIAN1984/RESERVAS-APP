@@ -34,17 +34,19 @@ Widget _app(Profile perfil) => ProviderScope(
 );
 
 void main() {
-  testWidgets('un alumno llega a su cuota y a la tienda desde Perfil', (
-    tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(412, 1400));
-    await tester.pumpWidget(_app(_perfil(rol: 'alumno')));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'un alumno llega a su cuota desde Perfil; la tienda está fuera de la entrega',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(412, 1400));
+      await tester.pumpWidget(_app(_perfil(rol: 'alumno')));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Mi cuota'), findsOneWidget);
-    expect(find.text('Tienda y material'), findsOneWidget);
-    expect(find.text('Documentos'), findsOneWidget);
-  });
+      expect(find.text('Mi cuota'), findsOneWidget);
+      // Tienda cerrada el 17/11/2026 (fuera de la entrega de prueba).
+      expect(find.text('Tienda y material'), findsNothing);
+      expect(find.text('Documentos'), findsOneWidget);
+    },
+  );
 
   testWidgets('un dueño también lo tiene: entrena en la misma academia', (
     tester,
@@ -54,7 +56,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Mi cuota'), findsOneWidget);
-    expect(find.text('Tienda y material'), findsOneWidget);
+    // Tienda cerrada el 17/11/2026 (fuera de la entrega de prueba).
+    expect(find.text('Tienda y material'), findsNothing);
     expect(find.text('Documentos'), findsOneWidget);
   });
 

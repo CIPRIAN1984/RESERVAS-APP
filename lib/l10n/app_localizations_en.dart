@@ -52,7 +52,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authEmailInvalid => 'Enter a valid email';
 
   @override
-  String get authPasswordTooShort => 'At least 6 characters';
+  String get authPasswordTooShort => 'At least 8 characters';
 
   @override
   String get registerName => 'First name';

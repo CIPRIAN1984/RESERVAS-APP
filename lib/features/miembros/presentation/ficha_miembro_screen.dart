@@ -183,6 +183,7 @@ class FichaMiembroScreen extends ConsumerWidget {
         .watch(ultimaAsistenciaMiembrosProvider)
         .value?[alumno.id];
     final staffId = ref.watch(currentUserIdProvider);
+    final esDueno = ref.watch(currentProfileProvider).value?.isDueno ?? false;
 
     return Scaffold(
       appBar: AppBar(title: Text(alumno.nombreCompleto)),
@@ -262,26 +263,34 @@ class FichaMiembroScreen extends ConsumerWidget {
                   ),
                 ],
 
-                const SizedBox(height: 28),
-                Text(
-                  'Documentos',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 12),
-                if (staffId != null)
+                // Documentos y baja: solo el Dueño (17/11/2026). El
+                // certificado médico es un dato de salud y el Profesor no lo
+                // necesita para dar clase; el servidor tampoco se lo enseña.
+                if (staffId != null && esDueno) ...[
+                  const SizedBox(height: 28),
+                  Text(
+                    'Documentos',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 12),
                   SeccionDocumentos(
                     alumnoId: alumno.id,
                     subidoPorId: staffId,
                     puedeSubir: true,
                     puedeBorrar: true,
                   ),
+                ],
 
                 // Abajo del todo y separado: es la acción que menos se usa y
                 // la que peor sienta pulsar sin querer.
-                const SizedBox(height: 32),
-                const Divider(color: AppColors.line),
-                const SizedBox(height: 16),
-                if (alumno.deBaja)
+                if (esDueno) ...[
+                  const SizedBox(height: 32),
+                  const Divider(color: AppColors.line),
+                  const SizedBox(height: 16),
+                ],
+                if (!esDueno)
+                  const SizedBox.shrink()
+                else if (alumno.deBaja)
                   FilledButton(
                     onPressed: () => _cambiarAlta(context, ref),
                     child: const Text('Reactivar al alumno'),

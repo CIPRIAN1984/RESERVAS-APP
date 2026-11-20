@@ -18,6 +18,7 @@ import '../features/novedades/presentation/novedades_screen.dart';
 import '../features/onboarding/presentation/login_screen.dart';
 import '../features/onboarding/presentation/olvide_contrasena_screen.dart';
 import '../features/pagos/presentation/conectar_stripe_screen.dart';
+import '../features/pagos/presentation/pago_resultado_screen.dart';
 import '../features/privacy/presentation/privacy_screen.dart';
 import '../features/tarifas/presentation/tarifas_screen.dart';
 // CONGELADO: import '../features/tienda/presentation/tienda_screen.dart';
@@ -75,6 +76,34 @@ const _rutasAcademia = {
 /// Destinos del modo Gestor: solo para quien lleva la academia.
 const _rutasGestor = {Routes.herramientas, Routes.academia, Routes.miembros};
 
+/// La pantalla de carga a la que se manda mientras llega el perfil, con la
+/// dirección a la que se iba. Sin esto, abrir un enlace (volver de la página
+/// de pago de Stripe, una invitación…) recarga la app y se perdía el destino:
+/// acababas siempre en el inicio.
+@visibleForTesting
+String direccionDeCarga(Uri actual) => Uri(
+  path: Routes.splash,
+  queryParameters: {'volver': actual.toString()},
+).toString();
+
+/// El destino guardado por [direccionDeCarga], o `null` si no hay o no es de
+/// fiar: tiene que ser una ruta propia de la app (nunca otra web) y no una de
+/// entrada (login, carga…), que mandaría de vuelta al principio.
+@visibleForTesting
+String? destinoGuardado(Uri actual) {
+  final volver = actual.queryParameters['volver'];
+  if (volver == null || !volver.startsWith('/') || volver.startsWith('//')) {
+    return null;
+  }
+  final destino = Uri.tryParse(volver);
+  if (destino == null) return null;
+  final entrada =
+      Routes.publicRoutes.contains(destino.path) ||
+      destino.path == Routes.splash ||
+      destino.path == Routes.pendienteAprobacion;
+  return entrada ? null : volver;
+}
+
 String _inicioPara(Profile profile) =>
     profile.isAdministrador ? Routes.admin : Routes.inicio;
 
@@ -97,7 +126,7 @@ String? _redirect(Ref ref, GoRouterState state) {
 
   final profileAsync = ref.read(currentProfileProvider);
   if (!profileAsync.hasValue) {
-    return loc == Routes.splash ? null : Routes.splash;
+    return loc == Routes.splash ? null : direccionDeCarga(state.uri);
   }
 
   final profile = profileAsync.value;
@@ -108,7 +137,10 @@ String? _redirect(Ref ref, GoRouterState state) {
     return registrationRoutes.contains(loc) ? null : Routes.registro;
   }
 
-  if (profile.pendienteAprobacion && !profile.isAdministrador) {
+  // Pendiente de aprobar o de baja: sin acceso a nada de la academia. El
+  // servidor tampoco le da ningún dato; esto solo evita pantallas vacías.
+  if ((profile.pendienteAprobacion || profile.deBaja) &&
+      !profile.isAdministrador) {
     return loc == Routes.pendienteAprobacion
         ? null
         : Routes.pendienteAprobacion;
@@ -155,6 +187,10 @@ String? _redirect(Ref ref, GoRouterState state) {
       loc == Routes.splash ||
       loc == Routes.pendienteAprobacion;
   if (atEntryPoint) {
+    if (loc == Routes.splash) {
+      final destino = destinoGuardado(state.uri);
+      if (destino != null) return destino;
+    }
     return _inicioPara(profile);
   }
 
@@ -273,6 +309,17 @@ final routerProvider = Provider<GoRouter>((ref) {
               titulo: 'Mi familia',
               onVolver: () => context.go(Routes.perfil),
               child: const MisHijosScreen(),
+            ),
+          ),
+          GoRoute(
+            path: Routes.pago,
+            builder: (context, state) => PantallaConTitulo(
+              titulo: 'Pago',
+              onVolver: () => context.go(Routes.perfil),
+              child: PagoResultadoScreen(
+                pagoId: state.uri.queryParameters['pago'] ?? '',
+                cancelado: state.uri.queryParameters['cancelado'] == '1',
+              ),
             ),
           ),
           GoRoute(

@@ -52,7 +52,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get authEmailInvalid => 'Introduce un email válido';
 
   @override
-  String get authPasswordTooShort => 'Mínimo 6 caracteres';
+  String get authPasswordTooShort => 'Mínimo 8 caracteres';
 
   @override
   String get registerName => 'Nombre';

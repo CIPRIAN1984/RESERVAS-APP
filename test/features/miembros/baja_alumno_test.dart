@@ -73,6 +73,15 @@ Widget _ficha({required Profile alumno, MiembrosRepository? repo}) =>
       overrides: [
         if (repo != null) miembrosRepositoryProvider.overrideWithValue(repo),
         currentUserIdProvider.overrideWithValue('staff1'),
+        currentProfileProvider.overrideWith(
+          (ref) async => Profile(
+            id: 'staff1',
+            academiaId: 'a1',
+            rol: 'dueño',
+            nombre: 'Staff',
+            estado: 'activo',
+          ),
+        ),
         documentosDeProvider(alumno.id).overrideWith((ref) async => const []),
         ultimaAsistenciaMiembrosProvider.overrideWith((ref) async => const {}),
         progresoCinturonProvider.overrideWith(

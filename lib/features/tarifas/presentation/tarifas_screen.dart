@@ -1,13 +1,18 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/app_mode.dart';
 import '../../../app/theme/color_tokens.dart';
 import '../../../shared/widgets/error_en_linea.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../../core/auth/auth_state.dart';
+import '../../../core/utils/error_messages.dart';
 import '../../configuracion_reservas/application/configuracion_reservas_providers.dart';
+import '../../pagos/application/pagos_providers.dart';
+import '../../pagos/data/pagos_repository.dart' show MensajePago;
 import '../application/tarifas_providers.dart';
 import '../data/tarifa.dart';
 import 'crear_tarifa_screen.dart';
@@ -26,7 +31,8 @@ class TarifasScreen extends ConsumerWidget {
 
     // En modo Entrenamiento se ve «mi cuota»; en modo Gestor, el catálogo
     // de tarifas de la academia.
-    final puedeGestionar = ref.watch(enModoGestionProvider);
+    // Las tarifas las crea y cambia solo el Dueño (17/11/2026).
+    final puedeGestionar = ref.watch(enModoGestionProvider) && profile.isDueno;
 
     return puedeGestionar
         ? _TarifasGestionView(academiaId: profile.academiaId!)
@@ -46,6 +52,44 @@ class _TarifasAlumnoView extends ConsumerStatefulWidget {
 
 class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
   bool _cancelando = false;
+  String? _pagandoId;
+  String? _errorPago;
+
+  /// Abre la página de pago de Stripe. Un pago es un periodo de la tarifa:
+  /// no se crea ninguna suscripción recurrente. La cuota la activa el
+  /// servidor cuando Stripe confirma el cobro, no esta pantalla.
+  Future<void> _pagarConTarjeta(Tarifa tarifa) async {
+    setState(() {
+      _pagandoId = tarifa.id;
+      _errorPago = null;
+    });
+    try {
+      final pago = await ref
+          .read(pagosRepositoryProvider)
+          .iniciarPagoCuota(tarifaId: tarifa.id);
+      await launchUrl(
+        Uri.parse(pago.url),
+        mode: kIsWeb
+            ? LaunchMode.platformDefault
+            : LaunchMode.externalApplication,
+        webOnlyWindowName: '_self',
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(
+          () => _errorPago = e is MensajePago
+              ? e.mensaje
+              : mensajeErrorAmigable(
+                  e,
+                  generico:
+                      'No se ha podido abrir el pago. Inténtalo de nuevo.',
+                ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _pagandoId = null);
+    }
+  }
 
   Future<void> _cancelar(String suscripcionId) async {
     setState(() => _cancelando = true);
@@ -213,6 +257,12 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
           ),
           data: (tarifas) {
             final actualId = suscripcionAsync.value?.tarifaId;
+            final tarjetaActiva =
+                ref
+                    .watch(currentAcademiaProvider)
+                    .value
+                    ?.stripeChargesEnabled ??
+                false;
             final actualEstado = suscripcionAsync.value?.estado;
             if (tarifas.isEmpty) {
               return Text(
@@ -228,6 +278,16 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
             // acciones principales de la app.
             return Column(
               children: [
+                if (_errorPago != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      _errorPago!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
                 for (final tarifa in tarifas)
                   Card(
                     margin: const EdgeInsets.only(bottom: 12),
@@ -268,6 +328,29 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                           // El alta de cuota es solo en mano (dar_cuota_sheet,
                           // desde Equipo) mientras Stripe siga congelado: ver
                           // FREEZE.md. Aquí solo se enseña si es la tuya.
+                          // Pago con tarjeta: solo si la academia lo tiene activado
+                          // (interruptor del servidor).
+                          if (tarjetaActiva) ...[
+                            FilledButton(
+                              onPressed: _pagandoId != null
+                                  ? null
+                                  : () => _pagarConTarjeta(tarifa),
+                              child: _pagandoId == tarifa.id
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(
+                                      tarifa.id == actualId
+                                          ? 'Renovar con tarjeta'
+                                          : 'Pagar con tarjeta',
+                                    ),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
                           if (tarifa.id == actualId)
                             Align(
                               alignment: Alignment.centerLeft,

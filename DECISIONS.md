@@ -2811,3 +2811,147 @@ desde la clase, **respetando las reglas**.
 **Verificación:** `apuntar_sin_reserva_test.sql` (18). Sabotajes: sin
 mirar las clases de la tarifa → 2 en rojo; sin la ventana de tiempo → 2.
 En la app, 4 pruebas nuevas; ocultar el botón → 2 en rojo.
+
+## 2026-11-17 — Acceso y privacidad: registrarse no da acceso; cada uno ve lo suyo
+
+**Qué pasaba** (auditoría del 13/11, comprobado en producción): el registro
+abierto creaba cuentas activas que veían a todos los miembros, las familias y
+quién va a cada clase; un alumno de baja seguía viéndolo; un Profesor veía
+importes, cambiaba tarifas y veía y borraba certificados médicos; y un alumno
+podía crear, llamando al servidor, un pedido de tienda «pagado y entregado».
+
+**Decisión de Cipri (encargo del 17/11/2026):**
+
+- La cuenta nueva nace **pendiente** y el Dueño la aprueba o la rechaza desde
+  Miembros. El enlace de registro no concede acceso. Rechazar no borra: deja
+  la cuenta de baja.
+- Pendiente o de baja = sin acceso a nada de la academia.
+- El alumno ve lo suyo; el tutor, lo de sus hijos; el Profesor, lo necesario
+  para dar clase y pasar lista. Importes, tarifas y certificados quedan
+  fuera del rol Profesor. Cobrar y dar de baja ya eran solo del Dueño.
+- La tienda queda fuera de la entrega de prueba, cerrada también en el
+  servidor.
+
+**Lo que se conserva sin que nadie lo haya pedido cambiar:** los compañeros
+de clase y el ranking (decisiones del 18/08) siguen visibles para alumnos
+activos, con nombre, foto, cinturón y, en el ranking, número de clases.
+
+**Cómo** (`20261117090000_acceso_y_privacidad.sql`):
+
+- `current_rol()` y `current_academia_id()` solo responden para un perfil
+  **activo**. Con eso una cuenta pendiente o de baja queda igual que una
+  cuenta sin perfil, que ya estaba cerrada función a función (09/10). Se
+  eligió esto y no tocar política por política porque una política olvidada
+  sería un agujero.
+- Las tablas `profiles`, `inscripciones`, `asistencias` y
+  `relaciones_familia` dejan de leerse «por academia»: propias, de los hijos,
+  o del equipo. Lo que el alumno sí ve de otros sale de funciones acotadas:
+  `listar_clases_semana` (plazas ocupadas), `ranking_periodo` y la nueva
+  `companeros_de_clase`.
+- `suscripciones`, `tarifas` (escritura) y documentos (tabla y ficheros):
+  Dueño, no Profesor. El Profesor recibe solo quién tiene cuota en vigor
+  (`alumnos_con_cuota_vigente`), sin importes.
+- Tienda: se quitan los permisos de escritura de `productos`, `pedidos` y
+  `prestamos`. Además el pedido nace siempre «pendiente de pago», por si se
+  reabre.
+- Sin sesión (`anon`) no queda permiso sobre ninguna tabla.
+- Sin ningún `drop`: las políticas se cambian con `alter policy`, para poder
+  aplicarlo en producción sin el bloqueo del conector.
+
+**Pruebas:** `acceso_y_privacidad_test.sql` (55 comprobaciones, con la sesión
+de cada rol). Deshaciendo el arreglo a propósito se ponen en rojo. Cinco
+suites antiguas contaban reservas ajenas con la sesión de un alumno o daban
+por hecho que el alta nacía activa: se han adaptado.
+
+**Pendiente de Cipri:** el mínimo de contraseña pasa a 8 en la pantalla y en
+la configuración local; en producción se cambia en el panel de Supabase.
+
+## 2026-11-17 — Cobrar con la clase empezada, clases antiguas y lista de espera apagada
+
+**Dos fallos reales que dejó la auditoría del 13/11** (reproducidos en local
+antes de tocar nada):
+
+1. Cobrar en recepción con la clase ya empezada: la cuota empezaba «ahora»,
+   después que la clase. La clase salía «sin cuota» y no gastaba ninguna
+   clase del bono aunque la persona acabara de pagar. Ahora la cuota recién
+   cobrada empieza cuando empezó la clase en marcha en la que esa persona
+   está (apuntada o con asistencia), en los dos órdenes: cobrar y apuntar, o
+   apuntar y cobrar. Solo se retrasa hasta ese inicio, no más.
+2. Una clase antigua dejaba de estar «cubierta» cuando caducaba la cuota que
+   la cubría (el trabajo de caducidad la pone en `expirada`). Ahora una cuota
+   `expirada` o `cancelada` sigue contando para las fechas que cubrió, y
+   solo para esas.
+
+**Lista de espera apagada en el piloto** (decisión de Cipri, encargo del
+17/11): sube sola a quien espera y, si no viene, se le descuenta la clase;
+el aviso al móvil no está verificado (en la web ni existe). El interruptor
+de Ajustes de reservas sale bloqueado y el servidor rechaza que un Dueño la
+encienda. No se ha tocado lo que ya hubiera guardado una academia. Para
+volver a abrirla: verificar los avisos y quitar el disparador
+`academias_bloquear_lista_espera`.
+
+**Entorno de pruebas:** las suites de base de datos cuentan filas, así que
+solo valen sobre base limpia. `scripts/probar_db_limpia.sh` reinicia la base
+LOCAL, pasa las pruebas y avisa de que hay que volver a sembrar con
+`scripts/sembrar_prueba.py`.
+
+## 2026-11-17 — Cobro con tarjeta: pago único con Checkout, activado solo por el webhook
+
+**Qué se decidió (encargo de entrega de prueba):**
+
+- **Un pago = un periodo.** La alumna paga una vez la tarifa (mensual,
+  trimestral, día suelto) en la página de pago de Stripe (Checkout). No hay
+  suscripción automática: renovar es volver a pagar. Un cobro recurrente solo
+  se añadirá si Cipri lo acuerda. Por eso el bono y el día suelto nunca se
+  convierten en suscripción.
+- **La cuota la activa solo el servidor** al recibir el aviso firmado de Stripe
+  (`stripe-webhook`), nunca el navegador. La pantalla de vuelta solo pregunta
+  (`stripe-comprobar-pago`, que consulta a Stripe en el servidor) por si el
+  aviso tarda. Si la persona cierra la página tras pagar, la cuota se activa
+  igual.
+- **Una sola vez.** La clave de cobro es determinista
+  (`md5('stripe:'||session_id)::uuid`) y las funciones bloquean la fila: un aviso
+  duplicado o un reintento no duplica cuota. El importe y la moneda se
+  comprueban en el servidor contra la tarifa; si no cuadran, el pago pasa a
+  `revisar` y no se activa nada.
+- **Mismas condiciones que en mano.** Pago con tarjeta y cobro en efectivo pasan
+  por la misma función interna `_alta_cuota`: mismos periodos, mismo saldo de
+  clases, mismos derechos. No se pueden duplicar.
+- **Fallos a la vista.** Pagos fallidos, caducados o a revisar se guardan en
+  `pagos_stripe` y salen al Dueño en Academia → Cobros («Pagos con problema»),
+  sin que la alumna tenga que avisar.
+- **Interruptor en el servidor.** `academias.stripe_charges_enabled` apaga el
+  cobro; la app solo lo refleja.
+- **Funciones retiradas:** `stripe-create-tarifa-subscription` y
+  `stripe-create-tienda-payment` responden 410. La tienda sigue cerrada.
+- **Tablas y funciones de pago** (`pagos_stripe`, `preparar_pago_stripe`,
+  `confirmar_pago_stripe`…) solo las puede ejecutar `service_role`.
+
+**Fallo de navegación encontrado en la prueba con navegador:** al volver de
+Stripe la app se recarga y el router perdía la dirección (pasaba por la pantalla
+de carga y caía en el inicio). Ahora la carga guarda el destino (`volver=`), solo
+rutas propias de la app y nunca pantallas de entrada.
+
+**Límite de lo verificado:** en local se usó `stripe-mock` (valida la forma de
+las llamadas a la API de Stripe) y avisos firmados con el secreto de pruebas. La
+página de pago real de Stripe y el envío real de avisos solo se verifican con una
+clave de pruebas y un punto de entrada público: pendiente de Cipri.
+
+## 2026-11-20 — Cipri decide preparar la integración con Stripe REAL
+
+Cipri confirmó por escrito («Confirmo: usar la clave real de Stripe en las
+pruebas… Prepara la app para integración real, sin 1 euro de prueba»),
+cambiando la regla anterior de «no conectar Stripe real hasta semanas en
+paralelo con MAAT». Es decisión suya y queda registrada.
+
+- Se **prepara** la integración real (procedimiento en `OPERATIONS.md`,
+  «Puesta en marcha con Stripe real»). **Preparar no es desplegar**: aplicar
+  migraciones a producción, desplegar funciones, poner secretos y fusionar #94
+  siguen necesitando su autorización expresa en el momento.
+- La clave real **no está en ningún sitio**: el formulario seguro se denegó
+  dos veces. No se pide por tercera vez; la pone él en Supabase → Edge
+  Functions → Secrets (`STRIPE_SECRET_KEY`), nunca por chat ni en el repositorio.
+- El código nunca se ha ejecutado contra Stripe real (solo `stripe-mock` y
+  avisos firmados). El primer pago real será la primera prueba de verdad: se
+  hace con el interruptor `stripe_charges_enabled` apagado para el resto de
+  alumnos y encendido solo cuando Cipri lo diga.

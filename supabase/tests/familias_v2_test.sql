@@ -165,7 +165,12 @@ select is(
   'La plaza queda a nombre del hijo, no del padre'
 );
 
--- Un extraño no puede tocar al niño de otro.
+-- Un extraño no puede tocar al niño de otro. Desde el 17/11/2026 ni
+-- siquiera puede averiguar quién es: el id se guarda antes de cambiar de
+-- usuario.
+select set_config('test.hijo_ajeno',
+  (select child_id::text from public.relaciones_familia
+    where parent_id = '00000000-0000-0000-0000-0000000000b1'), true);
 set local role authenticated;
 select set_config('request.jwt.claims',
   '{"sub":"00000000-0000-0000-0000-0000000000b2","role":"authenticated"}', true);
@@ -173,8 +178,7 @@ select set_config('request.jwt.claims',
 select throws_ok(
   format(
     $$select public.reservar_clase('00000000-0000-0000-0000-0000000000c1'::uuid, %L::uuid)$$,
-    (select child_id from public.relaciones_familia
-      where parent_id = '00000000-0000-0000-0000-0000000000b1')
+    current_setting('test.hijo_ajeno')
   ),
   'Solo puedes reservar para ti o para tus hijos.',
   'Un extraño no puede reservar en nombre del hijo de otro'
@@ -183,8 +187,7 @@ select throws_ok(
 select throws_ok(
   format(
     $$select public.cancelar_reserva('00000000-0000-0000-0000-0000000000c1'::uuid, %L::uuid)$$,
-    (select child_id from public.relaciones_familia
-      where parent_id = '00000000-0000-0000-0000-0000000000b1')
+    current_setting('test.hijo_ajeno')
   ),
   'Solo puedes cancelar por ti o por tus hijos.',
   'Un extraño tampoco puede cancelarle la plaza al hijo de otro'

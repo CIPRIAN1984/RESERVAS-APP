@@ -9,6 +9,9 @@ class PendienteAprobacionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // La misma pantalla para quien espera aprobación y para quien está de
+    // baja: en los dos casos no hay acceso a nada de la academia (17/11/2026).
+    final deBaja = ref.watch(currentProfileProvider).value?.deBaja ?? false;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -17,33 +20,41 @@ class PendienteAprobacionScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.hourglass_top_outlined,
+                Icon(
+                  deBaja ? Icons.block_outlined : Icons.hourglass_top_outlined,
                   size: 56,
                   color: AppColors.warningFg,
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Tu academia está pendiente de aprobación',
+                  deBaja
+                      ? 'Tu cuenta está de baja'
+                      : 'Tu alta está pendiente de aprobación',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'El administrador de la plataforma tiene que revisar y aprobar tu academia '
-                  'antes de que puedas acceder a I+. Te avisaremos en cuanto esté lista.',
+                  deBaja
+                      ? 'Ya no tienes acceso a la academia. Si quieres volver, '
+                            'habla con tu academia para que te reactiven.'
+                      : 'Tu academia tiene que aprobar tu alta antes de que '
+                            'puedas entrar. Cuando lo haga, pulsa «Comprobar de '
+                            'nuevo».',
                   textAlign: TextAlign.center,
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: AppColors.subtle),
                 ),
                 const SizedBox(height: 32),
-                OutlinedButton.icon(
-                  onPressed: () => ref.invalidate(currentProfileProvider),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Comprobar de nuevo'),
-                ),
-                const SizedBox(height: 12),
+                if (!deBaja) ...[
+                  OutlinedButton.icon(
+                    onPressed: () => ref.invalidate(currentProfileProvider),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Comprobar de nuevo'),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 TextButton(
                   onPressed: () => ref.read(authRepositoryProvider).signOut(),
                   child: const Text('Cerrar sesión'),

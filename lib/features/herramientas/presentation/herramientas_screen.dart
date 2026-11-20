@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/auth_state.dart';
 import '../../../shared/widgets/pantalla.dart';
 import '../../horario/presentation/horario_screen.dart';
 import '../../tarifas/presentation/tarifas_screen.dart';
-import '../../tienda/presentation/tienda_screen.dart';
 
 /// Lo que la academia administra y no es el día a día: catálogos y ajustes.
 ///
@@ -17,6 +17,7 @@ class HerramientasScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final esDueno = ref.watch(currentProfileProvider).value?.isDueno ?? false;
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [
@@ -31,23 +32,20 @@ class HerramientasScreen extends ConsumerWidget {
               'tener que volver a crearlas.',
           destino: const HorarioScreen(),
         ),
-        const SizedBox(height: 12),
-        TarjetaAcceso(
-          icono: Icons.card_membership_outlined,
-          titulo: 'Tarifas y planes',
-          descripcion:
-              'Cuotas que pueden contratar tus alumnos: precio, '
-              'periodicidad y sesiones incluidas.',
-          destino: const TarifasScreen(),
-        ),
-        const SizedBox(height: 12),
-        TarjetaAcceso(
-          icono: Icons.storefront_outlined,
-          titulo: 'Tienda y material',
-          descripcion:
-              'Catálogo, pedidos de tus alumnos y préstamos de material.',
-          destino: const TiendaScreen(),
-        ),
+        // Tarifas: solo el Dueño las gestiona.
+        if (esDueno) ...[
+          const SizedBox(height: 12),
+          TarjetaAcceso(
+            icono: Icons.card_membership_outlined,
+            titulo: 'Tarifas y planes',
+            descripcion:
+                'Cuotas que pueden contratar tus alumnos: precio, '
+                'periodicidad y sesiones incluidas.',
+            destino: const TarifasScreen(),
+          ),
+        ],
+        // Tienda: fuera de la entrega de prueba (17/11/2026). Cerrada también
+        // en el servidor; ver FREEZE.md.
       ],
     );
   }
