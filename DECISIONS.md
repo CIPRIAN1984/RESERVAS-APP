@@ -2936,3 +2936,22 @@ rutas propias de la app y nunca pantallas de entrada.
 las llamadas a la API de Stripe) y avisos firmados con el secreto de pruebas. La
 página de pago real de Stripe y el envío real de avisos solo se verifican con una
 clave de pruebas y un punto de entrada público: pendiente de Cipri.
+
+## 2026-11-20 — Cipri decide preparar la integración con Stripe REAL
+
+Cipri confirmó por escrito («Confirmo: usar la clave real de Stripe en las
+pruebas… Prepara la app para integración real, sin 1 euro de prueba»),
+cambiando la regla anterior de «no conectar Stripe real hasta semanas en
+paralelo con MAAT». Es decisión suya y queda registrada.
+
+- Se **prepara** la integración real (procedimiento en `OPERATIONS.md`,
+  «Puesta en marcha con Stripe real»). **Preparar no es desplegar**: aplicar
+  migraciones a producción, desplegar funciones, poner secretos y fusionar #94
+  siguen necesitando su autorización expresa en el momento.
+- La clave real **no está en ningún sitio**: el formulario seguro se denegó
+  dos veces. No se pide por tercera vez; la pone él en Supabase → Edge
+  Functions → Secrets (`STRIPE_SECRET_KEY`), nunca por chat ni en el repositorio.
+- El código nunca se ha ejecutado contra Stripe real (solo `stripe-mock` y
+  avisos firmados). El primer pago real será la primera prueba de verdad: se
+  hace con el interruptor `stripe_charges_enabled` apagado para el resto de
+  alumnos y encendido solo cuando Cipri lo diga.

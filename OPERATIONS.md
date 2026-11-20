@@ -383,6 +383,34 @@ cuota correcta → reserva → profesor confirma asistencia → una clase gastad
 Fallo: tarjeta `4000 0000 0000 0002`. Debe salir en Academia → Cobros → «Pagos con
 problema».
 
+## Puesta en marcha con Stripe real (preparada, NO ejecutada)
+
+Orden obligatorio; cada paso con autorización expresa de Cipri.
+
+1. **Migraciones primero, web después.** Aplicar a producción las migraciones
+   `20261117090000` … `20261117121000` (en orden) y comprobar con pgTAP/huellas
+   (ver «Aplicar migraciones desde Claude»). Fusionar #94 antes publicaría una
+   web que pide funciones que aún no existen.
+2. **Desplegar las funciones** `stripe-checkout-tarifa`, `stripe-comprobar-pago`
+   y `stripe-webhook` (con `verify_jwt = false` solo el webhook).
+3. **Secretos en Supabase** (los pone Cipri): `STRIPE_SECRET_KEY` (clave real,
+   permisos «acceso completo salvo operaciones sensibles»), `APP_URL`
+   (`https://itc2-reservas.vercel.app`), `STRIPE_COBRO_DIRECTO=true` y, tras el
+   paso 4, `STRIPE_WEBHOOK_SECRET`.
+4. **Webhook en Stripe (modo real):** `https://dpcdpcvjcutcqyqcacti.supabase.co/functions/v1/stripe-webhook`
+   con los eventos `checkout.session.completed`,
+   `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
+   `checkout.session.expired`, `payment_intent.payment_failed`, `charge.refunded`.
+5. **Interruptor apagado:** `academias.stripe_charges_enabled = false` hasta el
+   primer pago real controlado. Encenderlo solo con orden de Cipri.
+6. **Primer pago real controlado:** Cipri paga con su tarjeta una tarifa de su
+   propia cuenta. Comprobar: cuota activada una vez, importe correcto, aparece en
+   Stripe, devolución (si la quiere) refleja `charge.refunded`.
+7. **Riesgos conocidos:** el código no se ha probado contra Stripe real;
+   las comisiones de Stripe no se devuelven aunque se reembolse; los alumnos
+   reales de MAAT siguen pagando en MAAT hasta que Cipri decida el cambio.
+8. **Revocar** la clave si se filtra: Stripe → Developers → API keys.
+
 ## Conectar Stripe (cobros reales) — NO antes del piloto en paralelo
 
 El código está preparado y desplegado (ver `FREEZE.md`, "Stripe y Pagos"),
