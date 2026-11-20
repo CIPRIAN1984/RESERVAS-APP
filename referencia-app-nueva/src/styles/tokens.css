@@ -1,0 +1,184 @@
+@import "tailwindcss";
+
+/* Fuentes locales (SIL Open Font License, ver public/fonts) */
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/inter-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/inter-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/inter-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/inter-latin-700-normal.woff2') format('woff2'); }
+
+/*
+  Tokens de diseño. Todos los colores viven aquí.
+  Tema oscuro por defecto; claro con data-theme="light" (Ajustes de la app).
+  En los dos temas "ink" es el color del texto y de los botones principales:
+  blanco con texto negro en oscuro, negro con texto blanco en claro.
+  El amarillo (--accent) solo marca lo seleccionado o "tú".
+*/
+:root,
+:root[data-theme="dark"] {
+  --accent: #F5DF4D;
+  --on-accent: #0A0A0A;
+
+  --page: #0B0B0B;      /* fondo fuera del marco en pantallas grandes */
+  --bg: #121212;        /* pantallas */
+  --surface: #1E1E1E;   /* tarjetas */
+  --surface-2: #2A2A2A; /* elementos dentro de tarjetas, pestañas inactivas */
+  --track: #2C2C2C;
+  --ink: #FFFFFF;
+  --on-ink: #0A0A0A;
+  --ink-2: #D2D2D2;
+  --muted: #8F8F8F;
+  --muted-on-ink: #5A5A5A;
+  --line: #262626;
+  --border: #363636;
+  --off: #4D4D4D;
+  --avatar: #3A3A3A;
+  --neutral-bg: #2A2A2A;
+
+  --ok-bg: #173A22;  --ok-fg: #7EE09A;  --ok-dot: #4CC46E;
+  --warn-bg: #3B2C10; --warn-fg: #F6C66B; --warn-text: #F2B24B;
+  --err-bg: #3D1818;  --err-fg: #FF9A9A;
+
+  --video: #0A0A0A;
+  /* icono activo de la navegación */
+  --nav-active: var(--accent);
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --accent: #F5DF4D;
+  --on-accent: #0A0A0A;
+
+  --page: #EDEDEA;
+  --bg: #FFFFFF;
+  --surface: #F3F3F1;
+  --surface-2: #E7E7E4;
+  --track: #E2E2DE;
+  --ink: #0A0A0A;
+  --on-ink: #FFFFFF;
+  --ink-2: #444444;
+  --muted: #6B6B6B;
+  --muted-on-ink: #C8C8C8;
+  --line: #E6E6E2;
+  --border: #D6D6D2;
+  --off: #B8B8B2;
+  --avatar: #D4D4CF;
+  --neutral-bg: #E6E6E2;
+
+  --ok-bg: #D9F5DD;  --ok-fg: #14602A;  --ok-dot: #1E8E3E;
+  --warn-bg: #FFE9C7; --warn-fg: #6B3A00; --warn-text: #8A4B00;
+  --err-bg: #FBE0E0;  --err-fg: #8E1B1B;
+
+  --video: #1C1C1C;
+  --nav-active: #0A0A0A;
+  color-scheme: light;
+}
+
+/* Marca (rebranding ITACA): iguales en los dos temas. Portada y logotipo. */
+:root {
+  --brand-cream: #F3EADB;
+  --brand-black: #080808;
+  /* Cancelar una reserva: coral con texto blanco (los dos temas) */
+  --coral: #E5503E;
+  --on-coral: #FFFFFF;
+}
+
+@theme inline {
+  --color-brand-cream: var(--brand-cream);
+  --color-brand-black: var(--brand-black);
+  --color-coral: var(--coral);
+  --color-on-coral: var(--on-coral);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-page: var(--page);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-track: var(--track);
+  --color-ink: var(--ink);
+  --color-on-ink: var(--on-ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-muted-on-ink: var(--muted-on-ink);
+  --color-line: var(--line);
+  --color-border: var(--border);
+  --color-off: var(--off);
+  --color-avatar: var(--avatar);
+  --color-neutral: var(--neutral-bg);
+  --color-ok-bg: var(--ok-bg);
+  --color-ok-fg: var(--ok-fg);
+  --color-ok-dot: var(--ok-dot);
+  --color-warn-bg: var(--warn-bg);
+  --color-warn-fg: var(--warn-fg);
+  --color-warn-text: var(--warn-text);
+  --color-err-bg: var(--err-bg);
+  --color-err-fg: var(--err-fg);
+  --color-video: var(--video);
+  --color-nav-active: var(--nav-active);
+  --color-belt-white: #F4F4F2;
+  --color-belt-blue: #2F5FD0;
+  --color-belt-purple: #6B3FA0;
+  --color-belt-brown: #6B4226;
+  --color-belt-black: #0A0A0A;
+
+  /* Cifras y titulares en la misma letra que el texto, en negrita */
+  --font-display: Inter, system-ui, -apple-system, sans-serif;
+  --font-sans: Inter, system-ui, -apple-system, sans-serif;
+  /* Etiquetas pequeñas (días, metadatos) */
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+html, body { margin: 0; background: var(--page); color: var(--ink); }
+h1, h2, h3 { letter-spacing: -0.02em; }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+input { font: inherit; }
+:focus-visible { outline: 2.5px solid var(--ink); outline-offset: 2px; }
+
+.pt-safe { padding-top: max(env(safe-area-inset-top), 0px); }
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Pantalla de acceso tras la portada: aparece desde el negro */
+@keyframes itaca-reveal {
+  from { opacity: 0; transform: scale(0.97); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.itaca-reveal { animation: itaca-reveal 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .itaca-reveal { animation: none; }
+}
+
+/* Reservar: el botón pasa a amarillo con "¡A entrenar!" */
+@keyframes itaca-train {
+  0% { transform: scale(0.96); }
+  45% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+.itaca-train { animation: itaca-train 420ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+@keyframes itaca-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.itaca-fade-in { animation: itaca-fade-in 320ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .itaca-train, .itaca-fade-in { animation: none; }
+}
+
+/*
+  Hover amarillo (solo con ratón) para botones que no usan <Btn>:
+  .hy  → fondo amarillo y texto negro (pastillas, pestañas, días, iconos)
+  .hy-text → texto amarillo (filas de menú y listas)
+  Lo seleccionado (aria-pressed/checked/selected) conserva su aspecto.
+*/
+.hy, .hy-text { transition: background-color 200ms, color 200ms, border-color 200ms; }
+@media (hover: hover) {
+  .hy:not(:disabled):not([aria-pressed="true"]):not([aria-checked="true"]):not([aria-selected="true"]):hover {
+    background-color: var(--accent);
+    color: var(--on-accent);
+    border-color: var(--accent);
+  }
+  .hy-text:not(:disabled):hover,
+  .hy-text:not(:disabled):hover * { color: var(--accent); }
+}

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pasar lista (profesor)</title>
+<link rel="stylesheet" href="base.css">
+</head>
+<body>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; color: #0A0A0A; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+<div style="flex: 1; min-height: 0; box-sizing: border-box; padding: 60px 20px 0; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h1 style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 44px; line-height: 1; text-transform: uppercase; letter-spacing: 0.5px">Pasar lista</h1>
+<p style="margin: 0; font-size: 14px; color: #6B6B6B">BJJ Gi · Fundamentos · 19:00</p>
+</div>
+<div style="display: flex; align-items: baseline; gap: 4px">
+<span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 40px; line-height: 1">4</span>
+<span style="font-size: 14px; color: #6B6B6B">de 7</span>
+</div>
+</div>
+<div role="status" style="background: #FFE9C7; color: #6B3A00; border-radius: 14px; padding: 10px 14px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0M3 3l18 18"></path></svg>
+Sin conexión · 3 cambios se enviarán al volver la red
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<label for="buscar" style="font-size: 12px; font-weight: 600; color: #6B6B6B">Buscar o añadir alumno</label>
+<input id="buscar" type="search" placeholder="Nombre" style="height: 46px; box-sizing: border-box; border-radius: 14px; border: 1.5px solid #D6D6D2; padding: 0 14px; font-size: 15px; background: #FFFFFF; color: #0A0A0A">
+</div>
+<div style="display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #E8E8E4">
+<span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 999px; background: #F4F4F2; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center">AR</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 600">Ana Ruiz</span>
+<span style="font-size: 12px; color: #6B6B6B">Blanco · 3 grados</span>
+</div>
+<button aria-label="Ana Ruiz, presente" aria-pressed="true" style="width: 46px; height: 46px; border-radius: 999px; border: 2px solid #0A0A0A; background: #0A0A0A; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+</button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #E8E8E4">
+<span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 999px; background: #F4F4F2; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center">CV</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 600">Carlos Vega</span>
+<span style="font-size: 12px; color: #6B6B6B">Azul · 1 grado</span>
+</div>
+<span style="background: #FBE0E0; color: #8E1B1B; font-size: 11px; font-weight: 700; padding: 5px 9px; border-radius: 999px">Cuota pendiente</span>
+<button aria-label="Carlos Vega, presente" aria-pressed="true" style="width: 46px; height: 46px; border-radius: 999px; border: 2px solid #0A0A0A; background: #0A0A0A; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+</button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #E8E8E4">
+<span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 999px; background: #F4F4F2; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center">ED</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 600">Elena Díaz</span>
+<span style="font-size: 12px; color: #6B6B6B">Azul · 2 grados</span>
+</div>
+<button aria-label="Elena Díaz, presente" aria-pressed="true" style="width: 46px; height: 46px; border-radius: 999px; border: 2px solid #0A0A0A; background: #0A0A0A; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+</button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #E8E8E4">
+<span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 999px; background: #F4F4F2; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center">JS</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 600">Javier Soto</span>
+<span style="font-size: 12px; color: #6B6B6B">Morado</span>
+</div>
+<button aria-label="Javier Soto, sin marcar" aria-pressed="false" style="width: 46px; height: 46px; border-radius: 999px; border: 2px solid #B8B8B2; background: #FFFFFF; color: #B8B8B2; display: flex; align-items: center; justify-content: center">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+</button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #E8E8E4">
+<span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 999px; background: #F4F4F2; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center">LM</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 600">Lucía Marín</span>
+<span style="font-size: 12px; color: #6B6B6B">Blanco</span>
+</div>
+<span style="background: var(--accent); color: #0A0A0A; font-size: 11px; font-weight: 700; padding: 5px 9px; border-radius: 999px">Clase de prueba</span>
+<button aria-label="Lucía Marín, presente" aria-pressed="true" style="width: 46px; height: 46px; border-radius: 999px; border: 2px solid #0A0A0A; background: #0A0A0A; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+</button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #E8E8E4">
+<span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 999px; background: #F4F4F2; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center">MG</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 600">Marcos Gil</span>
+<span style="font-size: 12px; color: #6B6B6B">Blanco · 1 grado</span>
+</div>
+<span style="background: #E6E6E2; color: #4A4A4A; font-size: 11px; font-weight: 700; padding: 5px 9px; border-radius: 999px">Sin reserva</span>
+<button aria-label="Marcos Gil, sin marcar" aria-pressed="false" style="width: 46px; height: 46px; border-radius: 999px; border: 2px solid #B8B8B2; background: #FFFFFF; color: #B8B8B2; display: flex; align-items: center; justify-content: center">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+</button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 9px 0">
+<span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 999px; background: #F4F4F2; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center">PN</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 600">Paula Navarro</span>
+<span style="font-size: 12px; color: #6B6B6B">Azul · 4 grados · lista para graduar</span>
+</div>
+<button aria-label="Paula Navarro, sin marcar" aria-pressed="false" style="width: 46px; height: 46px; border-radius: 999px; border: 2px solid #B8B8B2; background: #FFFFFF; color: #B8B8B2; display: flex; align-items: center; justify-content: center">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+</button>
+</div>
+</div>
+</div>
+<nav aria-label="Navegación del personal" style="height: 84px; box-sizing: border-box; padding: 8px 8px 22px; border-top: 1px solid #E8E8E4; display: flex; background: #FFFFFF">
+<button aria-current="page" style="flex: 1; border: none; background: transparent; color: #0A0A0A; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 700">
+<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>
+Hoy
+</button>
+<button style="flex: 1; border: none; background: transparent; color: #6B6B6B; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500">
+<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c2.5.6 4 2.3 4 5.2"></path></svg>
+Alumnos
+</button>
+<button style="flex: 1; border: none; background: transparent; color: #6B6B6B; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500">
+<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+Horario
+</button>
+<button style="flex: 1; border: none; background: transparent; color: #6B6B6B; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500">
+<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="3"></rect><path d="M3 10h18M7 15h4"></path></svg>
+Cobros
+</button>
+<button style="flex: 1; border: none; background: transparent; color: #6B6B6B; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500">
+<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg>
+Más
+</button>
+</nav>
+</div>
+</body>
+</html>
