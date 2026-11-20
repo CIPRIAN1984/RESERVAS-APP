@@ -1,8 +1,12 @@
 {
+    "id": "/",
     "name": "I+",
     "short_name": "I+",
-    "start_url": ".",
+    "start_url": "/",
+    "scope": "/",
     "display": "standalone",
+    "lang": "es",
+    "dir": "ltr",
     "background_color": "#FFFFFF",
     "theme_color": "#FFFFFF",
     "description": "Reservas y gestión para tu academia de artes marciales.",
