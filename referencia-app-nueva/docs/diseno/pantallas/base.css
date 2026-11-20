@@ -1,0 +1,11 @@
+:root{--accent:#FFE14D}
+html,body{margin:0}
+body{background:#E9E9E6;display:flex;justify-content:center;min-height:100vh}
+button{font:inherit;cursor:pointer}
+input{font:inherit}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:700;font-display:swap;src:url('fuentes/barlow-condensed-latin-700-normal.woff2') format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:800;font-display:swap;src:url('fuentes/barlow-condensed-latin-800-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('fuentes/inter-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('fuentes/inter-latin-500-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('fuentes/inter-latin-600-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('fuentes/inter-latin-700-normal.woff2') format('woff2')}
