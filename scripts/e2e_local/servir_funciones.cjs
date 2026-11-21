@@ -6,7 +6,7 @@
 const http = require("http");
 const { spawn } = require("child_process");
 
-const FUNCIONES = ["stripe-checkout-tarifa", "stripe-comprobar-pago", "stripe-webhook", "stripe-create-tarifa-subscription", "stripe-create-tienda-payment"];
+const FUNCIONES = ["stripe-checkout-tarifa", "stripe-comprobar-pago", "stripe-webhook", "stripe-create-tarifa-subscription", "stripe-cancel-tarifa-subscription", "stripe-cancelar-suscripcion", "stripe-create-tienda-payment"];
 const PUERTO = Number(process.env.PUERTO_FUNCIONES || 54399);
 const puertos = {};
 FUNCIONES.forEach((f, i) => {

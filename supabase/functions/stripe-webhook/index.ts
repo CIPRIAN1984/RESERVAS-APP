@@ -80,16 +80,27 @@ Deno.serve(async (req) => {
       case "checkout.session.completed":
       case "checkout.session.async_payment_succeeded": {
         const session = event.data.object as Stripe.Checkout.Session;
-        if (session.mode !== "payment" || !session.metadata?.pago_id) break;
+        if (!session.metadata?.pago_id) break;
         // Pagos que tardan (p. ej. domiciliación): «completed» llega con el
         // cobro todavía pendiente; se activa con «async_payment_succeeded».
         if (session.payment_status !== "paid") break;
-        await llamarBd(admin, "confirmar_pago_stripe", {
-          p_session_id: session.id,
-          p_payment_intent: idDe(session.payment_intent),
-          p_importe_centimos: session.amount_total ?? 0,
-          p_moneda: session.currency ?? "",
-        });
+        if (session.mode === "subscription") {
+          // Primer cobro de una tarifa mensual: la cuota queda activa mientras
+          // Stripe siga cobrando.
+          await llamarBd(admin, "confirmar_suscripcion_stripe", {
+            p_session_id: session.id,
+            p_subscription_id: idDe(session.subscription),
+            p_importe_centimos: session.amount_total ?? 0,
+            p_moneda: session.currency ?? "",
+          });
+        } else if (session.mode === "payment") {
+          await llamarBd(admin, "confirmar_pago_stripe", {
+            p_session_id: session.id,
+            p_payment_intent: idDe(session.payment_intent),
+            p_importe_centimos: session.amount_total ?? 0,
+            p_moneda: session.currency ?? "",
+          });
+        }
         break;
       }
       case "checkout.session.async_payment_failed": {
@@ -200,44 +211,28 @@ Deno.serve(async (req) => {
         break;
       }
       case "customer.subscription.updated": {
+        // Lo que diga Stripe (cobrando, impagada…) se refleja tal cual; los
+        // reintentos y avisos los lleva Stripe. Una cancelación da de baja.
         const subscription = event.data.object as Stripe.Subscription;
-        const paymentStatus = subscription.status; // active | past_due | canceled | unpaid | ...
-        const estado = paymentStatus === "active"
-          ? "activa"
-          : paymentStatus === "canceled"
-          ? "cancelada"
-          : undefined;
-        let updateQuery = admin
-          .from("suscripciones")
-          .update({
-            payment_status:
-              ["active", "past_due", "canceled", "unpaid"].includes(
-                  paymentStatus,
-                )
-                ? paymentStatus
-                : "unpaid",
-            ...(estado ? { estado } : {}),
-            ...(paymentStatus === "canceled"
-              ? { fecha_fin: new Date().toISOString() }
-              : {}),
-          })
-          .eq("referencia_externa", subscription.id);
-        if (paymentStatus !== "canceled") {
-          updateQuery = updateQuery.in("estado", ["pendiente_pago", "activa"]);
+        if (subscription.status === "canceled") {
+          await llamarBd(admin, "suscripcion_cancelada_en_stripe", {
+            p_subscription_id: subscription.id,
+          });
+        } else {
+          await llamarBd(admin, "reflejar_estado_suscripcion_stripe", {
+            p_subscription_id: subscription.id,
+            p_estado_stripe: subscription.status,
+          });
         }
-        await updateQuery;
         break;
       }
       case "customer.subscription.deleted": {
+        // Cancelada en Stripe (por el Dueño o tras agotar reintentos): el
+        // alumno pasa a baja en la app. Si ya la cerró la propia app, no hace nada.
         const subscription = event.data.object as Stripe.Subscription;
-        await admin
-          .from("suscripciones")
-          .update({
-            estado: "cancelada",
-            payment_status: "canceled",
-            fecha_fin: new Date().toISOString(),
-          })
-          .eq("referencia_externa", subscription.id);
+        await llamarBd(admin, "suscripcion_cancelada_en_stripe", {
+          p_subscription_id: subscription.id,
+        });
         break;
       }
       default:

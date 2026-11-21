@@ -51,7 +51,6 @@ class _TarifasAlumnoView extends ConsumerStatefulWidget {
 }
 
 class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
-  bool _cancelando = false;
   String? _pagandoId;
   String? _errorPago;
 
@@ -88,26 +87,6 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
       }
     } finally {
       if (mounted) setState(() => _pagandoId = null);
-    }
-  }
-
-  Future<void> _cancelar(String suscripcionId) async {
-    setState(() => _cancelando = true);
-    try {
-      await ref
-          .read(tarifasRepositoryProvider)
-          .cancelarSuscripcion(suscripcionId);
-      ref.invalidate(suscripcionActivaProvider(widget.alumnoId));
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se ha podido cancelar la suscripción.'),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _cancelando = false);
     }
   }
 
@@ -215,24 +194,16 @@ class _TarifasAlumnoViewState extends ConsumerState<_TarifasAlumnoView> {
                         ),
                       ),
                     ] else ...[
+                      // Cobro automático con tarjeta: solo el Dueño da de baja
+                      // (decisión de Cipri, 21/11/2026). El alumno no cancela.
                       const SizedBox(height: 8),
                       _SaldoClasesTexto(alumnoId: widget.alumnoId),
-                      const SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: OutlinedButton(
-                          onPressed: _cancelando
-                              ? null
-                              : () => _cancelar(suscripcion.id),
-                          child: _cancelando
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text('Cancelar suscripción'),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Se te cobra automáticamente cada mes con tarjeta. '
+                        'Para darte de baja, habla con tu academia.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: context.paleta.subtle,
                         ),
                       ),
                     ],

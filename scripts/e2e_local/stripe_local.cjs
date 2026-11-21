@@ -91,6 +91,20 @@ const sesionPagada = (id, pagoId, centimos, pi, extra = {}) => ({
   ...extra,
 });
 
+// Primer cobro de una tarifa MENSUAL: Checkout en modo suscripción.
+const sesionSuscripcion = (id, pagoId, centimos, subId, extra = {}) => ({
+  id,
+  object: "checkout.session",
+  mode: "subscription",
+  payment_status: "paid",
+  status: "complete",
+  subscription: subId,
+  amount_total: centimos,
+  currency: "eur",
+  metadata: { pago_id: pagoId },
+  ...extra,
+});
+
 // stripe-mock devuelve siempre el mismo id de sesión; para poder abrir varios
 // pagos se renombra el anterior (un id único por pago, como hace Stripe).
 function renombrarSesiones() {
@@ -153,7 +167,7 @@ function renombrarSesiones() {
   const p2 = await pagar(tAlumno2, { tarifa_id: TARIFA.mensual });
   renombrarSesiones();
   const ses2 = sql(`select checkout_session_id from public.pagos_stripe where id='${p2.cuerpo.pago_id}'`);
-  const w2 = await webhook(evento("checkout.session.completed", sesionPagada(ses2, p2.cuerpo.pago_id, 100, "pi_local_2")));
+  const w2 = await webhook(evento("checkout.session.completed", sesionSuscripcion(ses2, p2.cuerpo.pago_id, 100, "sub_local_2")));
   comprueba("Aviso con 1 € en una cuota de 50 €: 200 pero NO se activa", w2.estado === 200, w2.texto);
   comprueba(
     "Queda «revisar» y sin cuota",
@@ -175,7 +189,7 @@ function renombrarSesiones() {
     sql(`select estado||'/'||intentos_fallidos||'/'||error from public.pagos_stripe where id='${p3.cuerpo.pago_id}'`) ===
       "creado/1/Tu tarjeta ha sido rechazada.",
   );
-  await webhook(evento("checkout.session.completed", sesionPagada(ses3, p3.cuerpo.pago_id, 5000, "pi_local_3")));
+  await webhook(evento("checkout.session.completed", sesionSuscripcion(ses3, p3.cuerpo.pago_id, 5000, "sub_local_3")));
   comprueba(
     "El reintento que sale bien activa la cuota del HIJO",
     sql(`select count(*) from public.suscripciones where alumno_id='${hijo}' and estado='activa'`) === "1",
@@ -221,8 +235,51 @@ function renombrarSesiones() {
       sql(`select estado from public.pagos_stripe where id='${pagoId1}'`) === "reembolsado",
   );
 
+  console.log("── Cobro mensual automático (suscripción) ──");
+  const tDueno = await entrar("dueno@prueba.itaca.test");
+  const idHijo = hijo;
+  comprueba(
+    "El primer cobro mensual (aviso de suscripción) activó la cuota del hijo, sin fecha de fin",
+    sql(`select proveedor_pago||'/'||referencia_externa||'/'||estado||'/'||payment_status||'/'||coalesce(fecha_fin::text,'sin fin') from public.suscripciones where alumno_id='${idHijo}'`) ===
+      "stripe/sub_local_3/activa/active/sin fin",
+    sql(`select proveedor_pago||'/'||referencia_externa||'/'||estado||'/'||payment_status||'/'||coalesce(fecha_fin::text,'sin fin') from public.suscripciones where alumno_id='${idHijo}'`),
+  );
+  await webhook(evento("customer.subscription.updated", { id: "sub_local_3", object: "subscription", status: "past_due" }));
+  comprueba(
+    "Stripe dice «impagada» (tras sus reintentos): la cuota refleja past_due",
+    sql(`select payment_status from public.suscripciones where referencia_externa='sub_local_3'`) === "past_due",
+  );
+  await webhook(evento("customer.subscription.updated", { id: "sub_local_3", object: "subscription", status: "active" }));
+  comprueba(
+    "Stripe vuelve a cobrar: la cuota vuelve a active",
+    sql(`select payment_status from public.suscripciones where referencia_externa='sub_local_3'`) === "active",
+  );
+
+  // Baja desde la app → se corta en Stripe. Solo el Dueño.
+  const llamar = (token, f, cuerpo) =>
+    fetch(`${FUNCIONES_URL || URL_API + "/functions/v1"}/${f}`, {
+      method: "POST",
+      headers: { apikey: ANON, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(cuerpo),
+    }).then(async (r) => ({ estado: r.status, cuerpo: await r.json().catch(() => ({})) }));
+  const porAlumno = await llamar(tTutor, "stripe-cancelar-suscripcion", { alumno_id: idHijo });
+  comprueba("Un alumno/tutor NO puede cancelar el cobro (403)", porAlumno.estado === 403, JSON.stringify(porAlumno));
+  const porDueno = await llamar(tDueno, "stripe-cancelar-suscripcion", { alumno_id: idHijo });
+  comprueba("El Dueño sí: se corta en Stripe (200, 1 cancelada)", porDueno.estado === 200 && porDueno.cuerpo.cancelled === 1, JSON.stringify(porDueno));
+  const sinCobro = await llamar(tDueno, "stripe-cancelar-suscripcion", { alumno_id: idAlumno1 });
+  comprueba("Un alumno sin cobro automático: 200 y nada que cancelar", sinCobro.estado === 200 && sinCobro.cuerpo.cancelled === 0, JSON.stringify(sinCobro));
+
+  // Baja desde Stripe → baja en la app.
+  const w9 = await webhook(evento("customer.subscription.deleted", { id: "sub_local_3", object: "subscription", status: "canceled" }));
+  comprueba("Stripe avisa de la cancelación (200)", w9.estado === 200, w9.texto);
+  comprueba(
+    "El alumno pasa a baja en la app y la cuota queda cancelada",
+    sql(`select estado from public.profiles where id='${idHijo}'`) === "baja" &&
+      sql(`select estado from public.suscripciones where referencia_externa='sub_local_3'`) === "cancelada",
+  );
+
   console.log("── Funciones retiradas ──");
-  for (const f of ["stripe-create-tarifa-subscription", "stripe-create-tienda-payment"]) {
+  for (const f of ["stripe-create-tarifa-subscription", "stripe-cancel-tarifa-subscription", "stripe-create-tienda-payment"]) {
     const r = await fetch(`${FUNCIONES_URL || URL_API + "/functions/v1"}/${f}`, {
       method: "POST",
       headers: { apikey: ANON, Authorization: `Bearer ${tAlumno1}`, "Content-Type": "application/json" },

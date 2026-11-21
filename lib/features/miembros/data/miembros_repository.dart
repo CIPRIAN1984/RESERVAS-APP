@@ -118,8 +118,44 @@ class MiembrosRepository {
   /// futuras (ascendiendo a quien esperaba plaza) y cierra su cuota con
   /// fecha de hoy. Y solo se lo permite al Dueño — regla de Cipri: «el
   /// alumno nunca se da de baja solo».
+  ///
+  /// Si cobra con tarjeta de forma automática (tarifa mensual), **primero se
+  /// corta el cobro en Stripe** y solo después se da de baja: si Stripe falla,
+  /// no se da de baja (decisión de Cipri, 21/11/2026: la baja vale en los dos
+  /// sentidos). Si Stripe avisa antes de que acabe este paso y la baja ya está
+  /// hecha, no es un error.
   Future<void> darDeBaja(String alumnoId) async {
-    await _client.rpc('dar_de_baja_alumno', params: {'p_alumno_id': alumnoId});
+    final cobrosAutomaticos = await _client
+        .from('suscripciones')
+        .select('id')
+        .eq('alumno_id', alumnoId)
+        .eq('proveedor_pago', 'stripe')
+        .like('referencia_externa', r'sub\_%')
+        .inFilter('estado', [
+          'activa',
+          'pendiente_pago',
+          'pausada',
+          'programada',
+          'prueba',
+        ]);
+    if ((cobrosAutomaticos as List).isNotEmpty) {
+      final res = await _client.functions.invoke(
+        'stripe-cancelar-suscripcion',
+        body: {'alumno_id': alumnoId},
+      );
+      final data = res.data;
+      if (data is Map && data['error'] != null) {
+        throw Exception(data['error'].toString());
+      }
+    }
+    try {
+      await _client.rpc(
+        'dar_de_baja_alumno',
+        params: {'p_alumno_id': alumnoId},
+      );
+    } catch (e) {
+      if (!e.toString().contains('ya estaba dado de baja')) rethrow;
+    }
   }
 
   /// Vuelve a activar a un alumno que se había ido. Recupera su cinturón y
