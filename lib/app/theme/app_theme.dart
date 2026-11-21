@@ -97,6 +97,7 @@ class AppTheme {
         elevation: 0,
         height: 68,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        labelPadding: EdgeInsets.zero,
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
             size: 22,

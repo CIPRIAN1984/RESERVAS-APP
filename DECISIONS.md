@@ -3017,3 +3017,30 @@ Cipri decidió **dejarla de momento**, igual que la solicitud de tarifa. No hay
 código. Si se retoma: el riesgo principal es que una lista se guarde dos veces
 o pise otra, y abrir la app sin red exige un *service worker* propio (hoy la app
 instalada necesita conexión para cargar; ver la entrada de la PWA).
+
+## 2026-11-20 — Barra inferior del modo Gestor: «Herramientas» en una línea
+
+Cipri vio en su móvil (412 px) que «Herramientas» se partía en dos líneas
+(«Herramienta» / «s»). La barra del Gestor tiene seis sitios y no hay ancho
+para más. Arreglo: el botón de cambio de modo pasa de 76 a 64 px, las
+etiquetas de la barra no crecen con el tamaño de letra del móvil y se quita
+el relleno lateral de la etiqueta. **Límite:** en móviles de 360 px de ancho
+«Herramientas» no cabía. **Decisión de Cipri (21/11/2026): la pestaña de la
+barra se llama «Gestión»**; la pantalla sigue titulándose «Herramientas».
+
+## 2026-11-21 — Cobro recurrente con tarjeta: regla de producto de Cipri (SIN IMPLEMENTAR)
+
+Cipri describe cómo debe ser: **en mano** = manual, misma lógica que con tarjeta;
+**con tarjeta** = la persona introduce su tarjeta una vez y Stripe le cobra
+**automáticamente cada periodo hasta que se da de baja, y solo Cipri puede darla
+de baja**. Esto sustituye el «por defecto: sin recurrente» del 17/11.
+
+Estado real del código a 21/11 (dicho a Cipri, no es así todavía):
+- El cobro con tarjeta es **un pago por periodo**; renovar exige volver a pagar.
+- Las funciones de suscripción recurrente antiguas se retiraron (410).
+- Hay un botón «Cancelar suscripción» para el alumno en Tarifas (cuota con
+  tarjeta) que choca con «solo el Dueño da de baja» y apunta a la función antigua.
+- Pendiente de decidir con Cipri antes de programar: qué tarifas son recurrentes
+  (mensuales sí; bono trimestral y día suelto, según su orden del 17/11, no),
+  qué pasa si un cobro falla (reintentos, aviso al Dueño, cuándo se corta el
+  acceso) y que la baja del Dueño pare el cobro en Stripe a final del periodo.
