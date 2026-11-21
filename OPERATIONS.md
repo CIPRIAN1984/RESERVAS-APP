@@ -373,9 +373,29 @@ Variables de las funciones (Supabase → Edge Functions → Secrets):
 Punto de entrada (Stripe → Developers → Webhooks): `…/functions/v1/stripe-webhook`
 con los eventos `checkout.session.completed`,
 `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
-`checkout.session.expired`, `payment_intent.payment_failed`, `charge.refunded` y
-`account.updated`. El webhook va con `verify_jwt = false` (Stripe no manda
+`checkout.session.expired`, `payment_intent.payment_failed`, `charge.refunded`,
+`account.updated` y, para el cobro mensual automático,
+`customer.subscription.updated`, `customer.subscription.deleted` e
+`invoice.payment_succeeded`. El webhook va con `verify_jwt = false` (Stripe no manda
 sesión; la autenticidad la da la firma).
+
+**Cobro mensual automático (21/11/2026).** Las tarifas **mensuales** se cobran
+solas cada mes (suscripción de Stripe); bono trimestral y día suelto son un
+pago. **Stripe lleva los reintentos y los avisos de fallo; la app solo refleja
+lo que diga.** Hay que configurarlo en el panel de Stripe (modo prueba primero):
+Configuración → Facturación → **Suscripciones y correos electrónicos**:
+- Activar los reintentos automáticos de cobros fallidos («Smart Retries»).
+- Activar el correo al cliente cuando falla un cobro.
+- Para cuando se agoten los reintentos, elegir **«Cancelar la suscripción»**
+  (no «dejarla impagada»): esa cancelación es la que da de baja al alumno en la app.
+
+La baja funciona en los dos sentidos: dar de baja en la app (solo el Dueño)
+corta la suscripción en Stripe en el acto —antes de dar de baja; si Stripe
+falla, no se da de baja— y no devuelve el mes pagado; cancelar en Stripe
+(o que Stripe la cancele tras los reintentos) da de baja al alumno en la app.
+**Orden de puesta en marcha:** migración `20261121100000`, luego desplegar
+`stripe-webhook`, `stripe-checkout-tarifa`, `stripe-comprobar-pago` y
+`stripe-cancelar-suscripcion`, y por último la web.
 
 Recorrido: aprobar alumna → alumna pulsa **Pagar con tarjeta** → tarjeta
 `4242 4242 4242 4242` (cualquier fecha futura y CVC) → vuelve a «Pago recibido» →

@@ -54,15 +54,21 @@ Deno.serve(async (req) => {
     );
 
     if (sesion.payment_status === "paid") {
-      const pi = typeof sesion.payment_intent === "string"
-        ? sesion.payment_intent
-        : sesion.payment_intent?.id ?? null;
-      const { error } = await admin.rpc("confirmar_pago_stripe", {
-        p_session_id: sesion.id,
-        p_payment_intent: pi,
-        p_importe_centimos: sesion.amount_total ?? 0,
-        p_moneda: sesion.currency ?? "",
-      });
+      const idDe = (x: unknown) =>
+        typeof x === "string" ? x : (x as { id?: string } | null)?.id ?? null;
+      const { error } = sesion.mode === "subscription"
+        ? await admin.rpc("confirmar_suscripcion_stripe", {
+          p_session_id: sesion.id,
+          p_subscription_id: idDe(sesion.subscription),
+          p_importe_centimos: sesion.amount_total ?? 0,
+          p_moneda: sesion.currency ?? "",
+        })
+        : await admin.rpc("confirmar_pago_stripe", {
+          p_session_id: sesion.id,
+          p_payment_intent: idDe(sesion.payment_intent),
+          p_importe_centimos: sesion.amount_total ?? 0,
+          p_moneda: sesion.currency ?? "",
+        });
       if (error) throw new Error(error.message);
     } else if (sesion.status === "expired") {
       await admin.rpc("cerrar_pago_stripe", {

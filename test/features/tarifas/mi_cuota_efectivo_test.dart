@@ -80,14 +80,16 @@ void main() {
     );
   });
 
-  testWidgets('cuota domiciliada con Stripe: sí se puede cancelar', (
+  testWidgets('cobro automático con tarjeta: el alumno NO puede cancelarlo', (
     tester,
   ) async {
     await tester.pumpWidget(_app(_suscripcion('stripe')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Cancelar suscripción'), findsOneWidget);
-    expect(find.textContaining('Pagada en la academia'), findsNothing);
+    // Decisión de Cipri (21/11/2026): solo el Dueño da de baja.
+    expect(find.text('Cancelar suscripción'), findsNothing);
+    expect(find.textContaining('habla con tu academia'), findsOneWidget);
+    expect(find.textContaining('cada mes con tarjeta'), findsOneWidget);
   });
 
   test('lee el proveedor de pago de la fila', () {

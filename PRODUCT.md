@@ -82,10 +82,13 @@ solo puede verlos el propio alumno, su tutor, y el equipo de su academia.
   «pendiente de aprobación» y solo ve la pantalla de espera. El Dueño la aprueba
   o rechaza desde Miembros («N altas pendientes»). El enlace de registro no da
   acceso por sí mismo.
-- Cuota: el Dueño cobra **en mano** desde la ficha, o la alumna **paga con
-  tarjeta** desde Tarifas («Pagar con tarjeta» / «Renovar con tarjeta»). Es un
-  pago único por periodo, no una suscripción; los dos caminos dan exactamente
-  los mismos derechos.
+- Cuota: el Dueño cobra **en mano** desde la ficha (manual), o la alumna **paga
+  con tarjeta** desde Tarifas. Con tarjeta, las tarifas **mensuales se cobran
+  solas cada mes** hasta que el Dueño da de baja; el bono trimestral y el día
+  suelto son un único pago. Los dos caminos dan los mismos derechos. Stripe lleva
+  los reintentos y avisos de fallo.
+- **Solo el Dueño da de baja.** El alumno no tiene botón de cancelar. Dar de baja
+  en la app corta el cobro en Stripe; cancelar en Stripe da de baja en la app.
 - Si un pago con tarjeta falla o caduca, el Dueño lo ve en Academia → Cobros →
   «Pagos con problema».
 - «Sin cuota» y «Sin clases» son avisos, no deudas.

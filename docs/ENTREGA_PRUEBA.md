@@ -122,7 +122,7 @@ el secreto de pruebas, que el webhook comprueba igual que los de Stripe. Esto
 | Mismas condiciones que en mano; sin derechos duplicados | ✅ | misma función `_alta_cuota` |
 | Detectar un fallo de cobro sin que avise la alumna | ✅ | «Pagos con problema» en Academia → Cobros (test de pantalla) |
 | Navegación al volver de Stripe | ✅ **era un fallo real, arreglado** | `destino_tras_cargar_test.dart` (en rojo sin el arreglo) + navegador |
-| Cobro recurrente | 🙋 no acordado → no existe | |
+| Cobro recurrente (tarifas mensuales) | ✅ simulado (21/11/2026, decisión de Cipri) | `cobro_recurrente_test.sql` (25) + `stripe_local.cjs`: cobro, impago, baja en los dos sentidos, solo el Dueño; **sin probar con Stripe real** |
 | **Pago con la página real de Stripe y avisos reales** | 🙋 **bloqueado** | necesita clave `sk_test_…` y un punto de entrada público para el webhook |
 
 ## Bloque 4 — Preparar la prueba

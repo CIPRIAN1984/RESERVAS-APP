@@ -3044,3 +3044,34 @@ Estado real del código a 21/11 (dicho a Cipri, no es así todavía):
   (mensuales sí; bono trimestral y día suelto, según su orden del 17/11, no),
   qué pasa si un cobro falla (reintentos, aviso al Dueño, cuándo se corta el
   acceso) y que la baja del Dueño pare el cobro en Stripe a final del periodo.
+
+## 2026-11-21 — Cobro recurrente con tarjeta: decisión cerrada de Cipri
+
+Respuestas de Cipri a las tres preguntas:
+1. **Tarifas mensuales: se cobran solas cada mes con tarjeta.** Bono trimestral y
+   día suelto, no (siguen siendo un pago).
+2. **Stripe se encarga de reintentos, avisos de fallo y cortes** — no se
+   programa lógica propia de reintentos. La app solo refleja lo que Stripe diga.
+3. **La baja funciona en los dos sentidos** (como en MAAT): si el Dueño da de
+   baja en la app, se cancela la suscripción en Stripe; si se cancela en Stripe,
+   el alumno pasa a baja en la app. **Solo el Dueño da de baja: el alumno no
+   tiene botón de cancelar.**
+- Dar de baja en la app corta el cobro **en el acto** (no se cobra a alguien de
+  baja) y no devuelve el mes ya pagado.
+- En efectivo sigue siendo manual, con los mismos derechos.
+
+### Cómo quedó hecho (21/11/2026)
+- Tarifas **mensuales** → Checkout en modo suscripción; el resto, pago único.
+  Una suscripción de Stripe = **una fila** de `suscripciones` (`sub_…`, sin fecha
+  de fin); `payment_status` copia lo que diga Stripe. Sin lógica propia de
+  reintentos ni avisos.
+- Baja en la app → `stripe-cancelar-suscripcion` (solo Dueño/Administrador) corta
+  la suscripción **antes** de dar de baja; si Stripe falla no se da de baja.
+- Cancelación en Stripe (`customer.subscription.deleted`/`updated` cancelada) →
+  `suscripcion_cancelada_en_stripe`: cierra la cuota y da de baja con la misma
+  función que usa el Dueño. Si la cuota ya estaba cerrada, no hace nada.
+- Retiradas (410): `stripe-cancel-tarifa-subscription` (dejaba cancelar al
+  alumno) y `stripe-create-tarifa-subscription`.
+- **Sin verificar con Stripe real:** solo `stripe-mock` y avisos firmados.
+- Las devoluciones de cobros de suscripción no cancelan la cuota solas (no hay
+  pago único asociado): se gestionan en Stripe.

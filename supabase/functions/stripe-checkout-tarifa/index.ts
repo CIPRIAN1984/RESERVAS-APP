@@ -1,6 +1,8 @@
-// Pago único de una cuota con tarjeta, con la página de pago de Stripe
-// (Checkout). Un pago = un periodo de la tarifa (un mes, un bono, un día
-// suelto): NO crea ninguna suscripción recurrente.
+// Pago de una cuota con tarjeta, con la página de pago de Stripe (Checkout).
+//   · Tarifa MENSUAL  → suscripción: Stripe cobra solo cada mes hasta que el
+//     Dueño dé de baja (decisión de Cipri, 21/11/2026). Stripe lleva los
+//     reintentos y los avisos de fallo.
+//   · Bono trimestral, anual o día suelto → un único pago por periodo.
 //
 // Esta función solo PREPARA el pago. La cuota la activa el webhook cuando
 // Stripe confirma el cobro (`stripe-webhook`), nunca porque el navegador
@@ -97,9 +99,19 @@ Deno.serve(async (req) => {
       }
     }
 
+    // La tarifa decide si se cobra sola cada mes o es un pago único.
+    const { data: tarifa } = await admin.from("tarifas")
+      .select("periodicidad").eq("id", tarifaId).single();
+    const recurrente = tarifa?.periodicidad === "mensual";
+    const metadata = {
+      pago_id: pago.pago_id,
+      alumno_id: alumnoId,
+      tarifa_id: tarifaId,
+    };
+
     const sesion = await stripe.checkout.sessions.create(
       {
-        mode: "payment",
+        mode: recurrente ? "subscription" : "payment",
         locale: "es",
         client_reference_id: pago.pago_id,
         customer_email: caller.email ?? undefined,
@@ -110,15 +122,16 @@ Deno.serve(async (req) => {
               currency: "eur",
               unit_amount: pago.importe_centimos,
               product_data: { name: pago.tarifa_nombre },
+              ...(recurrente
+                ? { recurring: { interval: "month" as const } }
+                : {}),
             },
           },
         ],
-        metadata: {
-          pago_id: pago.pago_id,
-          alumno_id: alumnoId,
-          tarifa_id: tarifaId,
-        },
-        payment_intent_data: { metadata: { pago_id: pago.pago_id } },
+        metadata,
+        ...(recurrente
+          ? { subscription_data: { metadata } }
+          : { payment_intent_data: { metadata: { pago_id: pago.pago_id } } }),
         expires_at: Math.floor(Date.now() / 1000) + MINUTOS_SESION * 60,
         // La vuelta solo es para enseñar el resultado; no activa nada.
         success_url: `${appUrl}/#/pago?pago=${pago.pago_id}`,
