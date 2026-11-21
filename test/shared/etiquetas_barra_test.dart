@@ -16,8 +16,8 @@ import '../golden_archived/ayuda_golden.dart';
 /// «Herramientas» se partía en dos líneas («Herramienta» / «s»). Con las
 /// tipografías reales, cada etiqueta tiene que ocupar una sola línea.
 ///
-/// Límite conocido: en móviles de 360 px de ancho «Herramientas» sigue sin
-/// caber a 10 px; haría falta una etiqueta más corta (decisión de Cipri).
+/// La pestaña se llama «Gestión» en la barra (decisión de Cipri, 21/11/2026);
+/// la pantalla sigue titulándose «Herramientas».
 
 class _ModoGestor extends AppModeNotifier {
   @override
@@ -74,7 +74,7 @@ void main() {
 
       for (final etiqueta in [
         'Hoy',
-        'Herramientas',
+        'Gestión',
         'Miembros',
         'Novedades',
         'Academia',

@@ -47,7 +47,7 @@ class MainShell extends ConsumerWidget {
     _Destino(Routes.inicio, 'Hoy', Icons.today_outlined, Icons.today),
     _Destino(
       Routes.herramientas,
-      'Herramientas',
+      'Gestión',
       Icons.handyman_outlined,
       Icons.handyman,
     ),
